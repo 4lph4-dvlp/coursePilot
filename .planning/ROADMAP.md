@@ -25,12 +25,16 @@
   2. Playwright 헤드리스 브라우저가 LMS 로그인 페이지에 접속하여 로그인에 성공하고 대시보드 진입을 확인한다.
   3. 로그인 후 세션 쿠키/스토리지 상태가 `session.json`에 저장되어 재실행 시 로그인 과정을 건너뛸 수 있다.
 
-**Plans**: 2 plans
+**Plans**: 1/2 plans executed
 
 Plans:
+
+- [x] 01-01-PLAN.md
+- [ ] 01-02-PLAN.md
+
 **Wave 1**
 
-- [ ] 01-01: 프로젝트 기본 디렉터리 구조, 의존성(`pyproject.toml` 또는 `requirements.txt`), `.env.example`, `config.py` 구현
+- [x] 01-01: 프로젝트 기본 디렉터리 구조, 의존성(`pyproject.toml` 또는 `requirements.txt`), `.env.example`, `config.py` 구현
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -125,7 +129,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Session Management | 0/2 | Not started | - |
+| 1. Foundation & Session Management | 1/2 | In Progress|  |
 | 2. LMS Scraper Core | 0/2 | Not started | - |
 | 3. Domain Modeling & Naming Rules | 0/1 | Not started | - |
 | 4. Notion Scheduler Integration & Deduplication | 0/2 | Not started | - |
