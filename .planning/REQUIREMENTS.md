@@ -1,0 +1,85 @@
+# Requirements: KAU LXP Assistant & Notion Scheduler Sync Skill
+
+**Defined:** 2026-09-21
+**Core Value:** 학생이 수강 중인 모든 강의의 미완료 인강 및 과제 마감 기한을 빠짐없이 확인하고, 중복 없이 정형화된 이름 규칙으로 개인 노션 스케줄러에 동기화하여 학업 누락을 원천 방지하는 것.
+
+## v1 Requirements
+
+### Configuration & Session (CONF)
+
+- [ ] **CONF-01**: `.env` 및 설정 로더를 통해 LMS URL, 학번, 비밀번호, Notion API Key, Notion DB ID(`21d53280-64be-80ec-af4e-000b679f03bb`)를 안전하게 관리한다.
+- [ ] **CONF-02**: 과목명 축약 매핑(`course_mappings.json` / 설정)을 통해 과목별 축약 이름(예: `공학수학2` -> `공수2`, `자료구조` -> `자구`)을 정의하고 로드한다.
+- [ ] **CONF-03**: Playwright 브라우저 세션 스토리지(`session.json`)를 캐싱하여 불필요한 반복 로그인을 방지하고, 세션 만료 시 자동 재로그인을 수행한다.
+
+### LMS Web Automation & Crawling (SCRP)
+
+- [ ] **SCRP-01**: Playwright 헤드리스 브라우저를 통해 대상 LMS에 자동 로그인하고 대시보드 정상 진입을 확인한다.
+- [ ] **SCRP-02**: 현재 학기 수강 중인 전체 강좌 목록(과목 ID, 과목명, 강좌 링크)을 추출한다.
+- [ ] **SCRP-03**: 각 과목의 주차별 온라인 동영상 강의 목록, 수강 진도율(출석/완료 여부), 수강 마감 일시를 추출한다.
+- [ ] **SCRP-04**: 각 과목의 과제 목록, 과제 제출 상태(제출완료/미제출), 과제 마감 일시를 추출한다.
+
+### Domain Logic & Naming Rules (DOMN)
+
+- [ ] **DOMN-01**: 수집된 데이터를 바탕으로 미완료 강의 및 미제출 과제를 정확하게 판별한다.
+- [ ] **DOMN-02**: 마감 24시간 이내의 미완료 항목을 감지하여 긴급도(`🔴 긴급 (P1)`) 판정 및 경고 태그를 부여한다.
+- [ ] **DOMN-03**: 기존 노션 관례에 맞춘 통일된 이름 규칙(`[{과목약어}] {주차}주차 강의 시청`, `[{과목약어}] {과제명} 제출`)으로 작업명을 정규화한다.
+
+### Notion Scheduler Integration & Deduplication (NOTN)
+
+- [ ] **NOTN-01**: Notion Scheduler DB(`21d53280-64be-80ec-af4e-000b679f03bb`)의 기존 페이지를 조회하여 작업명과 마감일(DueDate)을 확인한다.
+- [ ] **NOTN-02**: 중복 등록 방지: 기존에 등록된 항목은 건너뛰고(`Skip`), 신규 미완료 항목만 선별하여 등록한다.
+- [ ] **NOTN-03**: 대상 DB 스키마 속성(`선택`=루틴/이벤트, `구분`=학업, `DueDate`, `우선순위`=P1~P4, `상태`=시작 전, `메모`=URL)을 정확히 매핑하여 새 페이지를 생성한다.
+- [ ] **NOTN-04**: 노션에 실제 등록하기 전 파싱 결과와 등록 예정 목록을 미리 확인할 수 있는 드라이런(`--dry-run`) 모드를 지원한다.
+
+### CLI & Antigravity Skill Packaging (SKIL)
+
+- [ ] **SKIL-01**: 터미널 및 에이전트 대화창에 미완료 강의/과제 및 마감일을 직관적으로 보여주는 Rich 콘솔 브리핑 리포트를 출력한다.
+- [ ] **SKIL-02**: 상태 조회(`check`) 및 노션 동기화(`sync`)를 수행할 수 있는 CLI 명령어를 제공한다.
+- [ ] **SKIL-03**: Antigravity Skill 형식(`SKILL.md`)으로 패키징하여 에이전트가 자연어 요청으로 스킬을 호출할 수 있도록 한다.
+
+## v2 Requirements
+
+### Advanced Automation & Notifications
+
+- **NOTF-01**: 마감 임박 항목에 대해 웹훅(Slack, Discord 등) 또는 OS 알림 전송
+- **CAL-01**: Google Calendar / iCal 형식 내보내기 지원
+- **MOBI-01**: 모바일 웹 뷰어 또는 모바일 브라우저 세션 연동
+
+## Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| 온라인 강의 자동 재생 / 출석 대리 | 대학 학칙 위반 및 부정행위 방지를 위해 상태 조회 및 알림만 지원 |
+| 2차 인증(OTP/캡차) 자동 크랙/우회 | 보안 규정 준수 및 단순 ID/PW 기반 환경 우선 지원 (필요 시 세션 수동 저장 지원) |
+| 다중 사용자 호스팅 SaaS 서버 구축 | 개인정보(학번/비밀번호) 보호를 위해 로컬 환경 전용 에이전트 스킬로 설계 |
+
+## Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| CONF-01 | Phase 1 | Pending |
+| CONF-02 | Phase 1 | Pending |
+| CONF-03 | Phase 1 | Pending |
+| SCRP-01 | Phase 1 | Pending |
+| SCRP-02 | Phase 2 | Pending |
+| SCRP-03 | Phase 2 | Pending |
+| SCRP-04 | Phase 2 | Pending |
+| DOMN-01 | Phase 3 | Pending |
+| DOMN-02 | Phase 3 | Pending |
+| DOMN-03 | Phase 3 | Pending |
+| NOTN-01 | Phase 4 | Pending |
+| NOTN-02 | Phase 4 | Pending |
+| NOTN-03 | Phase 4 | Pending |
+| NOTN-04 | Phase 4 | Pending |
+| SKIL-01 | Phase 5 | Pending |
+| SKIL-02 | Phase 5 | Pending |
+| SKIL-03 | Phase 5 | Pending |
+
+**Coverage:**
+- v1 requirements: 17 total
+- Mapped to phases: 17
+- Unmapped: 0 ✓
+
+---
+*Requirements defined: 2026-09-21*
+*Last updated: 2026-09-21 after initial definition*
