@@ -15,80 +15,104 @@
 ## Phase Details
 
 ### Phase 1: Foundation & Session Management
+
 **Goal**: 안전한 환경변수 로딩, 과목명 축약 매핑 로드, Playwright 기반 LMS 자동 로그인 및 세션 캐싱 인프라 구축
 **Depends on**: Nothing (first phase)
 **Requirements**: CONF-01, CONF-02, CONF-03, SCRP-01
 **Success Criteria** (what must be TRUE):
+
   1. `.env` 파일과 `course_mappings.json`에서 접속 정보와 약칭 매핑을 정상 로드할 수 있다.
   2. Playwright 헤드리스 브라우저가 LMS 로그인 페이지에 접속하여 로그인에 성공하고 대시보드 진입을 확인한다.
   3. 로그인 후 세션 쿠키/스토리지 상태가 `session.json`에 저장되어 재실행 시 로그인 과정을 건너뛸 수 있다.
+
 **Plans**: 2 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 01-01: 프로젝트 기본 디렉터리 구조, 의존성(`pyproject.toml` 또는 `requirements.txt`), `.env.example`, `config.py` 구현
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 01-02: Playwright 브라우저 관리자 및 세션 캐싱/자동 로그인 모듈(`session_manager.py`, `auth.py`) 구현 및 로그인 테스트
 
 ---
 
 ### Phase 2: LMS Scraper Core
+
 **Goal**: 수강 강좌 목록 수집 및 각 과목별 주차 강의 수강 상태, 과제 제출 여부, 마감일 파싱 구현
 **Depends on**: Phase 1
 **Requirements**: SCRP-02, SCRP-03, SCRP-04
 **Success Criteria** (what must be TRUE):
+
   1. 학생이 수강 중인 모든 강좌의 이름, ID, 과목 홈 URL 목록을 정확하게 추출한다.
   2. 각 강좌의 주차별 동영상 강의 항목, 수강 진도(완료/미완료), 시청 마감 일시를 파싱한다.
   3. 각 강좌의 과제 목록, 제출 완료 여부, 제출 마감 일시를 파싱한다.
+
 **Plans**: 2 plans
 
 Plans:
+
 - [ ] 02-01: 강좌 목록 추출 및 과목별 메인/주차별 페이지 탐색기 구현
 - [ ] 02-02: 동영상 강의 진도율/마감일 파서 및 과제 목록/제출 상태 파서 구현
 
 ---
 
 ### Phase 3: Domain Modeling & Naming Rules
+
 **Goal**: 수집 데이터의 정규화, 통일된 작업 이름 규칙 생성, 24시간 마감 임박 판정 로직 구현
 **Depends on**: Phase 2
 **Requirements**: DOMN-01, DOMN-02, DOMN-03
 **Success Criteria** (what must be TRUE):
+
   1. 수집된 강의/과제 데이터를 표준 `Course`, `LectureItem`, `AssignmentItem`, `SyncTask` 데이터클래스로 변환한다.
   2. 과목명 매핑 규칙에 따라 `[공수2] 3주차 강의 시청`, `[자구] 1차 과제 제출` 형태로 작업명이 정규화된다.
   3. 마감 일시가 현재 시간 기준 24시간 이내인 미완료 항목에 `🔴 긴급 (P1)` 우선순위가 자동 지정된다.
+
 **Plans**: 1 plan
 
 Plans:
+
 - [ ] 03-01: 도메인 데이터 모델, 네이밍 포맷팅 엔진, 마감 기한 및 긴급도 분석기 구현
 
 ---
 
 ### Phase 4: Notion Scheduler Integration & Deduplication
+
 **Goal**: 사용자의 기존 Notion Scheduler DB 연동, 기등록 항목 조회를 통한 중복 등록 방지, 스키마 매핑 및 동기화 구현
 **Depends on**: Phase 3
 **Requirements**: NOTN-01, NOTN-02, NOTN-03, NOTN-04
 **Success Criteria** (what must be TRUE):
+
   1. Notion Scheduler DB(`21d53280-64be-80ec-af4e-000b679f03bb`)의 기존 페이지를 조회하여 기등록 작업명 목록을 추출할 수 있다.
   2. 이미 등록된 강의/과제는 건너뛰고 신규 미완료 항목만 노션 페이지로 생성한다.
   3. `선택`('루틴'/'이벤트'), `구분`(['학업']), `DueDate`, `우선순위`, `상태`('시작 전'), `메모` 속성이 정확하게 입력된다.
   4. `--dry-run` 옵션 실행 시 실제 노션 페이지 생성 없이 등록 대상 및 스킵 목록을 확인할 수 있다.
+
 **Plans**: 2 plans
 
 Plans:
+
 - [ ] 04-01: Notion API/MCP 클라이언트 래퍼 및 기등록 항목 중복 검사 엔진 구현
 - [ ] 04-02: 노션 스키마 속성 매핑, 페이지 생성 로직 및 드라이런 모드 구현
 
 ---
 
 ### Phase 5: CLI Reporting & Antigravity Skill Packaging
+
 **Goal**: 직관적인 Rich 콘솔 브리핑 리포트, 통합 CLI 진입점 제공, Antigravity `SKILL.md` 패키징 및 최종 검증
 **Depends on**: Phase 4
 **Requirements**: SKIL-01, SKIL-02, SKIL-03
 **Success Criteria** (what must be TRUE):
+
   1. 터미널 및 대화창에 과목별 미완료 강의, 미제출 과제, 마감 임박 목록이 표(Table) 형태로 깔끔하게 브리핑된다.
   2. `python -m kau_assistant check` 및 `python -m kau_assistant sync` CLI 명령어가 안정적으로 동작한다.
   3. Antigravity Skill 폴더(`SKILL.md`, 지침 및 메타데이터)가 완성되어 에이전트가 자연어 요청으로 스킬을 구동할 수 있다.
+
 **Plans**: 2 plans
 
 Plans:
+
 - [ ] 05-01: Rich 기반 콘솔 브리핑 리포터 및 통합 CLI 명령어 구현
 - [ ] 05-02: Antigravity `SKILL.md` 정의, README 작성 및 전체 워크플로우 엔드투엔드 검증
 
