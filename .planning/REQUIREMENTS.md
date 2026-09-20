@@ -7,13 +7,13 @@
 
 ### Configuration & Session (CONF)
 
-- [ ] **CONF-01**: `.env` 및 설정 로더를 통해 LMS URL, 학번, 비밀번호, Notion API Key, Notion DB ID(`21d53280-64be-80ec-af4e-000b679f03bb`)를 안전하게 관리한다.
-- [ ] **CONF-02**: 과목명 축약 매핑(`course_mappings.json` / 설정)을 통해 과목별 축약 이름(예: `공학수학2` -> `공수2`, `자료구조` -> `자구`)을 정의하고 로드한다.
-- [ ] **CONF-03**: Playwright 브라우저 세션 스토리지(`session.json`)를 캐싱하여 불필요한 반복 로그인을 방지하고, 세션 만료 시 자동 재로그인을 수행한다.
+- [x] **CONF-01**: `.env` 및 설정 로더를 통해 LMS URL, 학번, 비밀번호, Notion API Key, Notion DB ID(`21d53280-64be-80ec-af4e-000b679f03bb`)를 안전하게 관리한다.
+- [x] **CONF-02**: 과목명 축약 매핑(`course_mappings.json` / 설정)을 통해 과목별 축약 이름(예: `공학수학2` -> `공수2`, `자료구조` -> `자구`)을 정의하고 로드한다.
+- [x] **CONF-03**: Playwright 브라우저 세션 스토리지(`session.json`)를 캐싱하여 불필요한 반복 로그인을 방지하고, 세션 만료 시 자동 재로그인을 수행한다.
 
 ### LMS Web Automation & Crawling (SCRP)
 
-- [ ] **SCRP-01**: Playwright 헤드리스 브라우저를 통해 대상 LMS에 자동 로그인하고 대시보드 정상 진입을 확인한다.
+- [x] **SCRP-01**: Playwright 헤드리스 브라우저를 통해 대상 LMS에 자동 로그인하고 대시보드 정상 진입을 확인한다.
 - [ ] **SCRP-02**: 현재 학기 수강 중인 전체 강좌 목록(과목 ID, 과목명, 강좌 링크)을 추출한다.
 - [ ] **SCRP-03**: 각 과목의 주차별 온라인 동영상 강의 목록, 수강 진도율(출석/완료 여부), 수강 마감 일시를 추출한다.
 - [ ] **SCRP-04**: 각 과목의 과제 목록, 과제 제출 상태(제출완료/미제출), 과제 마감 일시를 추출한다.
@@ -57,10 +57,10 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CONF-01 | Phase 1 | Pending |
-| CONF-02 | Phase 1 | Pending |
-| CONF-03 | Phase 1 | Pending |
-| SCRP-01 | Phase 1 | Pending |
+| CONF-01 | Phase 1 | Complete |
+| CONF-02 | Phase 1 | Complete |
+| CONF-03 | Phase 1 | Complete |
+| SCRP-01 | Phase 1 | Complete |
 | SCRP-02 | Phase 2 | Pending |
 | SCRP-03 | Phase 2 | Pending |
 | SCRP-04 | Phase 2 | Pending |
@@ -76,6 +76,7 @@
 | SKIL-03 | Phase 5 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 17 total
 - Mapped to phases: 17
 - Unmapped: 0 ✓
