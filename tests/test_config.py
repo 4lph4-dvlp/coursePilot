@@ -12,8 +12,12 @@ def test_default_values(clean_env):
     assert settings.lms_password == ""
     assert settings.headless is True
     assert settings.timeout_ms == 30000
-    assert settings.notion_database_id == "21d53280-64be-80ec-af4e-000b679f03bb"
+    assert settings.notion_database_id == ""
+    assert settings.notion_database_name == ""
+    assert settings.notion_token == ""
     assert settings.notion_api_key == ""
+    assert settings.effective_notion_token == ""
+    assert settings.is_notion_configured is False
     assert settings.session_cache_path == Path(".cache/session.json")
     assert settings.course_mappings_path == Path("config/course_mappings.json")
 
@@ -25,7 +29,8 @@ def test_env_loading(tmp_path: Path, clean_env):
         "LMS_URL=https://custom-lms.kau.ac.kr\n"
         "LMS_USERNAME=2021123456\n"
         "LMS_PASSWORD=mypassword123!\n"
-        "NOTION_API_KEY=secret_notion_key\n"
+        "NOTION_TOKEN=preferred_notion_token\n"
+        "NOTION_API_KEY=legacy_notion_key\n"
         "NOTION_DATABASE_ID=custom-db-id\n"
         "HEADLESS=false\n"
         "TIMEOUT_MS=45000\n",
@@ -36,7 +41,9 @@ def test_env_loading(tmp_path: Path, clean_env):
     assert settings.lms_url == "https://custom-lms.kau.ac.kr"
     assert settings.lms_username == "2021123456"
     assert settings.lms_password == "mypassword123!"
-    assert settings.notion_api_key == "secret_notion_key"
+    assert settings.notion_token == "preferred_notion_token"
+    assert settings.notion_api_key == "legacy_notion_key"
+    assert settings.effective_notion_token == "preferred_notion_token"
     assert settings.notion_database_id == "custom-db-id"
     assert settings.headless is False
     assert settings.timeout_ms == 45000
@@ -61,19 +68,50 @@ def test_sensitive_info_masking():
     """Verify sensitive fields are masked in __repr__ and __str__."""
     settings = Settings(
         lms_password="supersecretpassword",
-        notion_api_key="secret_token_123",
+        notion_token="preferred_secret_123",
+        notion_api_key="legacy_secret_456",
         _env_file=None,
     )
     repr_str = repr(settings)
     str_str = str(settings)
 
     assert "supersecretpassword" not in repr_str
-    assert "secret_token_123" not in repr_str
+    assert "preferred_secret_123" not in repr_str
+    assert "legacy_secret_456" not in repr_str
     assert "***" in repr_str
 
     assert "supersecretpassword" not in str_str
-    assert "secret_token_123" not in str_str
+    assert "preferred_secret_123" not in str_str
+    assert "legacy_secret_456" not in str_str
     assert "***" in str_str
+
+
+def test_notion_credential_precedence_and_legacy_compatibility():
+    preferred = Settings(
+        notion_token="preferred",
+        notion_api_key="legacy",
+        notion_database_id="db-id",
+        _env_file=None,
+    )
+    legacy = Settings(
+        notion_api_key="legacy-only",
+        notion_database_name="Scheduler",
+        _env_file=None,
+    )
+
+    assert preferred.effective_notion_token == "preferred"
+    assert preferred.is_notion_configured is True
+    assert legacy.effective_notion_token == "legacy-only"
+    assert legacy.is_notion_configured is True
+
+
+def test_notion_configuration_requires_credential_and_one_target():
+    assert Settings(notion_token="token", notion_database_id="db", _env_file=None).is_notion_configured
+    assert Settings(
+        notion_token="token", notion_database_name="Scheduler", _env_file=None
+    ).is_notion_configured
+    assert not Settings(notion_token="token", _env_file=None).is_notion_configured
+    assert not Settings(notion_database_id="db", _env_file=None).is_notion_configured
 
 
 def test_get_settings_singleton(clean_env):
