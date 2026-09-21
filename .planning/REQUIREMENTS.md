@@ -20,9 +20,9 @@
 
 ### Domain Logic & Naming Rules (DOMN)
 
-- [ ] **DOMN-01**: 수집된 데이터를 바탕으로 미완료 강의 및 미제출 과제를 정확하게 판별한다.
-- [ ] **DOMN-02**: 마감 24시간 이내의 미완료 항목을 감지하여 긴급도(`🔴 긴급 (P1)`) 판정 및 경고 태그를 부여한다.
-- [ ] **DOMN-03**: 기존 노션 관례에 맞춘 통일된 이름 규칙(`[{과목약어}] {주차}주차 강의 시청`, `[{과목약어}] {과제명} 제출`)으로 작업명을 정규화한다.
+- [x] **DOMN-01**: 수집된 데이터를 바탕으로 미완료 강의 및 미제출 과제를 정확하게 판별한다.
+- [x] **DOMN-02**: 마감 24시간 이내의 미완료 항목을 감지하여 긴급도(`🔴 긴급 (P1)`) 판정 및 경고 태그를 부여한다.
+- [x] **DOMN-03**: 기존 노션 관례에 맞춘 통일된 이름 규칙(`[{과목약어}] {주차}주차 강의 시청`, `[{과목약어}] {과제명} 제출`)으로 작업명을 정규화한다.
 
 ### Notion Scheduler Integration & Deduplication (NOTN)
 
@@ -64,9 +64,9 @@
 | SCRP-02 | Phase 2 | Complete |
 | SCRP-03 | Phase 2 | Complete |
 | SCRP-04 | Phase 2 | Complete |
-| DOMN-01 | Phase 3 | Pending |
-| DOMN-02 | Phase 3 | Pending |
-| DOMN-03 | Phase 3 | Pending |
+| DOMN-01 | Phase 3 | Complete |
+| DOMN-02 | Phase 3 | Complete |
+| DOMN-03 | Phase 3 | Complete |
 | NOTN-01 | Phase 4 | Pending |
 | NOTN-02 | Phase 4 | Pending |
 | NOTN-03 | Phase 4 | Pending |

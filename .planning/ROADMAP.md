@@ -81,11 +81,11 @@ Plans:
   2. 과목명 매핑 규칙에 따라 `[공수2] 3주차 강의 시청`, `[자구] 1차 과제 제출` 형태로 작업명이 정규화된다.
   3. 마감 일시가 현재 시간 기준 24시간 이내인 미완료 항목에 `🔴 긴급 (P1)` 우선순위가 자동 지정된다.
 
-**Plans**: 1 plan
+**Plans**: 1/1 plans executed
 
 Plans:
 
-- [ ] 03-01-PLAN.md
+- [x] 03-01-PLAN.md
 
 **Wave 1**
 
@@ -143,6 +143,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Foundation & Session Management | 2/2 | Complete    | 2026-09-21 |
 | 2. LMS Scraper Core | 2/2 | Complete    | 2026-09-21 |
-| 3. Domain Modeling & Naming Rules | 0/1 | Not started | - |
+| 3. Domain Modeling & Naming Rules | 1/1 | In Progress|  |
 | 4. Notion Scheduler Integration & Deduplication | 0/2 | Not started | - |
 | 5. CLI Reporting & Antigravity Skill Packaging | 0/2 | Not started | - |
