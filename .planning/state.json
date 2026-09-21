@@ -16,7 +16,7 @@
     {
       "number": "3",
       "name": "Domain Modeling & Naming Rules",
-      "status": "pending"
+      "status": "complete"
     },
     {
       "number": "4",
@@ -30,9 +30,9 @@
     }
   ],
   "next": {
-    "command": "/gsd-progress",
-    "label": "Show progress",
-    "reason": "Unsure of state — showing progress"
+    "command": "/gsd-progress --next",
+    "label": "Advance to the next step (plan phase 4)",
+    "reason": "Phase 4 of 5 — needs a plan"
   },
-  "updated_at": "2026-09-21T11:07:03.760Z"
+  "updated_at": "2026-09-21T11:28:53.939Z"
 }

@@ -13,18 +13,17 @@
 
 ### Validated
 
-(None yet — ship to validate)
+- ✓ `.env` 또는 설정 파일을 통한 LMS 접속 정보(URL, ID, PW) 및 노션 설정 안전 관리 — Phase 1
+- ✓ Python + Playwright 기반 헤드리스 브라우저를 통한 LMS 자동 로그인 및 세션 관리 — Phase 1
+- ✓ 수강 중인 전체 과목 목록 및 주차별 강의 수강 상태(진행도, 마감일) 파싱 — Phase 2
+- ✓ 각 과목별 과제 목록 및 제출 여부, 제출 마감일 파싱 — Phase 2
+- ✓ 24시간 이내 마감 임박 항목 감지 및 우선순위/경고 리포트 기능 — Phase 3
+- ✓ 통일화된 작업 이름 규칙(예: `[{과목약어}] {N}주차 강의 시청`, `[{과목약어}] {과제명} 제출`) 및 노션 속성(`선택`=루틴/이벤트, `구분`=학업, `DueDate`, `우선순위`, `상태`=시작 전) 자동 매핑 — Phase 3
 
 ### Active
 
-- [ ] `.env` 또는 설정 파일을 통한 LMS 접속 정보(URL, ID, PW) 및 노션 설정 안전 관리
-- [ ] Python + Playwright 기반 헤드리스 브라우저를 통한 LMS 자동 로그인 및 세션 관리
-- [ ] 수강 중인 전체 과목 목록 및 주차별 강의 수강 상태(진행도, 마감일) 파싱
-- [ ] 각 과목별 과제 목록 및 제출 여부, 제출 마감일 파싱
-- [ ] 24시간 이내 마감 임박 항목 감지 및 우선순위/경고 리포트 기능
 - [ ] 에이전트 채팅 대화창을 통한 미완료 항목 및 마감일 요약 브리핑 리포트 출력
 - [ ] Notion Scheduler DB(`21d53280-64be-80ec-af4e-000b679f03bb`) 연동 및 기등록 항목 확인을 통한 중복 등록 방지
-- [ ] 통일화된 작업 이름 규칙(예: `[{과목약어}] {N}주차 강의 시청`, `[{과목약어}] {과제명} 제출`) 및 노션 속성(`선택`=루틴/이벤트, `구분`=학업, `DueDate`, `우선순위`, `상태`=시작 전) 자동 매핑
 - [ ] Antigravity Skill 패키징(`SKILL.md`, 실행 스크립트, 의존성 가이드)
 
 ### Out of Scope
@@ -51,9 +50,12 @@
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Playwright 헤드리스 브라우저 사용 | SPA 및 자바스크립트 렌더링 기반 대학 LMS의 동적 요소를 안정적으로 크롤링하기 위함 | — Pending |
-| 기존 Notion Scheduler DB 스키마 직접 준수 | 사용자가 이미 사용하는 스케줄러 환경에 자연스럽게 통합되어 추가 마이그레이션이 불필요함 | — Pending |
-| 과목명 약칭 매핑 테이블 적용 | 노션의 기존 네이밍 스타일(`[공수2]`, `[자구]`)을 그대로 유지하기 위함 | — Pending |
+| Playwright 헤드리스 브라우저 사용 | SPA 및 자바스크립트 렌더링 기반 대학 LMS의 동적 요소를 안정적으로 크롤링하기 위함 | ✓ Validated (Phase 1, 2) |
+| 기존 Notion Scheduler DB 스키마 직접 준수 | 사용자가 이미 사용하는 스케줄러 환경에 자연스럽게 통합되어 추가 마이그레이션이 불필요함 | ✓ Modeled (Phase 3) |
+| 과목명 약칭 매핑 테이블 적용 | 노션의 기존 네이밍 스타일(`[공수2]`, `[자구]`)을 그대로 유지하기 위함 | ✓ Validated (Phase 1, 3) |
+| 순수 도메인 계층 격리 (Pure Domain Layer) | I/O(Playwright, Notion API) 없는 결정론적 테스트 및 빠른 단위 테스트 보장 | ✓ Implemented (Phase 3) |
+| 24시간 긴급도 우선순위 사다리 (P1~P4) | 마감 24시간 이내 미완료 항목은 P1, 지연 항목은 P4로 자동 분류 | ✓ Implemented (Phase 3) |
+| Notion 2000자 제한 방어 메모 절삭 | 과제 설명문 1500자 초과 시 절삭, 전체 메모 1950자 상한 하드캡 적용 | ✓ Implemented (Phase 3) |
 
 ## Evolution
 
@@ -73,4 +75,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-21 after initialization*
+*Last updated: 2026-09-21 after Phase 3*
