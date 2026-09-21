@@ -56,8 +56,12 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
+**Wave 1**
 
 - [ ] 02-01: 강좌 목록 추출 및 과목별 메인/주차별 페이지 탐색기 구현
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 02-02: 동영상 강의 진도율/마감일 파서 및 과제 목록/제출 상태 파서 구현
 
 ---

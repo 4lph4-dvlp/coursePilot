@@ -1,0 +1,38 @@
+{
+  "contract": "1.0.0",
+  "flavor": "core",
+  "milestone": null,
+  "phases": [
+    {
+      "number": "1",
+      "name": "Foundation & Session Management",
+      "status": "complete"
+    },
+    {
+      "number": "2",
+      "name": "LMS Scraper Core",
+      "status": "pending"
+    },
+    {
+      "number": "3",
+      "name": "Domain Modeling & Naming Rules",
+      "status": "pending"
+    },
+    {
+      "number": "4",
+      "name": "Notion Scheduler Integration & Deduplication",
+      "status": "pending"
+    },
+    {
+      "number": "5",
+      "name": "CLI Reporting & Antigravity Skill Packaging",
+      "status": "pending"
+    }
+  ],
+  "next": {
+    "command": "/gsd-progress --next",
+    "label": "Advance to the next step",
+    "reason": "Phase 2 of 5 · 20% · executing"
+  },
+  "updated_at": "2026-09-21T07:09:20.293Z"
+}
