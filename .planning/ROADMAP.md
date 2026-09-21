@@ -105,12 +105,16 @@ Plans:
   3. `선택`('루틴'/'이벤트'), `구분`(['학업']), `DueDate`, `우선순위`, `상태`('시작 전'), `메모` 속성이 정확하게 입력된다.
   4. `--dry-run` 옵션 실행 시 실제 노션 페이지 생성 없이 등록 대상 및 스킵 목록을 확인할 수 있다.
 
-**Plans**: 2 plans
+**Plans**: 1/2 plans executed
 
 Plans:
+
+- [x] 04-01-PLAN.md
+- [ ] 04-02-PLAN.md
+
 **Wave 1**
 
-- [ ] 04-01: Notion API/MCP 클라이언트 래퍼 및 기등록 항목 중복 검사 엔진 구현
+- [x] 04-01: Notion API/MCP 클라이언트 래퍼 및 기등록 항목 중복 검사 엔진 구현
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -148,5 +152,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Foundation & Session Management | 2/2 | Complete    | 2026-09-21 |
 | 2. LMS Scraper Core | 2/2 | Complete    | 2026-09-21 |
 | 3. Domain Modeling & Naming Rules | 1/1 | Complete    | 2026-09-21 |
-| 4. Notion Scheduler Integration & Deduplication | 0/2 | Not started | - |
+| 4. Notion Scheduler Integration & Deduplication | 1/2 | In Progress|  |
 | 5. CLI Reporting & Antigravity Skill Packaging | 0/2 | Not started | - |
