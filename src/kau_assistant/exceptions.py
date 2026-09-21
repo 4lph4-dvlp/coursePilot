@@ -18,3 +18,9 @@ class AuthenticationError(KauAssistantError):
 class NavigationTimeoutError(KauAssistantError):
     """Raised when page navigation times out even after retry."""
     pass
+
+
+class CourseAccessDeniedError(KauAssistantError):
+    """Raised when course access is denied or course is unavailable/restricted."""
+    pass
+
