@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>학습현황 (진도표)</title>
+</head>
+<body>
+  <div id="page">
+    <div id="region-main">
+      <h2>학습현황 및 출석부</h2>
+      <table class="generaltable progress-report">
+        <thead>
+          <tr>
+            <th>주차</th>
+            <th>차시</th>
+            <th>강의명</th>
+            <th>인정시간</th>
+            <th>학습시간</th>
+            <th>진도율</th>
+            <th>출석여부</th>
+            <th>출석인정기간</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- 1주차 1차시: 출석 'O', 100% -->
+          <tr>
+            <td class="week">1주차</td>
+            <td class="clip">1</td>
+            <td class="title"><a href="https://canvas.kau.ac.kr/mod/vod/view.php?id=1001">강의 소개 및 오리엔테이션</a></td>
+            <td class="required">25분</td>
+            <td class="watched">25분</td>
+            <td class="progress">100%</td>
+            <td class="attendance"><span class="attend">O</span></td>
+            <td class="period">2026-09-01 00:00 ~ 2026-09-07 23:59</td>
+          </tr>
+          <!-- 1주차 2차시: 출석 'O', 100% -->
+          <tr>
+            <td class="week">1주차</td>
+            <td class="clip">2</td>
+            <td class="title"><a href="https://canvas.kau.ac.kr/mod/vod/view.php?id=1002">1장 선형계의 기초</a></td>
+            <td class="required">50분</td>
+            <td class="watched">50분</td>
+            <td class="progress">100%</td>
+            <td class="attendance"><span class="attend">O</span></td>
+            <td class="period">2026-09-01 00:00 ~ 2026-09-07 23:59</td>
+          </tr>
+          <!-- 2주차 1차시: 미출석 'X', 80% (마감일 경과 -> OVERDUE) -->
+          <tr>
+            <td class="week">2주차</td>
+            <td class="clip">1</td>
+            <td class="title"><a href="https://canvas.kau.ac.kr/mod/vod/view.php?id=1003">2장 가우스 소거법 (동영상)</a></td>
+            <td class="required">50분</td>
+            <td class="watched">40분</td>
+            <td class="progress">80%</td>
+            <td class="attendance"><span class="absent">X</span></td>
+            <td class="period">2026-09-08 00:00 ~ 2026-09-14 23:59</td>
+          </tr>
+          <!-- 2주차 2차시: 미출석 'X', 0% (마감일 경과 -> OVERDUE) -->
+          <tr>
+            <td class="week">2주차</td>
+            <td class="clip">2</td>
+            <td class="title"><a href="https://canvas.kau.ac.kr/mod/vod/view.php?id=1004">2장 역행렬 계산</a></td>
+            <td class="required">45분</td>
+            <td class="watched">0분</td>
+            <td class="progress">0%</td>
+            <td class="attendance"><span class="absent">X</span></td>
+            <td class="period">2026-09-08 00:00 ~ 2026-09-14 23:59</td>
+          </tr>
+          <!-- 3주차 1차시: 출석 마크는 '-'지만 진도율 100% (보조 판정 -> COMPLETED) -->
+          <tr>
+            <td class="week">3주차</td>
+            <td class="clip">1</td>
+            <td class="title"><a href="https://canvas.kau.ac.kr/mod/vod/view.php?id=1005">3장 행렬식</a></td>
+            <td class="required">50분</td>
+            <td class="watched">50분</td>
+            <td class="progress">100%</td>
+            <td class="attendance"><span>-</span></td>
+            <td class="period">2026-09-15 00:00 ~ 2026-09-30 23:59</td>
+          </tr>
+          <!-- 3주차 2차시: 25% 미완료 (마감 전 -> INCOMPLETE) -->
+          <tr>
+            <td class="week">3주차</td>
+            <td class="clip">2</td>
+            <td class="title"><a href="https://canvas.kau.ac.kr/mod/vod/view.php?id=1006">3장 크래머 공식</a></td>
+            <td class="required">40분</td>
+            <td class="watched">10분</td>
+            <td class="progress">25%</td>
+            <td class="attendance"><span>-</span></td>
+            <td class="period">2026-09-15 00:00 ~ 2026-09-30 23:59</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>
