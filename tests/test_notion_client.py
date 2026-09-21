@@ -189,6 +189,27 @@ def test_schema_validation_is_complete_and_read_only() -> None:
         client.validate_scheduler_schema("source-id")
 
 
+def test_client_delegates_schema_and_every_page_to_mapper() -> None:
+    sdk = MagicMock()
+    sdk.data_sources.retrieve.return_value = {"properties": _schema()}
+    raw_pages = [{"id": "one", "properties": {}}, {"id": "two", "properties": {}}]
+    sdk.data_sources.query.return_value = {"results": raw_pages, "has_more": False}
+    parsed_pages = [MagicMock(page_id="one"), MagicMock(page_id="two")]
+    client = NotionClient(settings=Settings(_env_file=None), sdk=sdk)
+
+    with patch("kau_assistant.notion.client.mapper.validate_scheduler_schema") as validate:
+        client.validate_scheduler_schema("source-id")
+        validate.assert_called_once_with(_schema())
+
+    with patch(
+        "kau_assistant.notion.client.mapper.parse_existing_page", side_effect=parsed_pages
+    ) as parse:
+        assert client.query_existing_pages(
+            "source-id", now=datetime(2026, 9, 22, 12, 0, tzinfo=KST)
+        ) == parsed_pages
+        assert [call.args[0] for call in parse.call_args_list] == raw_pages
+
+
 def test_existing_page_query_uses_locked_filter_and_paginates() -> None:
     sdk = MagicMock()
     sdk.data_sources.query.side_effect = [
