@@ -16,13 +16,18 @@ from kau_assistant.notion.models import ExistingPage, NotionTarget
 from kau_assistant.scraper.date_parser import KST
 
 
-def _task(*, due_date: datetime | None = None) -> SyncTask:
+def _task(
+    *,
+    task_id: str = "task-1",
+    title: str = "[공수2] 3주차 행렬 연산 과제 제출",
+    due_date: datetime | None = None,
+) -> SyncTask:
     return SyncTask(
-        id="task-1",
+        id=task_id,
         course_id="course-1",
         course_name="공학수학 2",
         course_abbr="공수2",
-        title="[공수2] 3주차 행렬 연산 과제 제출",
+        title=title,
         raw_title="3주차 행렬 연산 과제 제출",
         task_type=TaskType.ASSIGNMENT,
         selection=TaskSelect.EVENT,
@@ -99,3 +104,62 @@ def test_missing_notion_configuration_returns_successful_disabled_result() -> No
     assert result.stats.skipped == 1
     assert result.skipped[0].reason == "notion_disabled"
     client.resolve_target.assert_not_called()
+
+
+def test_live_mode_continues_after_one_action_failure_and_keeps_stats_consistent() -> None:
+    target = NotionTarget(
+        database_id="database-id", data_source_id="source-id", title="Scheduler"
+    )
+    client = MagicMock()
+    client.resolve_target.return_value = target
+    client.query_existing_pages.return_value = []
+    client.create_page.side_effect = [RuntimeError("secret response body"), {"id": "ok"}]
+    settings = Settings(
+        notion_token="token", notion_database_id="database-id", _env_file=None
+    )
+
+    result = NotionSyncEngine(settings=settings, client=client).sync(
+        [
+            _task(task_id="failed", title="[공수2] failed"),
+            _task(task_id="ok", title="[공수2] ok"),
+        ]
+    )
+
+    assert client.create_page.call_count == 2
+    assert len(result.created) == 1
+    assert result.created[0].task_id == "ok"
+    assert result.created[0].executed is True
+    assert len(result.errors) == 1
+    assert result.errors[0].task_id == "failed"
+    assert "secret response body" not in result.errors[0].message
+    assert result.stats.created == len(result.created)
+    assert result.stats.updated == len(result.updated)
+    assert result.stats.skipped == len(result.skipped)
+    assert result.stats.errors == len(result.errors)
+
+
+def test_configured_read_failure_is_contained_as_structured_error() -> None:
+    client = MagicMock()
+    client.resolve_target.side_effect = RuntimeError("secret response body")
+    settings = Settings(
+        notion_token="token", notion_database_id="database-id", _env_file=None
+    )
+
+    result = NotionSyncEngine(settings=settings, client=client).sync([_task()])
+
+    assert result.enabled is True
+    assert result.stats.errors == 1
+    assert result.errors[0].code == "RuntimeError"
+    assert "secret response body" not in result.errors[0].message
+    client.create_page.assert_not_called()
+    client.update_page.assert_not_called()
+
+
+def test_public_notion_facade_exports_only_stable_application_types() -> None:
+    import kau_assistant.notion as notion
+
+    assert notion.NotionSyncEngine is NotionSyncEngine
+    assert notion.SyncResult.__name__ == "SyncResult"
+    assert notion.NotionTransportError.__name__ == "NotionTransportError"
+    assert not hasattr(notion, "Client")
+    assert not hasattr(notion, "RetryOptions")
