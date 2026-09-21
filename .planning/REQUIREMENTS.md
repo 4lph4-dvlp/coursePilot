@@ -14,9 +14,9 @@
 ### LMS Web Automation & Crawling (SCRP)
 
 - [x] **SCRP-01**: Playwright 헤드리스 브라우저를 통해 대상 LMS에 자동 로그인하고 대시보드 정상 진입을 확인한다.
-- [ ] **SCRP-02**: 현재 학기 수강 중인 전체 강좌 목록(과목 ID, 과목명, 강좌 링크)을 추출한다.
-- [ ] **SCRP-03**: 각 과목의 주차별 온라인 동영상 강의 목록, 수강 진도율(출석/완료 여부), 수강 마감 일시를 추출한다.
-- [ ] **SCRP-04**: 각 과목의 과제 목록, 과제 제출 상태(제출완료/미제출), 과제 마감 일시를 추출한다.
+- [x] **SCRP-02**: 현재 학기 수강 중인 전체 강좌 목록(과목 ID, 과목명, 강좌 링크)을 추출한다.
+- [x] **SCRP-03**: 각 과목의 주차별 온라인 동영상 강의 목록, 수강 진도율(출석/완료 여부), 수강 마감 일시를 추출한다.
+- [x] **SCRP-04**: 각 과목의 과제 목록, 과제 제출 상태(제출완료/미제출), 과제 마감 일시를 추출한다.
 
 ### Domain Logic & Naming Rules (DOMN)
 
@@ -61,9 +61,9 @@
 | CONF-02 | Phase 1 | Complete |
 | CONF-03 | Phase 1 | Complete |
 | SCRP-01 | Phase 1 | Complete |
-| SCRP-02 | Phase 2 | Pending |
-| SCRP-03 | Phase 2 | Pending |
-| SCRP-04 | Phase 2 | Pending |
+| SCRP-02 | Phase 2 | Complete |
+| SCRP-03 | Phase 2 | Complete |
+| SCRP-04 | Phase 2 | Complete |
 | DOMN-01 | Phase 3 | Pending |
 | DOMN-02 | Phase 3 | Pending |
 | DOMN-03 | Phase 3 | Pending |
