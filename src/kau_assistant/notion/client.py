@@ -9,32 +9,19 @@ from notion_client import Client, RetryOptions
 from notion_client.errors import APIResponseError
 
 from kau_assistant.config import Settings, get_settings
-from kau_assistant.domain.models import TaskPriority, TaskStatus
 from kau_assistant.exceptions import (
     NotionAuthenticationError,
     NotionPermissionError,
-    NotionSchemaError,
     NotionTargetError,
     NotionTransportError,
 )
+from kau_assistant.notion import mapper
 from kau_assistant.notion.models import ExistingPage, NotionTarget
 from kau_assistant.scraper.date_parser import KST
 
 
 REQUEST_INTERVAL_SECONDS = 0.35
 READ_529_RETRIES = 2
-REQUIRED_SCHEMA: dict[str, tuple[str, set[str]]] = {
-    "이름": ("title", set()),
-    "선택": ("select", {"루틴", "이벤트"}),
-    "구분": ("multi_select", {"학업"}),
-    "DueDate": ("date", set()),
-    "Plan": ("date", set()),
-    "우선순위": ("select", {"P1", "P2", "P3", "P4"}),
-    "상태": ("status", {"시작 전", "진행 중", "완료", "폐기"}),
-    "메모": ("rich_text", set()),
-}
-
-
 def _plain_text(parts: list[dict[str, Any]] | None) -> str:
     return "".join(str(part.get("plain_text", "")) for part in parts or [])
 
@@ -173,27 +160,7 @@ class NotionClient:
         data_source = self._read(
             self._sdk.data_sources.retrieve, data_source_id=data_source_id
         )
-        properties = data_source.get("properties", {})
-        errors: list[str] = []
-        for name, (expected_type, required_options) in REQUIRED_SCHEMA.items():
-            actual = properties.get(name)
-            if actual is None:
-                errors.append(f"{name}: 누락")
-                continue
-            actual_type = actual.get("type")
-            if actual_type != expected_type:
-                errors.append(f"{name}: {actual_type!r} (필요: {expected_type!r})")
-                continue
-            if required_options:
-                option_names = {
-                    str(item.get("name", ""))
-                    for item in actual.get(expected_type, {}).get("options", [])
-                }
-                missing = required_options - option_names
-                if missing:
-                    errors.append(f"{name}: 옵션 누락 {sorted(missing)}")
-        if errors:
-            raise NotionSchemaError("Scheduler 스키마가 호환되지 않습니다: " + "; ".join(errors))
+        mapper.validate_scheduler_schema(data_source.get("properties", {}))
 
     def query_existing_pages(
         self, data_source_id: str, *, now: datetime | None = None
@@ -217,25 +184,7 @@ class NotionClient:
             if cursor:
                 kwargs["start_cursor"] = cursor
             response = self._read(self._sdk.data_sources.query, **kwargs)
-            for page in response.get("results", []):
-                properties = page.get("properties", {})
-                title = _plain_text(properties.get("이름", {}).get("title"))
-                due_raw = (properties.get("DueDate", {}).get("date") or {}).get("start")
-                plan_raw = (properties.get("Plan", {}).get("date") or {}).get("start")
-                priority_raw = (properties.get("우선순위", {}).get("select") or {}).get("name")
-                status_raw = (properties.get("상태", {}).get("status") or {}).get("name")
-                memo = _plain_text(properties.get("메모", {}).get("rich_text"))
-                pages.append(
-                    ExistingPage(
-                        page_id=str(page["id"]),
-                        title=title,
-                        due_date=datetime.fromisoformat(due_raw) if due_raw else None,
-                        priority=TaskPriority(priority_raw) if priority_raw else None,
-                        memo=memo,
-                        status=TaskStatus(status_raw) if status_raw else None,
-                        plan_date=datetime.fromisoformat(plan_raw) if plan_raw else None,
-                    )
-                )
+            pages.extend(mapper.parse_existing_page(page) for page in response.get("results", []))
             if not response.get("has_more"):
                 break
             cursor = response.get("next_cursor")
