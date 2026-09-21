@@ -53,12 +53,12 @@ Plans:
   2. 각 강좌의 주차별 동영상 강의 항목, 수강 진도(완료/미완료), 시청 마감 일시를 파싱한다.
   3. 각 강좌의 과제 목록, 제출 완료 여부, 제출 마감 일시를 파싱한다.
 
-**Plans**: 1/2 plans executed
+**Plans**: 2/2 plans executed
 
 Plans:
 
 - [x] 02-01-PLAN.md
-- [ ] 02-02-PLAN.md
+- [x] 02-02-PLAN.md
 
 **Wave 1**
 
@@ -138,7 +138,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation & Session Management | 2/2 | Complete    | 2026-09-21 |
-| 2. LMS Scraper Core | 1/2 | In Progress|  |
+| 2. LMS Scraper Core | 2/2 | In Progress|  |
 | 3. Domain Modeling & Naming Rules | 0/1 | Not started | - |
 | 4. Notion Scheduler Integration & Deduplication | 0/2 | Not started | - |
 | 5. CLI Reporting & Antigravity Skill Packaging | 0/2 | Not started | - |
