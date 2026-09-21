@@ -26,7 +26,7 @@
 
 ### Notion Scheduler Integration & Deduplication (NOTN)
 
-- [ ] **NOTN-01**: Notion Scheduler DB(`21d53280-64be-80ec-af4e-000b679f03bb`)의 기존 페이지를 조회하여 작업명과 마감일(DueDate)을 확인한다.
+- [x] **NOTN-01**: Notion Scheduler DB(`21d53280-64be-80ec-af4e-000b679f03bb`)의 기존 페이지를 조회하여 작업명과 마감일(DueDate)을 확인한다.
 - [ ] **NOTN-02**: 중복 등록 방지: 기존에 등록된 항목은 건너뛰고(`Skip`), 신규 미완료 항목만 선별하여 등록한다.
 - [ ] **NOTN-03**: 대상 DB 스키마 속성(`선택`=루틴/이벤트, `구분`=학업, `DueDate`, `우선순위`=P1~P4, `상태`=시작 전, `메모`=URL)을 정확히 매핑하여 새 페이지를 생성한다.
 - [ ] **NOTN-04**: 노션에 실제 등록하기 전 파싱 결과와 등록 예정 목록을 미리 확인할 수 있는 드라이런(`--dry-run`) 모드를 지원한다.
@@ -67,7 +67,7 @@
 | DOMN-01 | Phase 3 | Complete |
 | DOMN-02 | Phase 3 | Complete |
 | DOMN-03 | Phase 3 | Complete |
-| NOTN-01 | Phase 4 | Pending |
+| NOTN-01 | Phase 4 | Complete |
 | NOTN-02 | Phase 4 | Pending |
 | NOTN-03 | Phase 4 | Pending |
 | NOTN-04 | Phase 4 | Pending |

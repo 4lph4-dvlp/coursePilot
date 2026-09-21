@@ -133,6 +133,13 @@ Set `NOTION_TOKEN` plus either `NOTION_DATABASE_ID` or `NOTION_DATABASE_NAME` as
 - The read boundary and result contracts are ready for Plan 04-02 mapper, deduplicator, and smart-upsert expansion.
 - Live verification still belongs to Plan 04-02's blocking-human dry-run checkpoint.
 
+## Self-Check: PASSED
+
+- All ten declared implementation and test files exist.
+- The complete Wave 1 test command passes (22 tests).
+- No package manifest or lockfile changed.
+- Every task has separate RED and GREEN commits.
+
 ---
 *Phase: 04-notion-scheduler-integration-deduplication*
 *Completed: 2026-09-22*

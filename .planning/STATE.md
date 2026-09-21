@@ -4,10 +4,10 @@ current_phase: 04
 current_phase_name: Notion Scheduler Integration & Deduplication
 status: executing
 stopped_at: Completed 04-01-PLAN.md
-last_updated: "2026-09-21T23:33:01.850Z"
+last_updated: "2026-09-21T23:34:30.201Z"
 last_activity: 2026-09-22
 last_activity_desc: Phase 04 execution started
-state_head: fcaf22d75cfbb9f95eceaf31013dd801f28a7fcd
+state_head: c72309038a3ff99800b262406dc9b4f0dee45047
 progress:
   total_phases: 5
   completed_phases: 3
@@ -74,6 +74,9 @@ Progress: [██████░░░░] 60%
 - [Init]: Playwright 헤드리스 브라우저 채택 (동적 자바스크립트/SPA 렌더링 지원)
 - [Init]: 사용자의 기존 Notion Scheduler DB(`21d53280-64be-80ec-af4e-000b679f03bb`) 스키마 및 네이밍 관례(`[{과목약어}] ...`) 직접 준수
 - [Init]: 중복 방지 엔진(Deduplication Engine)을 도입하여 기존 등록 작업 재등록 방지
+- [Phase 04]: Explicit database ID takes priority; name discovery accepts one complete exact-title match only. — Prevents writes to the wrong user-owned Scheduler.
+- [Phase 04]: The SDK owns 429 retries; the wrapper retries only bounded read-only 529 failures. — Avoids multiplied retries and uncertain write replay.
+- [Phase 04]: Dry-run branches only after real target, schema, query, and planning work. — Keeps preview and live decisions on one production path.
 
 ### Pending Todos
 
