@@ -85,7 +85,11 @@ Plans:
 
 Plans:
 
-- [ ] 03-01: 도메인 데이터 모델, 네이밍 포맷팅 엔진, 마감 기한 및 긴급도 분석기 구현
+- [ ] 03-01-PLAN.md
+
+**Wave 1**
+
+- [ ] 03-01: 도메인 데이터 모델(`SyncTask`, `Course`), 네이밍 포맷팅 엔진(`naming.py`), 24시간 긴급도/우선순위 분석기(`priority.py`) 및 DTO 변환기(`transformer.py`) 구현
 
 ---
 
