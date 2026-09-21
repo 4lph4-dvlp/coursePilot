@@ -24,11 +24,28 @@ class Settings(BaseSettings):
     timeout_ms: int = Field(default=30000, description="페이지 네비게이션 타임아웃(ms)")
 
     # Notion Settings
-    notion_api_key: str = Field(default="", description="Notion Integration API Key")
+    notion_token: str = Field(default="", description="Preferred Notion integration token")
+    notion_api_key: str = Field(
+        default="", description="Legacy Notion integration token input"
+    )
     notion_database_id: str = Field(
-        default="21d53280-64be-80ec-af4e-000b679f03bb",
+        default="",
         description="Notion Scheduler Database ID",
     )
+    notion_database_name: str = Field(
+        default="", description="Notion Scheduler name used for exact discovery"
+    )
+
+    @property
+    def effective_notion_token(self) -> str:
+        """Return the preferred token, falling back to the legacy input."""
+        return self.notion_token.strip() or self.notion_api_key.strip()
+
+    @property
+    def is_notion_configured(self) -> bool:
+        """Whether both a credential and an explicit or discoverable target exist."""
+        has_target = bool(self.notion_database_id.strip() or self.notion_database_name.strip())
+        return bool(self.effective_notion_token and has_target)
 
     # Paths
     session_cache_path: Path = Field(
@@ -42,11 +59,14 @@ class Settings(BaseSettings):
 
     def __repr__(self) -> str:
         masked_pw = "***" if self.lms_password else ""
+        masked_token = "***" if self.notion_token else ""
         masked_key = "***" if self.notion_api_key else ""
         return (
             f"Settings(lms_url='{self.lms_url}', lms_username='{self.lms_username}', "
             f"lms_password='{masked_pw}', headless={self.headless}, timeout_ms={self.timeout_ms}, "
-            f"notion_api_key='{masked_key}', notion_database_id='{self.notion_database_id}', "
+            f"notion_token='{masked_token}', notion_api_key='{masked_key}', "
+            f"notion_database_id='{self.notion_database_id}', "
+            f"notion_database_name='{self.notion_database_name}', "
             f"session_cache_path={self.session_cache_path!r}, course_mappings_path={self.course_mappings_path!r})"
         )
 
