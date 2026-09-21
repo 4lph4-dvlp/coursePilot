@@ -1,14 +1,14 @@
-"""Notion synchronization orchestration and dry-run write gate."""
-
-from typing import Iterable
+"""Notion plan-then-execute synchronization and dry-run write gate."""
 
 from kau_assistant.config import Settings, get_settings
 from kau_assistant.domain.models import SyncTask
+from kau_assistant.exceptions import NotionIntegrationError
+from kau_assistant.notion import mapper
 from kau_assistant.notion.client import NotionClient
+from kau_assistant.notion.deduplicator import SyncAction, plan_sync
 from kau_assistant.notion.models import (
     CreateAction,
-    ExistingPage,
-    FieldDiff,
+    ErrorAction,
     SkipAction,
     SyncResult,
     SyncStats,
@@ -16,121 +16,108 @@ from kau_assistant.notion.models import (
 )
 
 
-def _date_property(task: SyncTask) -> dict:
-    return {"date": {"start": task.due_date.isoformat() if task.due_date else None}}
+def _safe_error(
+    error: Exception,
+    *,
+    task_id: str | None = None,
+    title: str = "",
+    page_id: str | None = None,
+) -> ErrorAction:
+    message = (
+        str(error)
+        if isinstance(error, NotionIntegrationError)
+        else "Notion 작업을 완료하지 못했습니다. 설정과 연결 상태를 확인하세요."
+    )
+    return ErrorAction(
+        task_id=task_id,
+        title=title,
+        page_id=page_id,
+        code=type(error).__name__,
+        message=message,
+    )
 
 
-def _build_update(task: SyncTask, existing: ExistingPage) -> tuple[dict, list[FieldDiff]]:
-    properties: dict = {}
-    diffs: list[FieldDiff] = []
-    if task.due_date != existing.due_date:
-        properties["DueDate"] = _date_property(task)
-        diffs.append(FieldDiff(property_name="DueDate", before=existing.due_date, after=task.due_date))
-    if task.priority != existing.priority:
-        properties["우선순위"] = {"select": {"name": task.priority.value}}
-        diffs.append(FieldDiff(property_name="우선순위", before=existing.priority, after=task.priority))
-    if task.memo != existing.memo:
-        properties["메모"] = {"rich_text": [{"text": {"content": task.memo}}]}
-        diffs.append(FieldDiff(property_name="메모", before=existing.memo, after=task.memo))
-    return properties, diffs
-
-
-def _create_properties(task: SyncTask) -> dict:
-    properties = {
-        "이름": {"title": [{"text": {"content": task.title}}]},
-        "선택": {"select": {"name": task.selection.value}},
-        "구분": {"multi_select": [{"name": item} for item in task.category]},
-        "우선순위": {"select": {"name": task.priority.value}},
-        "상태": {"status": {"name": task.status.value}},
-        "메모": {"rich_text": [{"text": {"content": task.memo}}]},
-    }
-    if task.due_date is not None:
-        properties["DueDate"] = _date_property(task)
-    return properties
+def _result(
+    tasks: list[SyncTask],
+    actions: list[SyncAction],
+    *,
+    enabled: bool,
+    dry_run: bool,
+    target=None,
+) -> SyncResult:
+    created = [action for action in actions if isinstance(action, CreateAction)]
+    updated = [action for action in actions if isinstance(action, UpdateAction)]
+    skipped = [action for action in actions if isinstance(action, SkipAction)]
+    errors = [action for action in actions if isinstance(action, ErrorAction)]
+    return SyncResult(
+        enabled=enabled,
+        dry_run=dry_run,
+        target=target,
+        created=created,
+        updated=updated,
+        skipped=skipped,
+        errors=errors,
+        stats=SyncStats(
+            total=len(tasks),
+            created=len(created),
+            updated=len(updated),
+            skipped=len(skipped),
+            errors=len(errors),
+        ),
+    )
 
 
 class NotionSyncEngine:
-    """Reads the live Scheduler, plans by exact title, and gates all writes."""
+    """Reads and plans first, then dispatches only explicitly allowed writes."""
 
     def __init__(self, settings: Settings | None = None, client: NotionClient | None = None):
         self.settings = settings or get_settings()
         self.client = client
 
-    def _configured(self) -> bool:
-        configured = getattr(self.settings, "is_notion_configured", None)
-        if configured is not None:
-            return bool(configured() if callable(configured) else configured)
-        token = self.settings.notion_api_key.strip()
-        name = getattr(self.settings, "notion_database_name", "").strip()
-        return bool(token and (self.settings.notion_database_id.strip() or name))
-
     def sync(self, tasks: list[SyncTask], *, dry_run: bool = False) -> SyncResult:
-        if not self._configured():
-            skipped = [
+        if not self.settings.is_notion_configured:
+            actions: list[SyncAction] = [
                 SkipAction(task_id=task.id, title=task.title, reason="notion_disabled")
                 for task in tasks
             ]
-            return SyncResult(
-                enabled=False,
-                dry_run=dry_run,
-                skipped=skipped,
-                stats=SyncStats(total=len(tasks), skipped=len(skipped)),
-            )
+            return _result(tasks, actions, enabled=False, dry_run=dry_run)
 
         client = self.client or NotionClient(settings=self.settings)
-        target = client.resolve_target()
-        client.validate_scheduler_schema(target.data_source_id)
-        existing_pages = client.query_existing_pages(target.data_source_id)
-        existing_by_title = {page.title: page for page in existing_pages}
+        try:
+            target = client.resolve_target()
+            client.validate_scheduler_schema(target.data_source_id)
+            existing_pages = client.query_existing_pages(target.data_source_id)
+            planned = plan_sync(tasks, existing_pages)
+        except Exception as error:
+            return _result(
+                tasks, [_safe_error(error)], enabled=True, dry_run=dry_run
+            )
 
-        creates: list[CreateAction] = []
-        updates: list[UpdateAction] = []
-        skips: list[SkipAction] = []
-        for task in tasks:
-            existing = existing_by_title.get(task.title)
-            if existing is None:
-                creates.append(CreateAction(task_id=task.id, title=task.title, task=task))
+        if dry_run:
+            return _result(tasks, planned, enabled=True, dry_run=True, target=target)
+
+        completed: list[SyncAction] = []
+        for action in planned:
+            if isinstance(action, (SkipAction, ErrorAction)):
+                completed.append(action)
                 continue
-            properties, diffs = _build_update(task, existing)
-            if properties:
-                updates.append(
-                    UpdateAction(
-                        task_id=task.id,
-                        title=task.title,
-                        page_id=existing.page_id,
-                        properties=properties,
-                        diffs=diffs,
+            try:
+                if isinstance(action, CreateAction):
+                    client.create_page(
+                        target.data_source_id, mapper.to_create_properties(action.task)
                     )
-                )
-            else:
-                skips.append(
-                    SkipAction(
-                        task_id=task.id,
-                        title=task.title,
-                        page_id=existing.page_id,
-                        reason="unchanged",
+                else:
+                    client.update_page(action.page_id, action.properties)
+                action.executed = True
+                completed.append(action)
+            except Exception as error:
+                completed.append(
+                    _safe_error(
+                        error,
+                        task_id=action.task_id,
+                        title=action.title,
+                        page_id=getattr(action, "page_id", None),
                     )
                 )
 
-        if not dry_run:
-            for action in creates:
-                client.create_page(target.data_source_id, _create_properties(action.task))
-                action.executed = True
-            for action in updates:
-                client.update_page(action.page_id, action.properties)
-                action.executed = True
-
-        return SyncResult(
-            enabled=True,
-            dry_run=dry_run,
-            target=target,
-            created=creates,
-            updated=updates,
-            skipped=skips,
-            stats=SyncStats(
-                total=len(tasks),
-                created=len(creates),
-                updated=len(updates),
-                skipped=len(skips),
-            ),
-        )
+        return _result(tasks, completed, enabled=True, dry_run=False, target=target)

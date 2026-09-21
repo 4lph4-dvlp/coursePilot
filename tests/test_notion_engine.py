@@ -126,6 +126,9 @@ def test_live_mode_continues_after_one_action_failure_and_keeps_stats_consistent
     )
 
     assert client.create_page.call_count == 2
+    second_properties = client.create_page.call_args_list[1].args[1]
+    assert "Plan" not in second_properties
+    assert "children" not in second_properties
     assert len(result.created) == 1
     assert result.created[0].task_id == "ok"
     assert result.created[0].executed is True
@@ -136,6 +139,39 @@ def test_live_mode_continues_after_one_action_failure_and_keeps_stats_consistent
     assert result.stats.updated == len(result.updated)
     assert result.stats.skipped == len(result.skipped)
     assert result.stats.errors == len(result.errors)
+
+
+def test_live_update_dispatches_only_mapper_allowlisted_properties() -> None:
+    target = NotionTarget(
+        database_id="database-id", data_source_id="source-id", title="Scheduler"
+    )
+    old_due = datetime(2026, 9, 20, 23, 59, tzinfo=KST)
+    new_due = datetime(2026, 9, 27, 23, 59, tzinfo=KST)
+    task = _task(due_date=new_due)
+    client = MagicMock()
+    client.resolve_target.return_value = target
+    client.query_existing_pages.return_value = [
+        ExistingPage(
+            page_id="page-id",
+            title=task.title,
+            due_date=old_due,
+            priority=task.priority,
+            memo=task.memo,
+            status=TaskStatus.COMPLETED,
+            plan_date=datetime(2026, 9, 25, 9, 0, tzinfo=KST),
+        )
+    ]
+    settings = Settings(
+        notion_token="token", notion_database_id="database-id", _env_file=None
+    )
+
+    result = NotionSyncEngine(settings=settings, client=client).sync([task])
+
+    client.update_page.assert_called_once()
+    assert set(client.update_page.call_args.args[1]) == {"DueDate"}
+    assert "상태" not in client.update_page.call_args.args[1]
+    assert "Plan" not in client.update_page.call_args.args[1]
+    assert result.updated[0].executed is True
 
 
 def test_configured_read_failure_is_contained_as_structured_error() -> None:
