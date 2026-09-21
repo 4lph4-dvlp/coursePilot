@@ -108,8 +108,12 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
+**Wave 1**
 
 - [ ] 04-01: Notion API/MCP 클라이언트 래퍼 및 기등록 항목 중복 검사 엔진 구현
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 04-02: 노션 스키마 속성 매핑, 페이지 생성 로직 및 드라이런 모드 구현
 
 ---

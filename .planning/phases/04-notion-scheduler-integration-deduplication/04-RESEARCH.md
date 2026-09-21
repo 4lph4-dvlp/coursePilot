@@ -496,18 +496,22 @@ The existing suite passes 81 tests in 1.37 seconds before Phase 4 changes. [VERI
    - What we know: the repository declares exact names/types/options. [VERIFIED: .planning/PROJECT.md:38-40]
    - Gap: `NOTION_TOKEN`/`NOTION_API_KEY` is not configured here, so actual column IDs, current types/options, database sharing, child data-source count, and pre-existing duplicate titles remain unverified. [VERIFIED: environment probe 2026-09-22]
    - Plan response: include a read-only schema/discovery acceptance checkpoint and make dry-run the first credentialed end-to-end test.
+   - **Disposition: RESOLVED — accepted as an execution-time credentialed uncertainty.** Plan 04-02 Task 3 is a blocking human checkpoint and may approve only after its redacted live evidence proves unique target resolution, all eight schema properties/options, full read/planning behavior, and zero writes. Lack of credentials stops at that gate; it does not permit an inferred pass.
 
 2. **The current config default conflicts with name-only discovery semantics.**
    - What we know: `notion_database_id` defaults to the personal UUID and `notion_database_name` does not exist. [VERIFIED: src/kau_assistant/config.py:26-31]
    - Plan response: make ID empty by default, retain the personal UUID in `.env.example`, add database name, and update config tests.
+   - **Disposition: RESOLVED — implement and test the configuration contract in Plan 04-01 Task 2.** An explicit ID remains highest priority, name-only configuration becomes reachable, and missing credential/target remains D-09's successful disabled state.
 
 3. **SDK 3.1.0 does not automatically classify/retry current 529 responses.**
    - What we know: official docs require 529 handling; the installed error enum omits `service_overload`. [CITED: https://developers.notion.com/reference/request-limits] [VERIFIED: installed notion-client 3.1.0 source probe 2026-09-22]
    - Plan response: add the narrow status-529 wrapper and tests without duplicating 429 retries.
+   - **Disposition: RESOLVED — implement the bounded read-only 529 wrapper in Plan 04-01 Task 3.** Retain SDK-owned `RetryOptions(max_retries=3)` for 429, cap 529 attempts separately, and never replay an uncertain write.
 
 4. **D-03 intentionally limits historical dedup coverage.**
    - What we know: completed pages older than 90 days are excluded, while titles do not contain a term identifier. [VERIFIED: D-03 in CONTEXT.md] [VERIFIED: src/kau_assistant/domain/naming.py:48-97]
    - Plan response: preserve the locked filter and document the cross-semester collision risk for future discussion rather than silently changing identity/scope.
+   - **Disposition: RESOLVED — accept the documented blind spot as the explicit D-03 boundary.** Plan 04-01 Task 3 asserts the exact 90-day-or-incomplete filter and does not widen history or alter D-02 title identity; any cross-semester identity change requires a later user decision.
 
 ## Environment Availability
 
