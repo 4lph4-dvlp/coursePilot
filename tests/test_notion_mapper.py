@@ -100,6 +100,24 @@ def test_parse_existing_page_concatenates_title_and_normalizes_values() -> None:
     assert page.memo == "memo body"
 
 
+def test_parse_existing_page_normalizes_date_only_values_to_kst() -> None:
+    raw = {
+        "id": "page-id",
+        "properties": {
+            "이름": {"title": [{"plain_text": "[공수2] 행렬 과제"}]},
+            "DueDate": {"date": {"start": "2026-09-27"}},
+            "Plan": {"date": None},
+            "우선순위": {"select": {"name": "🔴 긴급 (P1)"}},
+            "상태": {"status": {"name": "진행 중"}},
+            "메모": {"rich_text": []},
+        },
+    }
+
+    page = parse_existing_page(raw)
+
+    assert page.due_date == datetime(2026, 9, 27, 0, 0, tzinfo=KST)
+
+
 def test_create_properties_are_exact_memo_only_and_kst_serialized() -> None:
     due = datetime(2026, 9, 27, 23, 59, 12, 345000, tzinfo=KST)
     properties = to_create_properties(_task(due_date=due, memo="x" * 1950))
