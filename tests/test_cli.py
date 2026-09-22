@@ -159,3 +159,49 @@ def test_check_rejects_unknown_option(fake_pipeline):
     result = runner.invoke(cli, ["check", "--course", "자료구조"])
 
     assert result.exit_code == 2
+
+
+def test_human_default_renders_sections(fake_pipeline):
+    runner = CliRunner()
+    result = runner.invoke(cli, ["check"], env={"COLUMNS": "200"})
+
+    assert result.exit_code == 0, result.output
+    for heading in ("기한 초과", "24시간 이내", "이후 일정"):
+        assert heading in result.stdout
+    with pytest.raises(json.JSONDecodeError):
+        json.loads(result.stdout)
+
+
+def test_main_utf8_stdout_under_cp949(monkeypatch, sample_settings):
+    import io as io_mod
+
+    from kau_assistant.cli import main
+
+    monkeypatch.setattr("kau_assistant.cli.get_settings", lambda: sample_settings)
+
+    special_task = _task(
+        task_id="urgent-special",
+        title="[자구] 3주차 과제 제출 ✅",
+        due_date=NOW + timedelta(hours=2),
+        is_urgent=True,
+        memo="완료 표시 ✅",
+    )
+
+    def _fake_collect_tasks(settings, *, headed=False, relogin=False, progress=None, now=None):
+        return PipelineResult(course_count=1, tasks=[special_task], errors=[])
+
+    monkeypatch.setattr("kau_assistant.cli.collect_tasks", _fake_collect_tasks)
+
+    stdout_buf = io_mod.TextIOWrapper(io_mod.BytesIO(), encoding="cp949")
+    stderr_buf = io_mod.TextIOWrapper(io_mod.BytesIO(), encoding="cp949")
+    monkeypatch.setattr("sys.stdout", stdout_buf)
+    monkeypatch.setattr("sys.stderr", stderr_buf)
+
+    with pytest.raises(SystemExit) as exc:
+        main(["check", "--json"])
+
+    assert exc.value.code == 0
+    stdout_buf.flush()
+    raw_bytes = stdout_buf.buffer.getvalue()
+    payload = json.loads(raw_bytes.decode("utf-8"))
+    assert "✅" in json.dumps(payload, ensure_ascii=False)

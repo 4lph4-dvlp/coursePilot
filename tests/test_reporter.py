@@ -1,0 +1,258 @@
+"""Pure reporter coverage: grouping, detail blocks, no truncation, JSON encoding (D-01..D-05, D-09)."""
+
+import io
+from datetime import datetime, timedelta
+
+from rich.console import Console
+
+from kau_assistant.domain.models import (
+    SyncTask,
+    TaskPriority,
+    TaskSelect,
+    TaskStatus,
+    TaskType,
+)
+from kau_assistant.report_models import ErrorItem
+from kau_assistant.reporter import build_check_report, format_remaining, render_check_report, to_json
+from kau_assistant.scraper.date_parser import KST
+
+NOW = datetime(2026, 9, 23, 12, 0, tzinfo=KST)
+
+
+def _task(
+    *,
+    task_id: str,
+    course_id: str = "course-1",
+    course_name: str = "자료구조",
+    course_abbr: str = "자구",
+    title: str = "[자구] 3주차 강의 시청",
+    task_type: TaskType = TaskType.LECTURE,
+    due_date: datetime | None = None,
+    is_overdue: bool = False,
+    is_urgent: bool = False,
+    memo: str = "LMS 바로가기: https://lms.kau.ac.kr/course/1",
+    source_url: str = "https://lms.kau.ac.kr/course/1",
+) -> SyncTask:
+    return SyncTask(
+        id=task_id,
+        course_id=course_id,
+        course_name=course_name,
+        course_abbr=course_abbr,
+        title=title,
+        raw_title=title,
+        task_type=task_type,
+        selection=TaskSelect.ROUTINE if task_type == TaskType.LECTURE else TaskSelect.EVENT,
+        due_date=due_date,
+        priority=TaskPriority.P2,
+        status=TaskStatus.NOT_STARTED,
+        memo=memo,
+        is_overdue=is_overdue,
+        is_urgent=is_urgent,
+        source_url=source_url,
+    )
+
+
+def _render(report, *, width: int = 200) -> str:
+    buf = io.StringIO()
+    console = Console(file=buf, width=width, color_system=None)
+    render_check_report(report, console)
+    return buf.getvalue()
+
+
+def test_grouping_sections_by_urgency_then_course():
+    tasks = [
+        _task(
+            task_id="overdue-1",
+            course_id="c1",
+            course_name="자료구조",
+            course_abbr="자구",
+            due_date=NOW - timedelta(days=1),
+            is_overdue=True,
+        ),
+        _task(
+            task_id="urgent-1",
+            course_id="c2",
+            course_name="공학수학 2",
+            course_abbr="공수2",
+            due_date=NOW + timedelta(hours=1),
+            is_urgent=True,
+        ),
+        _task(
+            task_id="later-1",
+            course_id="c1",
+            course_name="자료구조",
+            course_abbr="자구",
+            due_date=NOW + timedelta(days=5),
+        ),
+        _task(
+            task_id="later-2",
+            course_id="c2",
+            course_name="공학수학 2",
+            course_abbr="공수2",
+            due_date=NOW + timedelta(days=6),
+        ),
+        _task(
+            task_id="later-3",
+            course_id="c1",
+            course_name="자료구조",
+            course_abbr="자구",
+            due_date=NOW + timedelta(days=7),
+        ),
+    ]
+    report = build_check_report(tasks, course_count=2, now=NOW)
+
+    assert [g.course_id for g in report.items.overdue] == ["c1"]
+    assert [g.course_id for g in report.items.due_within_24h] == ["c2"]
+    assert [g.course_id for g in report.items.later] == ["c1", "c2"]
+    assert [i.task_id for i in report.items.later[0].items] == ["later-1", "later-3"]
+
+
+def test_grouping_includes_very_old_overdue():
+    tasks = [_task(task_id="ancient", due_date=NOW - timedelta(days=200), is_overdue=True)]
+    report = build_check_report(tasks, course_count=1, now=NOW)
+
+    assert report.summary.overdue_count == 1
+    ids = [i.task_id for group in report.items.overdue for i in group.items]
+    assert "ancient" in ids
+
+
+def test_grouping_summary_counts():
+    tasks = [
+        _task(task_id="overdue-1", due_date=NOW - timedelta(days=1), is_overdue=True),
+        _task(task_id="urgent-1", due_date=NOW + timedelta(hours=1), is_urgent=True),
+        _task(task_id="later-1", due_date=NOW + timedelta(days=1)),
+    ]
+    report = build_check_report(tasks, course_count=3, now=NOW)
+
+    assert report.summary.course_count == 3
+    assert report.summary.overdue_count == 1
+    assert report.summary.due_within_24h_count == 1
+    assert report.summary.later_count == 1
+    assert report.summary.total_count == 3
+    assert report.summary.error_count == 0
+
+
+def test_detail_only_for_urgent_and_overdue():
+    tasks = [
+        _task(task_id="overdue-1", due_date=NOW - timedelta(days=1), is_overdue=True, memo="과거 메모"),
+        _task(
+            task_id="urgent-1",
+            due_date=NOW + timedelta(hours=1),
+            is_urgent=True,
+            memo="긴급 메모",
+            source_url="https://lms.kau.ac.kr/urgent",
+        ),
+        _task(task_id="later-1", due_date=NOW + timedelta(days=5), memo="나중 메모"),
+    ]
+    report = build_check_report(tasks, course_count=1, now=NOW)
+
+    overdue_item = report.items.overdue[0].items[0]
+    urgent_item = report.items.due_within_24h[0].items[0]
+    later_item = report.items.later[0].items[0]
+
+    assert overdue_item.detail == "과거 메모"
+    assert urgent_item.detail == "긴급 메모"
+    assert later_item.detail is None
+
+    output = _render(report)
+    assert "긴급 메모" in output
+    assert "https://lms.kau.ac.kr/urgent" in output
+    assert "나중 메모" not in output
+
+
+def test_detail_errors_section_rendered():
+    errors = [
+        ErrorItem(
+            scope="course",
+            code="CourseAccessDeniedError",
+            message="이 과목 페이지에 접근할 수 없습니다(권한 없음 또는 비공개 과목).",
+            course_name="네트워크",
+        ),
+        ErrorItem(
+            scope="fatal",
+            code="AuthenticationError",
+            message="LMS 로그인에 실패했습니다. .env의 LMS 계정 정보를 직접 확인하거나 --relogin 또는 --headed로 다시 시도하세요.",
+        ),
+    ]
+    report = build_check_report([], course_count=0, errors=errors, now=NOW)
+    output = _render(report)
+
+    assert "CourseAccessDeniedError" in output
+    assert "네트워크" in output
+    assert "치명적 오류" in output
+    assert "LMS 로그인에 실패했습니다" in output
+
+
+def test_no_truncation_sixty_items_json_and_rich():
+    tasks = [
+        _task(
+            task_id=f"lec-{i}",
+            course_id=f"c{i}",
+            course_name=f"과목{i}",
+            course_abbr=f"과{i}",
+            title=f"[과{i}] {i}주차 강의 시청 - 이것은 매우 긴 제목입니다 테스트를 위한 긴 텍스트",
+            due_date=NOW + timedelta(days=30),
+        )
+        for i in range(60)
+    ]
+    report = build_check_report(tasks, course_count=60, now=NOW)
+
+    json_output = to_json(report)
+    rich_output = _render(report, width=200)
+
+    for i in range(60):
+        title = f"[과{i}] {i}주차 강의 시청 - 이것은 매우 긴 제목입니다 테스트를 위한 긴 텍스트"
+        assert title in json_output
+        assert title in rich_output
+
+
+def test_no_truncation_narrow_console_no_ellipsis():
+    tasks = [
+        _task(
+            task_id="urgent-long",
+            due_date=NOW + timedelta(hours=2),
+            is_urgent=True,
+            title="[자구] 매우 매우 매우 매우 긴 강의 제목이 여기 들어갑니다 정말로 깁니다",
+            memo="매우 매우 매우 매우 긴 메모 내용이 여기 들어갑니다 정말로 깁니다",
+        )
+    ]
+    report = build_check_report(tasks, course_count=1, now=NOW)
+    output = _render(report, width=40)
+
+    assert "…" not in output
+
+
+def test_detail_bracketed_titles_render_literally():
+    tasks = [
+        _task(
+            task_id="bracket-1",
+            course_id="c1",
+            title="[공수2] 3주차",
+            due_date=NOW + timedelta(hours=1),
+            is_urgent=True,
+            memo="[b]x[/b] 굵게 표시되지 않아야 함",
+        )
+    ]
+    report = build_check_report(tasks, course_count=1, now=NOW)
+    output = _render(report)
+
+    assert "[공수2] 3주차" in output
+    assert "[b]x[/b]" in output
+
+
+def test_json_contract_korean_unescaped():
+    tasks = [_task(task_id="kr-1", course_name="자료구조", due_date=NOW + timedelta(days=1))]
+    report = build_check_report(tasks, course_count=1, now=NOW)
+
+    output = to_json(report)
+    assert "자료구조" in output
+    assert "\\u" not in output
+
+
+def test_format_remaining_cases():
+    now = datetime(2026, 9, 23, 12, 0, tzinfo=KST)
+    assert format_remaining(now + timedelta(hours=3, minutes=12), now) == "3시간 12분 남음"
+    assert format_remaining(now + timedelta(days=1, hours=4), now) == "1일 4시간 남음"
+    assert format_remaining(now + timedelta(minutes=45), now) == "45분 남음"
+    assert format_remaining(now - timedelta(days=2, hours=3), now) == "2일 3시간 지남"
+    assert format_remaining(None, now) == "마감일 없음"
