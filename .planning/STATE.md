@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 current_phase: 04
 current_phase_name: Notion Scheduler Integration & Deduplication
-status: executing
-stopped_at: "04-02 Task 3: live dry-run evidence ready for human approval"
-last_updated: "2026-09-22T04:31:51.485Z"
+status: verifying
+stopped_at: Completed 04-02-PLAN.md
+last_updated: "2026-09-22T05:16:54.639Z"
 last_activity: 2026-09-22
 last_activity_desc: Phase 04 execution started
-state_head: 17f1986d29f6767613972536ba5ee32873bd087d
+state_head: 8d7a1461554b34cb427d8272b0ddbc5c5f727e33
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 7
-  completed_plans: 6
+  completed_plans: 7
   percent: 60
 ---
 
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-21)
 
 Phase: 04 (Notion Scheduler Integration & Deduplication) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-09-22 — Phase 04 execution started
 
 Progress: [██████░░░░] 60%
@@ -66,6 +66,7 @@ Progress: [██████░░░░] 60%
 |------|----------|-------|-------|
 | Phase 03 P01 | 15 min | 4 tasks | 9 files |
 | Phase 04 P01 | 11 min | 3 tasks | 10 files |
+| Phase 04 P02 | 5h 35m | 3 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -77,6 +78,9 @@ Progress: [██████░░░░] 60%
 - [Phase 04]: Explicit database ID takes priority; name discovery accepts one complete exact-title match only. — Prevents writes to the wrong user-owned Scheduler.
 - [Phase 04]: The SDK owns 429 retries; the wrapper retries only bounded read-only 529 failures. — Avoids multiplied retries and uncertain write replay.
 - [Phase 04]: Dry-run branches only after real target, schema, query, and planning work. — Keeps preview and live decisions on one production path.
+- [Phase 04]: SyncTask.title is the sole identity key; duplicate incoming or existing titles fail closed rather than selecting an arbitrary page. — Deadline changes must update one page and ambiguous duplicates must never trigger writes.
+- [Phase 04]: Only DueDate, 우선순위, and 메모 may be updated; 상태 and Plan remain user-owned. — The Notion integration preserves user-controlled workflow state and scheduling fields.
+- [Phase 04]: Domain priorities stay P1-P4 and map to the existing decorated Scheduler labels only at the Notion boundary. — This matches the live Scheduler without requiring a Notion-side migration or leaking display labels into the domain.
 
 ### Pending Todos
 
@@ -88,6 +92,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-22T04:31:50.913Z
-Stopped at: 04-02 Task 3: live dry-run evidence ready for human approval
-Resume file: .planning/phases/04-notion-scheduler-integration-deduplication/04-02-PLAN.md
+Last session: 2026-09-22T05:16:53.890Z
+Stopped at: Completed 04-02-PLAN.md
+Resume file: None
