@@ -9,13 +9,21 @@ from kau_assistant.notion.models import ExistingPage, FieldDiff
 from kau_assistant.scraper.date_parser import KST
 
 
+PRIORITY_LABELS: dict[TaskPriority, str] = {
+    TaskPriority.P1: "🔴 긴급 (P1)",
+    TaskPriority.P2: "🟡 중요 (P2)",
+    TaskPriority.P3: "🔵 보통 (P3)",
+    TaskPriority.P4: "⚪ 낮음 (P4)",
+}
+NOTION_LABEL_PRIORITIES = {label: priority for priority, label in PRIORITY_LABELS.items()}
+
 SCHEDULER_SCHEMA: dict[str, tuple[str, set[str]]] = {
     "이름": ("title", set()),
     "선택": ("select", {"루틴", "이벤트"}),
     "구분": ("multi_select", {"학업"}),
     "DueDate": ("date", set()),
     "Plan": ("date", set()),
-    "우선순위": ("select", {"P1", "P2", "P3", "P4"}),
+    "우선순위": ("select", set(PRIORITY_LABELS.values())),
     "상태": ("status", {"시작 전", "진행 중", "완료", "폐기"}),
     "메모": ("rich_text", set()),
 }
@@ -36,6 +44,14 @@ def _encode_date(value: datetime | None) -> dict[str, Any]:
     if value is None:
         return {"date": None}
     return {"date": {"start": value.astimezone(KST).isoformat(timespec="seconds")}}
+
+
+def _parse_priority(value: str | None) -> TaskPriority | None:
+    if not value:
+        return None
+    if value in NOTION_LABEL_PRIORITIES:
+        return NOTION_LABEL_PRIORITIES[value]
+    return TaskPriority(value)
 
 
 def validate_scheduler_schema(properties: dict[str, Any]) -> None:
@@ -77,7 +93,7 @@ def parse_existing_page(page: dict[str, Any]) -> ExistingPage:
         page_id=str(page["id"]),
         title=parse_page_title(page),
         due_date=_parse_date(properties.get("DueDate", {}).get("date")),
-        priority=TaskPriority(priority_name) if priority_name else None,
+        priority=_parse_priority(priority_name),
         memo=_plain_text(properties.get("메모", {}).get("rich_text")),
         status=TaskStatus(status_name) if status_name else None,
         plan_date=_parse_date(properties.get("Plan", {}).get("date")),
@@ -90,7 +106,7 @@ def to_create_properties(task: SyncTask) -> dict[str, Any]:
         "이름": {"title": [{"text": {"content": task.title}}]},
         "선택": {"select": {"name": task.selection.value}},
         "구분": {"multi_select": [{"name": item} for item in task.category]},
-        "우선순위": {"select": {"name": task.priority.value}},
+        "우선순위": {"select": {"name": PRIORITY_LABELS[task.priority]}},
         "상태": {"status": {"name": task.status.value}},
         "메모": {"rich_text": [{"text": {"content": task.memo}}]},
     }
@@ -111,7 +127,7 @@ def to_update_properties(
             FieldDiff(property_name="DueDate", before=existing.due_date, after=task.due_date)
         )
     if task.priority != existing.priority:
-        properties["우선순위"] = {"select": {"name": task.priority.value}}
+        properties["우선순위"] = {"select": {"name": PRIORITY_LABELS[task.priority]}}
         diffs.append(
             FieldDiff(property_name="우선순위", before=existing.priority, after=task.priority)
         )
@@ -119,4 +135,3 @@ def to_update_properties(
         properties["메모"] = {"rich_text": [{"text": {"content": task.memo}}]}
         diffs.append(FieldDiff(property_name="메모", before=existing.memo, after=task.memo))
     return properties, diffs
-
