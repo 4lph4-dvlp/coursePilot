@@ -21,7 +21,7 @@
     {
       "number": "4",
       "name": "Notion Scheduler Integration & Deduplication",
-      "status": "in_progress"
+      "status": "complete"
     },
     {
       "number": "5",
@@ -31,8 +31,8 @@
   ],
   "next": {
     "command": "/gsd:progress --next",
-    "label": "Advance to the next step (verify)",
-    "reason": "Phase 4 of 5 · 60% · ready to verify"
+    "label": "Advance to the next step (plan phase 5)",
+    "reason": "Phase 5 of 5 — needs a plan"
   },
-  "updated_at": "2026-09-22T05:16:43.506Z"
+  "updated_at": "2026-09-22T05:32:36.339Z"
 }

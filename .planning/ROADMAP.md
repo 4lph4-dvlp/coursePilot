@@ -9,7 +9,7 @@
 - [x] **Phase 1: Foundation & Session Management** - 환경 설정 로더, 과목명 매핑 정의, Playwright 브라우저 셋업 및 LMS 자동 로그인/세션 캐시 구축 (completed 2026-09-21)
 - [x] **Phase 2: LMS Scraper Core** - 수강 강좌 목록, 주차별 온라인 강의 진도율 및 마감일, 과제 목록 및 제출 여부 파싱 모듈 구현 (completed 2026-09-21)
 - [x] **Phase 3: Domain Modeling & Naming Rules** - 데이터 모델 구조화, 노션 기존 관례를 반영한 과목명 약칭 및 통일 네이밍 엔진, 24시간 마감 임박 감지 로직 구현 (completed 2026-09-21)
-- [ ] **Phase 4: Notion Scheduler Integration & Deduplication** - Notion Scheduler DB 연동, 기존 등록 항목 조회 기반 중복 등록 방지, 스키마 속성 매핑 및 드라이런 모드 구현
+- [x] **Phase 4: Notion Scheduler Integration & Deduplication** - Notion Scheduler DB 연동, 기존 등록 항목 조회 기반 중복 등록 방지, 스키마 속성 매핑 및 드라이런 모드 구현 (completed 2026-09-22)
 - [ ] **Phase 5: CLI Reporting & Antigravity Skill Packaging** - Rich 콘솔 브리핑 리포트 출력, CLI 인터페이스(`check`, `sync`), Antigravity `SKILL.md` 패키징 및 엔드투엔드 검증
 
 ## Phase Details
@@ -152,5 +152,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Foundation & Session Management | 2/2 | Complete    | 2026-09-21 |
 | 2. LMS Scraper Core | 2/2 | Complete    | 2026-09-21 |
 | 3. Domain Modeling & Naming Rules | 1/1 | Complete    | 2026-09-21 |
-| 4. Notion Scheduler Integration & Deduplication | 2/2 | In Progress|  |
+| 4. Notion Scheduler Integration & Deduplication | 2/2 | Complete    | 2026-09-22 |
 | 5. CLI Reporting & Antigravity Skill Packaging | 0/2 | Not started | - |
