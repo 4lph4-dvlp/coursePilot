@@ -7,6 +7,7 @@ import pytest
 from click.testing import CliRunner
 
 from kau_assistant.cli import cli
+from kau_assistant.config import Settings
 from kau_assistant.domain.models import (
     SyncTask,
     TaskPriority,
@@ -14,7 +15,9 @@ from kau_assistant.domain.models import (
     TaskStatus,
     TaskType,
 )
+from kau_assistant.exceptions import AuthenticationError, ConfigError
 from kau_assistant.pipeline import PipelineResult
+from kau_assistant.report_models import ErrorItem
 from kau_assistant.scraper.date_parser import KST
 
 NOW = datetime(2026, 9, 23, 12, 0, tzinfo=KST)
@@ -205,3 +208,134 @@ def test_main_utf8_stdout_under_cp949(monkeypatch, sample_settings):
     raw_bytes = stdout_buf.buffer.getvalue()
     payload = json.loads(raw_bytes.decode("utf-8"))
     assert "✅" in json.dumps(payload, ensure_ascii=False)
+
+
+def test_exit_code_zero_on_success(fake_pipeline):
+    runner = CliRunner()
+    result = runner.invoke(cli, ["check", "--json"])
+
+    assert result.exit_code == 0, result.output
+
+
+def test_exit_code_one_on_course_errors(monkeypatch, sample_settings):
+    monkeypatch.setattr("kau_assistant.cli.get_settings", lambda: sample_settings)
+
+    course_error = ErrorItem(
+        scope="course",
+        code="CourseAccessDeniedError",
+        message="이 과목 페이지에 접근할 수 없습니다(권한 없음 또는 비공개 과목).",
+        course_id="c9",
+    )
+
+    def _fake_collect_tasks(settings, **kwargs):
+        if kwargs.get("progress") is not None:
+            kwargs["progress"](1, 2, "자료구조")
+        return PipelineResult(course_count=2, tasks=_sample_tasks(), errors=[course_error])
+
+    monkeypatch.setattr("kau_assistant.cli.collect_tasks", _fake_collect_tasks)
+
+    runner = CliRunner()
+    result = runner.invoke(cli, ["check", "--json"])
+
+    assert result.exit_code == 1, result.output
+    payload = json.loads(result.stdout)
+    assert payload["errors"][0]["scope"] == "course"
+
+
+def test_exit_code_two_on_config_error(monkeypatch, sample_settings):
+    monkeypatch.setattr("kau_assistant.cli.get_settings", lambda: sample_settings)
+
+    def _fake_collect_tasks(settings, **kwargs):
+        raise ConfigError("LMS_USERNAME 환경 변수가 설정되지 않았습니다.")
+
+    monkeypatch.setattr("kau_assistant.cli.collect_tasks", _fake_collect_tasks)
+
+    runner = CliRunner()
+    result = runner.invoke(cli, ["check", "--json"])
+
+    assert result.exit_code == 2, result.output
+    payload = json.loads(result.stdout)
+    assert payload["errors"][0]["scope"] == "fatal"
+    assert "LMS_USERNAME" in payload["errors"][0]["message"]
+    assert payload["summary"]["course_count"] == 0
+    assert payload["summary"]["total_count"] == 0
+    assert payload["items"]["overdue"] == []
+    assert payload["items"]["due_within_24h"] == []
+    assert payload["items"]["later"] == []
+
+
+def test_exit_code_two_on_settings_validation_error(monkeypatch):
+    def _raise_settings() -> Settings:
+        return Settings(timeout_ms="not-a-number", _env_file=None)
+
+    monkeypatch.setattr("kau_assistant.cli.get_settings", _raise_settings)
+
+    runner = CliRunner()
+    result = runner.invoke(cli, ["check", "--json"])
+
+    assert result.exit_code == 2, result.output
+    payload = json.loads(result.stdout)
+    assert payload["errors"][0]["scope"] == "fatal"
+    assert payload["errors"][0]["code"] == "ConfigError"
+
+
+def test_redaction_fatal_auth_error_json_and_human(monkeypatch, sample_settings):
+    monkeypatch.setattr("kau_assistant.cli.get_settings", lambda: sample_settings)
+
+    def _fake_collect_tasks(settings, **kwargs):
+        raise AuthenticationError(
+            f"로그인 실패: 사용자={sample_settings.lms_username}, 비밀번호={sample_settings.lms_password}"
+        )
+
+    monkeypatch.setattr("kau_assistant.cli.collect_tasks", _fake_collect_tasks)
+
+    runner = CliRunner()
+
+    json_result = runner.invoke(cli, ["check", "--json"])
+    assert json_result.exit_code == 2, json_result.output
+    assert sample_settings.lms_username not in json_result.stdout
+    assert sample_settings.lms_password not in json_result.stdout
+    assert sample_settings.lms_username not in json_result.stderr
+    assert sample_settings.lms_password not in json_result.stderr
+
+    human_result = runner.invoke(cli, ["check"], env={"COLUMNS": "200"})
+    assert human_result.exit_code == 2, human_result.output
+    assert sample_settings.lms_username not in human_result.stdout
+    assert sample_settings.lms_password not in human_result.stdout
+    assert sample_settings.lms_username not in human_result.stderr
+    assert sample_settings.lms_password not in human_result.stderr
+
+
+def test_redaction_unexpected_exception(monkeypatch, sample_settings):
+    monkeypatch.setattr("kau_assistant.cli.get_settings", lambda: sample_settings)
+
+    def _fake_collect_tasks(settings, **kwargs):
+        raise RuntimeError(f"unexpected failure token={sample_settings.notion_token}")
+
+    monkeypatch.setattr("kau_assistant.cli.collect_tasks", _fake_collect_tasks)
+
+    runner = CliRunner()
+    result = runner.invoke(cli, ["check", "--json"])
+
+    assert result.exit_code == 2, result.output
+    assert sample_settings.notion_token not in result.stdout
+    assert sample_settings.notion_token not in result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["errors"][0]["code"] == "RuntimeError"
+
+
+def test_redaction_settings_values_never_printed(fake_pipeline, sample_settings):
+    runner = CliRunner()
+
+    json_result = runner.invoke(cli, ["check", "--json"])
+    human_result = runner.invoke(cli, ["check"], env={"COLUMNS": "200"})
+
+    secrets = (
+        sample_settings.lms_username,
+        sample_settings.lms_password,
+        sample_settings.notion_token,
+    )
+    for result in (json_result, human_result):
+        for secret in secrets:
+            assert secret not in result.stdout
+            assert secret not in result.stderr
