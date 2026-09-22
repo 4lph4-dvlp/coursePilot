@@ -3,6 +3,11 @@
 from collections.abc import Sequence
 from datetime import datetime
 
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
+from rich.text import Text
+
 from kau_assistant.domain.models import SyncTask
 from kau_assistant.report_models import (
     BriefingSections,
@@ -16,6 +21,12 @@ from kau_assistant.scraper.date_parser import get_current_kst_time
 
 MINUTES_PER_HOUR = 60
 MINUTES_PER_DAY = 24 * MINUTES_PER_HOUR
+
+SECTION_TITLES: dict[str, str] = {
+    "overdue": "기한 초과",
+    "due_within_24h": "24시간 이내",
+    "later": "이후 일정",
+}
 
 
 def format_remaining(due_date: datetime | None, now: datetime) -> str:
@@ -133,3 +144,94 @@ def build_check_report(
 def to_json(report: CheckReport) -> str:
     """Serializes the report via Pydantic's own serializer, keeping Korean text unescaped (Pitfall 3)."""
     return report.model_dump_json(indent=2)
+
+
+def _format_due(due_date: datetime | None) -> str:
+    if due_date is None:
+        return "-"
+    return due_date.strftime("%Y-%m-%d %H:%M KST")
+
+
+def _render_section_table(title: str, groups: list[CourseGroup], console: Console) -> None:
+    console.print(f"\n[bold]{title}[/bold]")
+
+    if not groups:
+        console.print("없음")
+        return
+
+    table = Table(show_lines=False, expand=False)
+    table.add_column("과목", overflow="fold")
+    table.add_column("작업", overflow="fold")
+    table.add_column("마감일", overflow="fold")
+    table.add_column("남은 시간", overflow="fold")
+
+    for group in groups:
+        item_count = len(group.items)
+        for index, item in enumerate(group.items):
+            course_label = Text(group.course_abbr) if index == 0 else Text("")
+            table.add_row(
+                course_label,
+                Text(item.title),
+                Text(_format_due(item.due_date)),
+                Text(item.remaining_text),
+                end_section=(index == item_count - 1),
+            )
+
+    console.print(table)
+
+
+def _render_detail_blocks(groups: list[CourseGroup], console: Console) -> None:
+    for group in groups:
+        for item in group.items:
+            console.print(Text(f"- {item.title}"))
+            if item.detail:
+                console.print(Text(item.detail))
+            console.print(Text(f"LMS: {item.lms_url}"))
+
+
+def _render_errors(errors: list[ErrorItem], console: Console) -> None:
+    if not errors:
+        return
+
+    console.print("\n[bold]수집 오류[/bold]")
+    table = Table(show_lines=False, expand=False)
+    table.add_column("구분", overflow="fold")
+    table.add_column("과목", overflow="fold")
+    table.add_column("코드", overflow="fold")
+
+    for error in errors:
+        scope_label = "치명적 오류" if error.scope == "fatal" else error.scope
+        table.add_row(
+            Text(scope_label),
+            Text(error.course_name or "-"),
+            Text(error.code),
+        )
+
+    console.print(table)
+
+    for error in errors:
+        console.print(Text(error.message))
+
+
+def render_check_report(report: CheckReport, console: Console) -> None:
+    """Renders the full urgency-grouped Rich briefing (D-01..D-04, D-09)."""
+    header = (
+        f"과목 {report.summary.course_count}개 · "
+        f"기한 초과 {report.summary.overdue_count} · "
+        f"24시간 이내 {report.summary.due_within_24h_count} · "
+        f"이후 일정 {report.summary.later_count}"
+    )
+    if report.errors:
+        header += f" · 수집 오류 {len(report.errors)}"
+    header += f"\n생성 시각: {report.generated_at.strftime('%Y-%m-%d %H:%M:%S KST')}"
+    console.print(Panel(header, title="check 결과"))
+
+    _render_section_table(SECTION_TITLES["overdue"], report.items.overdue, console)
+    _render_detail_blocks(report.items.overdue, console)
+
+    _render_section_table(SECTION_TITLES["due_within_24h"], report.items.due_within_24h, console)
+    _render_detail_blocks(report.items.due_within_24h, console)
+
+    _render_section_table(SECTION_TITLES["later"], report.items.later, console)
+
+    _render_errors(report.errors, console)

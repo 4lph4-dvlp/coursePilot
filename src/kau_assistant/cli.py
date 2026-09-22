@@ -1,11 +1,14 @@
 """KAU LXP Assistant CLI: `check` wires pipeline -> reporter -> the versioned report contract (D-07, D-10)."""
 
+import logging
+import sys
+
 import click
 from rich.console import Console
 
 from kau_assistant.config import get_settings
 from kau_assistant.pipeline import collect_tasks
-from kau_assistant.reporter import build_check_report, to_json
+from kau_assistant.reporter import build_check_report, render_check_report, to_json
 from kau_assistant.scraper.date_parser import get_current_kst_time
 
 
@@ -49,11 +52,29 @@ def check(ctx: click.Context, as_json: bool, headed: bool, relogin: bool) -> Non
     if as_json:
         click.echo(to_json(report))
     else:
-        out.print(
-            f"과목 {report.summary.course_count}개 · "
-            f"기한 초과 {report.summary.overdue_count} · "
-            f"24시간 이내 {report.summary.due_within_24h_count} · "
-            f"이후 일정 {report.summary.later_count}"
-        )
+        render_check_report(report, out)
 
     ctx.exit(0 if not report.errors else 1)
+
+
+def _configure_streams() -> None:
+    """Reconfigures stdout/stderr to UTF-8 so Korean text survives a cp949 parent pipe (D-11)."""
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8")
+
+
+def _configure_logging() -> None:
+    """Routes all stdlib logging to stderr so stdout only ever carries the report/JSON (D-11)."""
+    logging.basicConfig(
+        stream=sys.stderr,
+        level=logging.WARNING,
+        format="%(levelname)s %(name)s: %(message)s",
+    )
+
+
+def main(argv: list[str] | None = None) -> None:
+    """`python -m kau_assistant` process entry point."""
+    _configure_streams()
+    _configure_logging()
+    cli.main(args=argv, prog_name="python -m kau_assistant")
