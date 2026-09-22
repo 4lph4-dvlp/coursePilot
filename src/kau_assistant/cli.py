@@ -7,6 +7,7 @@ import click
 from rich.console import Console
 
 from kau_assistant.config import get_settings
+from kau_assistant.errors import exit_code_for, safe_cli_error
 from kau_assistant.pipeline import collect_tasks
 from kau_assistant.reporter import build_check_report, render_check_report, to_json
 from kau_assistant.scraper.date_parser import get_current_kst_time
@@ -27,34 +28,37 @@ def check(ctx: click.Context, as_json: bool, headed: bool, relogin: bool) -> Non
     err = Console(stderr=True)
     out = Console()
 
-    settings = get_settings()
     now = get_current_kst_time()
-
-    err.print("LMS 로그인 및 과목 목록 수집 중…", markup=False, highlight=False)
 
     def _on_progress(index: int, total: int, name: str) -> None:
         err.print(f"[{index}/{total}] {name} 수집 중", markup=False, highlight=False)
 
-    result = collect_tasks(
-        settings,
-        headed=headed,
-        relogin=relogin,
-        progress=_on_progress,
-        now=now,
-    )
-    report = build_check_report(
-        result.tasks,
-        course_count=result.course_count,
-        errors=result.errors,
-        now=now,
-    )
+    try:
+        err.print("LMS 로그인 및 과목 목록 수집 중…", markup=False, highlight=False)
+        settings = get_settings()
+        result = collect_tasks(
+            settings,
+            headed=headed,
+            relogin=relogin,
+            progress=_on_progress,
+            now=now,
+        )
+        report = build_check_report(
+            result.tasks,
+            course_count=result.course_count,
+            errors=result.errors,
+            now=now,
+        )
+    except Exception as error:  # noqa: BLE001 - top-level fatal boundary (D-08, D-12)
+        fatal = safe_cli_error(error, scope="fatal")
+        report = build_check_report([], course_count=0, errors=[fatal], now=now)
 
     if as_json:
         click.echo(to_json(report))
     else:
         render_check_report(report, out)
 
-    ctx.exit(0 if not report.errors else 1)
+    ctx.exit(exit_code_for(report.errors))
 
 
 def _configure_streams() -> None:
