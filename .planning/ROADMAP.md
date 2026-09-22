@@ -133,12 +133,32 @@ Plans:
   2. `python -m kau_assistant check` 및 `python -m kau_assistant sync` CLI 명령어가 안정적으로 동작한다.
   3. 범용 Agent Skill 폴더(`skills/kau-lxp/SKILL.md`, 지침 및 메타데이터)가 완성되어 Claude Code, Codex, Antigravity, Pi, Hermes에서 설치 후 자연어 요청으로 스킬을 구동할 수 있다.
 
-**Plans**: 2 plans
+**Plans**: 5 plans
 
 Plans:
 
-- [ ] 05-01: Rich 기반 콘솔 브리핑 리포터 및 통합 CLI 명령어 구현
-- [ ] 05-02: 범용 `SKILL.md` 정의, `install-skill` 명령, 에이전트별 설치 안내 README 작성 및 전체 워크플로우 엔드투엔드 검증
+- [ ] 05-01-PLAN.md — `check` 명령 end-to-end: 수집 파이프라인, 버전드 JSON 계약(schema_version 1), Rich 브리핑, 종료 코드 0/1/2, 비밀 마스킹
+- [ ] 05-02-PLAN.md — 파이프라인 복원력: 과목별 오류 격리, LMS 설정 검증, 진행 표시, `--relogin`/`--headed`, 읽기 전용 스크래핑 검증
+- [ ] 05-03-PLAN.md — `sync` 명령: 기본 드라이런, `--apply` 쓰기 게이트, 동기화 리포트(Rich/JSON)
+- [ ] 05-04-PLAN.md — 범용 `SKILL.md`와 `install-skill` (5개 에이전트 경로 데이터 테이블, 복사/링크 설치)
+- [ ] 05-05-PLAN.md — JSON 계약·README 설치 안내·PROJECT.md 문구, 라이브 E2E 증거, 5개 에이전트 설치 및 호출 검증
+
+**Wave 1**
+
+- [ ] 05-01: `check` end-to-end (파이프라인·JSON 계약·Rich 브리핑·실패 계약)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 05-02: 파이프라인 복원력
+- [ ] 05-03: `sync` 명령
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 05-04: 범용 `SKILL.md` 및 `install-skill`
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 05-05: 계약·설치 문서, 라이브 증거, 에이전트별 검증
 
 ---
 
@@ -153,4 +173,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. LMS Scraper Core | 2/2 | Complete    | 2026-09-21 |
 | 3. Domain Modeling & Naming Rules | 1/1 | Complete    | 2026-09-21 |
 | 4. Notion Scheduler Integration & Deduplication | 2/2 | Complete    | 2026-09-22 |
-| 5. CLI Reporting & Universal Agent Skill Packaging | 0/2 | Not started | - |
+| 5. CLI Reporting & Universal Agent Skill Packaging | 0/5 | Not started | - |
