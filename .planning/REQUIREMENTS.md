@@ -31,11 +31,11 @@
 - [x] **NOTN-03**: 대상 DB 스키마 속성(`선택`=루틴/이벤트, `구분`=학업, `DueDate`, `우선순위`=P1~P4, `상태`=시작 전, `메모`=URL)을 정확히 매핑하여 새 페이지를 생성한다.
 - [x] **NOTN-04**: 노션에 실제 등록하기 전 파싱 결과와 등록 예정 목록을 미리 확인할 수 있는 드라이런(`--dry-run`) 모드를 지원한다.
 
-### CLI & Antigravity Skill Packaging (SKIL)
+### CLI & Universal Agent Skill Packaging (SKIL)
 
 - [ ] **SKIL-01**: 터미널 및 에이전트 대화창에 미완료 강의/과제 및 마감일을 직관적으로 보여주는 Rich 콘솔 브리핑 리포트를 출력한다.
 - [ ] **SKIL-02**: 상태 조회(`check`) 및 노션 동기화(`sync`)를 수행할 수 있는 CLI 명령어를 제공한다.
-- [ ] **SKIL-03**: Antigravity Skill 형식(`SKILL.md`)으로 패키징하여 에이전트가 자연어 요청으로 스킬을 호출할 수 있도록 한다.
+- [ ] **SKIL-03**: 에이전트 중립 Agent Skill 형식(`SKILL.md`)으로 패키징하고 에이전트별 설치 명령을 제공하여 Claude Code, Codex, Antigravity, Pi, Hermes 등 모든 지원 에이전트가 자연어 요청으로 스킬을 호출할 수 있도록 한다.
 
 ## v2 Requirements
 

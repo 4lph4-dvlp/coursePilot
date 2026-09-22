@@ -24,7 +24,7 @@
 ### Active
 
 - [ ] 에이전트 채팅 대화창을 통한 미완료 항목 및 마감일 요약 브리핑 리포트 출력
-- [ ] Antigravity Skill 패키징(`SKILL.md`, 실행 스크립트, 의존성 가이드)
+- [ ] 범용 Agent Skill 패키징(에이전트 중립 `SKILL.md`, 에이전트별 설치 명령·안내, 의존성 가이드) — Antigravity 전용이 아닌 모든 SKILL.md 지원 에이전트 대상
 
 ### Out of Scope
 

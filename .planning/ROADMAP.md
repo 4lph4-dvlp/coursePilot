@@ -2,7 +2,7 @@
 
 ## Overview
 
-본 로드맵은 대학 온라인 학습 사이트(한국항공대 LXP / 표준 Canvas·Moodle)에서 학생 계정으로 자동 로그인하여 강의 수강 현황 및 과제 마감일을 수집하고, 이를 사용자의 기존 Notion Scheduler 데이터베이스(`21d53280-64be-80ec-af4e-000b679f03bb`)에 중복 없이 정규화된 네이밍으로 동기화하는 Antigravity AI Agent Skill을 단계별로 구축합니다.
+본 로드맵은 대학 온라인 학습 사이트(한국항공대 LXP / 표준 Canvas·Moodle)에서 학생 계정으로 자동 로그인하여 강의 수강 현황 및 과제 마감일을 수집하고, 이를 사용자의 기존 Notion Scheduler 데이터베이스(`21d53280-64be-80ec-af4e-000b679f03bb`)에 중복 없이 정규화된 네이밍으로 동기화하는 범용 AI Agent Skill(Claude Code, Codex, Antigravity, Pi, Hermes 등 SKILL.md 지원 에이전트 공통)을 단계별로 구축합니다.
 
 ## Phases
 
@@ -10,7 +10,7 @@
 - [x] **Phase 2: LMS Scraper Core** - 수강 강좌 목록, 주차별 온라인 강의 진도율 및 마감일, 과제 목록 및 제출 여부 파싱 모듈 구현 (completed 2026-09-21)
 - [x] **Phase 3: Domain Modeling & Naming Rules** - 데이터 모델 구조화, 노션 기존 관례를 반영한 과목명 약칭 및 통일 네이밍 엔진, 24시간 마감 임박 감지 로직 구현 (completed 2026-09-21)
 - [x] **Phase 4: Notion Scheduler Integration & Deduplication** - Notion Scheduler DB 연동, 기존 등록 항목 조회 기반 중복 등록 방지, 스키마 속성 매핑 및 드라이런 모드 구현 (completed 2026-09-22)
-- [ ] **Phase 5: CLI Reporting & Antigravity Skill Packaging** - Rich 콘솔 브리핑 리포트 출력, CLI 인터페이스(`check`, `sync`), Antigravity `SKILL.md` 패키징 및 엔드투엔드 검증
+- [ ] **Phase 5: CLI Reporting & Universal Agent Skill Packaging** - Rich 콘솔 브리핑 리포트 출력, CLI 인터페이스(`check`, `sync`, `install-skill`), 범용 Agent Skill(`SKILL.md`) 패키징 및 엔드투엔드 검증
 
 ## Phase Details
 
@@ -122,23 +122,23 @@ Plans:
 
 ---
 
-### Phase 5: CLI Reporting & Antigravity Skill Packaging
+### Phase 5: CLI Reporting & Universal Agent Skill Packaging
 
-**Goal**: 직관적인 Rich 콘솔 브리핑 리포트, 통합 CLI 진입점 제공, Antigravity `SKILL.md` 패키징 및 최종 검증
+**Goal**: 직관적인 Rich 콘솔 브리핑 리포트, 통합 CLI 진입점 제공, 에이전트 중립 `SKILL.md` 패키징·에이전트별 설치 지원 및 최종 검증
 **Depends on**: Phase 4
 **Requirements**: SKIL-01, SKIL-02, SKIL-03
 **Success Criteria** (what must be TRUE):
 
   1. 터미널 및 대화창에 과목별 미완료 강의, 미제출 과제, 마감 임박 목록이 표(Table) 형태로 깔끔하게 브리핑된다.
   2. `python -m kau_assistant check` 및 `python -m kau_assistant sync` CLI 명령어가 안정적으로 동작한다.
-  3. Antigravity Skill 폴더(`SKILL.md`, 지침 및 메타데이터)가 완성되어 에이전트가 자연어 요청으로 스킬을 구동할 수 있다.
+  3. 범용 Agent Skill 폴더(`skills/kau-lxp/SKILL.md`, 지침 및 메타데이터)가 완성되어 Claude Code, Codex, Antigravity, Pi, Hermes에서 설치 후 자연어 요청으로 스킬을 구동할 수 있다.
 
 **Plans**: 2 plans
 
 Plans:
 
 - [ ] 05-01: Rich 기반 콘솔 브리핑 리포터 및 통합 CLI 명령어 구현
-- [ ] 05-02: Antigravity `SKILL.md` 정의, README 작성 및 전체 워크플로우 엔드투엔드 검증
+- [ ] 05-02: 범용 `SKILL.md` 정의, `install-skill` 명령, 에이전트별 설치 안내 README 작성 및 전체 워크플로우 엔드투엔드 검증
 
 ---
 
@@ -153,4 +153,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. LMS Scraper Core | 2/2 | Complete    | 2026-09-21 |
 | 3. Domain Modeling & Naming Rules | 1/1 | Complete    | 2026-09-21 |
 | 4. Notion Scheduler Integration & Deduplication | 2/2 | Complete    | 2026-09-22 |
-| 5. CLI Reporting & Antigravity Skill Packaging | 0/2 | Not started | - |
+| 5. CLI Reporting & Universal Agent Skill Packaging | 0/2 | Not started | - |
