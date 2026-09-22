@@ -33,7 +33,17 @@ def _schema() -> dict:
         "Plan": {"type": "date", "date": {}},
         "우선순위": {
             "type": "select",
-            "select": {"options": [{"name": name} for name in ("P1", "P2", "P3", "P4")]},
+            "select": {
+                "options": [
+                    {"name": name}
+                    for name in (
+                        "🔴 긴급 (P1)",
+                        "🟡 중요 (P2)",
+                        "🔵 보통 (P3)",
+                        "⚪ 낮음 (P4)",
+                    )
+                ]
+            },
         },
         "상태": {
             "type": "status",
@@ -225,7 +235,7 @@ def test_existing_page_query_uses_locked_filter_and_paginates() -> None:
                     "properties": {
                         "이름": {"title": [{"plain_text": "[공수2] "}, {"plain_text": "과제"}]},
                         "DueDate": {"date": {"start": "2026-09-27T23:59:00+09:00"}},
-                        "우선순위": {"select": {"name": "P1"}},
+                        "우선순위": {"select": {"name": "🔴 긴급 (P1)"}},
                         "상태": {"status": {"name": "진행 중"}},
                         "메모": {"rich_text": [{"plain_text": "memo"}]},
                         "Plan": {"date": None},

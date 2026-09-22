@@ -83,7 +83,7 @@ def test_parse_existing_page_concatenates_title_and_normalizes_values() -> None:
             "이름": {"title": [{"plain_text": "[공수2] "}, {"plain_text": "행렬 과제"}]},
             "DueDate": {"date": {"start": "2026-09-27T23:59:00+09:00"}},
             "Plan": {"date": {"start": "2026-09-25T10:00:00+09:00"}},
-            "우선순위": {"select": {"name": "P1"}},
+            "우선순위": {"select": {"name": "🔴 긴급 (P1)"}},
             "상태": {"status": {"name": "진행 중"}},
             "메모": {"rich_text": [{"plain_text": "memo "}, {"plain_text": "body"}]},
         },
@@ -114,6 +114,7 @@ def test_create_properties_are_exact_memo_only_and_kst_serialized() -> None:
         "메모",
     }
     assert properties["DueDate"] == {"date": {"start": "2026-09-27T23:59:12+09:00"}}
+    assert properties["우선순위"] == {"select": {"name": "🔴 긴급 (P1)"}}
     assert properties["메모"]["rich_text"][0]["text"]["content"] == "x" * 1950
     assert "Plan" not in properties
     assert "children" not in properties
@@ -140,7 +141,7 @@ def test_update_properties_use_only_allowlist_and_ignore_protected_values() -> N
     assert UPDATEABLE_PROPERTIES == ("DueDate", "우선순위", "메모")
     assert PROTECTED_PROPERTIES == ("상태", "Plan")
     assert set(properties) == set(UPDATEABLE_PROPERTIES)
+    assert properties["우선순위"] == {"select": {"name": "🔴 긴급 (P1)"}}
     assert {diff.property_name for diff in diffs} == set(UPDATEABLE_PROPERTIES)
     assert "상태" not in properties
     assert "Plan" not in properties
-
