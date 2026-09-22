@@ -4,10 +4,10 @@ current_phase: 5
 current_phase_name: CLI Reporting & Antigravity Skill Packaging
 status: planning
 stopped_at: Phase 04 complete, ready to plan Phase 5
-last_updated: "2026-09-22T05:32:36.211Z"
+last_updated: "2026-09-22T05:36:41.992Z"
 last_activity: 2026-09-22
 last_activity_desc: Phase 04 complete, transitioned to Phase 5
-state_head: c102e53ead1279e3e72478e0ceff439083c8da61
+state_head: 4bd5a58fd5c37ec61f77fa1aea6d8ee4d553d3df
 progress:
   total_phases: 5
   completed_phases: 4
@@ -20,10 +20,10 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-09-21)
+See: .planning/PROJECT.md (updated 2026-09-22)
 
 **Core value:** 학생이 수강 중인 모든 강의의 미완료 인강 및 과제 마감 기한을 빠짐없이 확인하고, 중복 없이 정형화된 이름 규칙으로 개인 노션 스케줄러에 동기화하여 학업 누락을 원천 방지하는 것.
-**Current focus:** Phase 04 — Notion Scheduler Integration & Deduplication
+**Current focus:** Phase 05 — CLI Reporting & Antigravity Skill Packaging
 
 ## Current Position
 
@@ -32,7 +32,7 @@ Plan: Not started
 Status: Ready to plan
 Last activity: 2026-09-22 — Phase 04 complete, transitioned to Phase 5
 
-Progress: [██████░░░░] 60%
+Progress: [████████████████████] 7/7 plans (100%)
 
 ## Performance Metrics
 
@@ -77,7 +77,6 @@ Progress: [██████░░░░] 60%
 - [Init]: 사용자의 기존 Notion Scheduler DB(`21d53280-64be-80ec-af4e-000b679f03bb`) 스키마 및 네이밍 관례(`[{과목약어}] ...`) 직접 준수
 - [Init]: 중복 방지 엔진(Deduplication Engine)을 도입하여 기존 등록 작업 재등록 방지
 - [Phase 04]: Explicit database ID takes priority; name discovery accepts one complete exact-title match only. — Prevents writes to the wrong user-owned Scheduler.
-- [Phase 04]: The SDK owns 429 retries; the wrapper retries only bounded read-only 529 failures. — Avoids multiplied retries and uncertain write replay.
 - [Phase 04]: Dry-run branches only after real target, schema, query, and planning work. — Keeps preview and live decisions on one production path.
 - [Phase 04]: SyncTask.title is the sole identity key; duplicate incoming or existing titles fail closed rather than selecting an arbitrary page. — Deadline changes must update one page and ambiguous duplicates must never trigger writes.
 - [Phase 04]: Only DueDate, 우선순위, and 메모 may be updated; 상태 and Plan remain user-owned. — The Notion integration preserves user-controlled workflow state and scheduling fields.
@@ -93,6 +92,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-22T05:16:53.890Z
+Last session: 2026-09-22T05:36:40.705Z
 Stopped at: Phase 04 complete, ready to plan Phase 5
 Resume file: None
