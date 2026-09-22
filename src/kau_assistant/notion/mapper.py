@@ -37,7 +37,12 @@ def _plain_text(parts: list[dict[str, Any]] | None) -> str:
 
 def _parse_date(value: dict[str, Any] | None) -> datetime | None:
     start = (value or {}).get("start")
-    return datetime.fromisoformat(start) if start else None
+    if not start:
+        return None
+    parsed = datetime.fromisoformat(start)
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=KST)
+    return parsed.astimezone(KST)
 
 
 def _encode_date(value: datetime | None) -> dict[str, Any]:
