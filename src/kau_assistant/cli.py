@@ -9,6 +9,7 @@ from rich.console import Console
 
 from kau_assistant.config import Settings, get_settings
 from kau_assistant.errors import exit_code_for, safe_cli_error
+from kau_assistant.installer import AGENT_SKILL_PATHS, InstallError, install_skill
 from kau_assistant.notion import NotionSyncEngine
 from kau_assistant.pipeline import PipelineResult, collect_tasks
 from kau_assistant.reporter import (
@@ -136,6 +137,41 @@ def sync(ctx: click.Context, as_json: bool, headed: bool, relogin: bool, apply_c
         render_sync_report(report, out)
 
     ctx.exit(exit_code_for(report.errors))
+
+
+@cli.command("install-skill")
+@click.option(
+    "--agent",
+    "agent",
+    type=click.Choice(sorted(AGENT_SKILL_PATHS)),
+    required=True,
+    help="스킬을 설치할 에이전트를 선택하세요.",
+)
+@click.pass_context
+def install_skill_command(ctx: click.Context, agent: str) -> None:
+    """이 저장소의 kau-lxp 스킬을 에이전트의 사용자 스킬 폴더에 설치합니다 (D-21..D-23)."""
+    err = Console(stderr=True)
+    out = Console()
+
+    try:
+        result = install_skill(agent)
+    except InstallError as error:
+        err.print(str(error), markup=False, highlight=False)
+        ctx.exit(2)
+
+    out.print(f"설치 완료 (복사): {result.target}", markup=False, highlight=False)
+    out.print(
+        "에이전트를 재시작(또는 새 세션 시작)한 뒤 '과제 확인해줘'라고 요청해 보세요.",
+        markup=False,
+        highlight=False,
+    )
+    if not result.agent_home_found:
+        display_name = AGENT_SKILL_PATHS[agent].display_name
+        err.print(
+            f"[경고] {display_name} 홈 폴더를 찾지 못했습니다. 해당 에이전트가 설치되어 있는지 확인하세요.",
+            markup=False,
+            highlight=False,
+        )
 
 
 def _configure_streams() -> None:
