@@ -133,7 +133,7 @@ Plans:
   2. `python -m kau_assistant check` 및 `python -m kau_assistant sync` CLI 명령어가 안정적으로 동작한다.
   3. 범용 Agent Skill 폴더(`skills/kau-lxp/SKILL.md`, 지침 및 메타데이터)가 완성되어 Claude Code, Codex, Antigravity, Pi, Hermes에서 설치 후 자연어 요청으로 스킬을 구동할 수 있다.
 
-**Plans**: 5/5 plans executed
+**Plans**: 5/11 plans executed (05-06..05-11: UAT gap closure, 2026-09-24)
 
 Plans:
 
@@ -142,6 +142,12 @@ Plans:
 - [x] 05-03-PLAN.md — `sync` 명령: 기본 드라이런, `--apply` 쓰기 게이트, 동기화 리포트(Rich/JSON)
 - [x] 05-04-PLAN.md — 범용 `SKILL.md`와 `install-skill` (5개 에이전트 경로 데이터 테이블, 복사/링크 설치)
 - [x] 05-05-PLAN.md — JSON 계약·README 설치 안내·PROJECT.md 문구, 라이브 E2E 증거, 5개 에이전트 설치 및 호출 검증
+- [ ] 05-06-PLAN.md — (gap G-05-3) LXP 로그인 인식, 읽기 전용 마크업 구조 조사, Moodle 장문 날짜·퀴즈 헤더(이름/시험 마감) 파싱
+- [ ] 05-07-PLAN.md — (gap G-05-3, G-05-1b, G-05-2) LXP 과목명 배지 제거, 대시보드 대기 단축, 비-Coursemos 사이트 UnsupportedLmsError
+- [ ] 05-08-PLAN.md — (gap G-05-2) LMS_URL 기본값 https://lxp.kau.ac.kr, 0과목 `notices`(no_courses_found), UnsupportedLmsError 안전 메시지
+- [ ] 05-09-PLAN.md — (gap G-05-1, G-05-3) VOD 기간(text-ubstrap) 마감일, 섹션 중복 제거·주차, /report/ubcompletion 진도 병합
+- [ ] 05-10-PLAN.md — (gap G-05-4, G-05-2) Hermes 스킬 경로(HERMES_HOME/%LOCALAPPDATA%), LMS_URL 문서·온보딩·SKILL.md 안내
+- [ ] 05-11-PLAN.md — (gap 전체) 읽기 전용 LXP 라이브 재검증, 5개 에이전트 재설치, 빈 폴더 agy/Hermes 재테스트
 
 **Wave 1**
 
@@ -160,6 +166,21 @@ Plans:
 
 - [ ] 05-05: 계약·설치 문서, 라이브 증거, 에이전트별 검증
 
+**Gap closure — Wave 1**
+
+- [ ] 05-06: LXP 로그인·구조 조사·날짜·평가 헤더
+- [ ] 05-08: LXP 기본 대상·0과목 안내·UnsupportedLmsError
+
+**Gap closure — Wave 2** *(blocked on gap Wave 1)*
+
+- [ ] 05-07: 과목명·대시보드 대기·비-Coursemos 실패
+- [ ] 05-09: 강의(VOD) 마감일·중복 제거·진도 병합
+- [ ] 05-10: Hermes 경로·LMS_URL 문서/온보딩/SKILL.md
+
+**Gap closure — Wave 3** *(blocked on gap Wave 2)*
+
+- [ ] 05-11: 라이브 재검증·에이전트 재테스트
+
 ---
 
 ## Progress
@@ -173,4 +194,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. LMS Scraper Core | 2/2 | Complete    | 2026-09-21 |
 | 3. Domain Modeling & Naming Rules | 1/1 | Complete    | 2026-09-21 |
 | 4. Notion Scheduler Integration & Deduplication | 2/2 | Complete    | 2026-09-22 |
-| 5. CLI Reporting & Universal Agent Skill Packaging | 5/5 | In Progress|  |
+| 5. CLI Reporting & Universal Agent Skill Packaging | 5/11 | In Progress|  |
