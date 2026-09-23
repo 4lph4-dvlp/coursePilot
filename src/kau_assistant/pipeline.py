@@ -3,6 +3,7 @@
 Never writes to stdout; progress is reported through the caller-supplied callback only.
 """
 
+import logging
 from collections.abc import Callable
 from datetime import datetime
 
@@ -12,6 +13,7 @@ from kau_assistant.config import Settings
 from kau_assistant.course_mapping import load_course_mappings
 from kau_assistant.domain.models import SyncTask
 from kau_assistant.domain.transformer import transform_to_sync_tasks
+from kau_assistant.errors import safe_cli_error
 from kau_assistant.report_models import ErrorItem
 from kau_assistant.scraper.assessment_parser import scrape_course_assessments
 from kau_assistant.scraper.course_list import extract_courses
@@ -22,6 +24,8 @@ from kau_assistant.scraper.lecture_parser import (
 from kau_assistant.scraper.models import AssessmentItem, CourseItem, LectureItem
 from kau_assistant.scraper.navigator import CourseNavigator
 from kau_assistant.session_manager import SessionManager
+
+logger = logging.getLogger("kau_assistant.pipeline")
 
 ProgressCallback = Callable[[int, int, str], None]
 
@@ -67,6 +71,8 @@ def collect_tasks(
 
     factory = session_factory or SessionManager
 
+    errors: list[ErrorItem] = []
+
     with factory(settings=settings, headful=headed) as session:
         page = session.get_authenticated_page()
         courses = extract_courses(page, settings.lms_url)
@@ -78,7 +84,23 @@ def collect_tasks(
         for index, course in enumerate(courses, start=1):
             if progress is not None:
                 progress(index, len(courses), course.clean_name)
-            lectures, assessments = scrape_course(page, course, navigator)
+            try:
+                lectures, assessments = scrape_course(page, course, navigator)
+            except Exception as error:
+                logger.warning(
+                    "과목 수집 실패: course_id=%s (%s)",
+                    course.course_id,
+                    type(error).__name__,
+                )
+                errors.append(
+                    safe_cli_error(
+                        error,
+                        scope="course",
+                        course_id=course.course_id,
+                        course_name=course.clean_name,
+                    )
+                )
+                continue
             lectures_by_course[course.course_id] = lectures
             assessments_by_course[course.course_id] = assessments
 
@@ -90,4 +112,4 @@ def collect_tasks(
             now=now,
         )
 
-    return PipelineResult(course_count=len(courses), tasks=tasks, errors=[])
+    return PipelineResult(course_count=len(courses), tasks=tasks, errors=errors)
