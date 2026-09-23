@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 current_phase: 05
 current_phase_name: CLI Reporting & Universal Agent Skill Packaging
 status: executing
-stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-09-22T23:57:55.501Z"
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-09-23T00:12:03.859Z"
 last_activity: 2026-09-23
 last_activity_desc: Phase 05 execution started
-state_head: b512984571c5e198390de2c035dd498396e8fbfa
+state_head: 30723ee57799549581bdd8c2c0a9ff57c2a97325
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 12
-  completed_plans: 8
-  percent: 67
+  completed_plans: 9
+  percent: 75
 ---
 
 # Project State
@@ -28,11 +28,11 @@ See: .planning/PROJECT.md (updated 2026-09-22)
 ## Current Position
 
 Phase: 05 (CLI Reporting & Universal Agent Skill Packaging) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
 Last activity: 2026-09-23 — Phase 05 execution started
 
-Progress: [████████████████████] 7/7 plans ([███████░░░] 67%)
+Progress: [████████████████████] 7/7 plans ([████████░░] 75%)
 
 ## Performance Metrics
 
@@ -69,6 +69,7 @@ Progress: [████████████████████] 7/7 pla
 | Phase 04 P01 | 11 min | 3 tasks | 10 files |
 | Phase 04 P02 | 5h 35m | 3 tasks | 11 files |
 | Phase 05 P01 | 55 min | 3 tasks | 9 files |
+| Phase 05 P02 | 45min | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,8 @@ Progress: [████████████████████] 7/7 pla
 - [Phase 04]: Only DueDate, 우선순위, and 메모 may be updated; 상태 and Plan remain user-owned. — The Notion integration preserves user-controlled workflow state and scheduling fields.
 - [Phase 04]: Domain priorities stay P1-P4 and map to the existing decorated Scheduler labels only at the Notion boundary. — This matches the live Scheduler without requiring a Notion-side migration or leaking display labels into the domain.
 - [Phase 05]: Reused notion/engine.py's _safe_error typed-allowlist shape (not regex scrubbing) for the full CLI error surface in errors.py — Matches existing, already-reviewed redaction convention (Phase 4 verified no secret leakage using this pattern); avoids a second, inconsistent masking strategy
+- [Phase 05]: Per-course try/except Exception isolation in collect_tasks (D-08): one failing course never hides the others, check exits 1 with the rest intact — Restricted/broken courses must not abort the whole briefing; SKIL-01's core value requires nothing be silently skipped
+- [Phase 05]: validate_lms_settings raises ConfigError naming only missing LMS_URL/LMS_USERNAME/LMS_PASSWORD keys before any browser starts (D-18) — Never asks for or echoes secret values; user fills .env themselves
 
 ### Pending Todos
 
@@ -94,6 +97,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-22T23:57:54.794Z
-Stopped at: Completed 05-01-PLAN.md
+Last session: 2026-09-23T00:12:03.029Z
+Stopped at: Completed 05-02-PLAN.md
 Resume file: None
