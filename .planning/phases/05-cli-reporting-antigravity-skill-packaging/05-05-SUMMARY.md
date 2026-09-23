@@ -203,6 +203,18 @@ None beyond the documented D-26 blocker above.
 - **Pending human action for D-27:** the five per-agent natural-language invocation checks in `05-AGENT-SKILL-EVIDENCE.md` are staged but unanswered — a human must run them in a new session per agent, outside this repository, and record the results (or path corrections) before phase verification can close SKIL-03 end to end.
 - `.planning/WINDOWS.md` (new) currently has one open entry (D-26 unmet-truth); it should be resolved or explicitly waived before `/gsd-ship`.
 
+## Self-Check: PASSED
+
+- FOUND: .planning/phases/05-cli-reporting-antigravity-skill-packaging/05-LIVE-EVIDENCE.md
+- FOUND: .planning/phases/05-cli-reporting-antigravity-skill-packaging/05-AGENT-SKILL-EVIDENCE.md
+- FOUND: skills/kau-lxp/JSON_CONTRACT.md
+- FOUND: tests/test_contract_doc.py
+- FOUND: .planning/WINDOWS.md
+- FOUND commits: 197dc38, fb53989, 72984f9
+- `uv run pytest -q tests/test_contract_doc.py -x` green (4 tests)
+- `uv run pytest` green (full suite, 182 tests)
+- Task 1's own automated `<verify>` FAILS (exit 2, real ConfigError) — documented as an intentional, plan-anticipated outcome, not a self-check failure
+
 ---
 *Phase: 05-cli-reporting-antigravity-skill-packaging*
 *Completed: 2026-09-23*
