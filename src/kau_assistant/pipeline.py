@@ -14,6 +14,7 @@ from kau_assistant.course_mapping import load_course_mappings
 from kau_assistant.domain.models import SyncTask
 from kau_assistant.domain.transformer import transform_to_sync_tasks
 from kau_assistant.errors import safe_cli_error
+from kau_assistant.exceptions import ConfigError
 from kau_assistant.report_models import ErrorItem
 from kau_assistant.scraper.assessment_parser import scrape_course_assessments
 from kau_assistant.scraper.course_list import extract_courses
@@ -28,6 +29,27 @@ from kau_assistant.session_manager import SessionManager
 logger = logging.getLogger("kau_assistant.pipeline")
 
 ProgressCallback = Callable[[int, int, str], None]
+
+
+def validate_lms_settings(settings: Settings) -> None:
+    """Raises ConfigError naming only the missing LMS env-var keys, before any browser starts (D-18).
+
+    Never asks for or echoes values — the message tells the user to fill the
+    repository `.env` themselves.
+    """
+    missing: list[str] = []
+    if not settings.lms_url.strip():
+        missing.append("LMS_URL")
+    if not settings.lms_username.strip():
+        missing.append("LMS_USERNAME")
+    if not settings.lms_password.strip():
+        missing.append("LMS_PASSWORD")
+
+    if missing:
+        keys = ", ".join(missing)
+        raise ConfigError(
+            f"{keys} 값이 비어 있습니다. 저장소의 .env 파일에 직접 입력한 뒤 다시 시도하세요."
+        )
 
 
 class PipelineResult(BaseModel):
@@ -66,6 +88,8 @@ def collect_tasks(
     now: datetime | None = None,
 ) -> PipelineResult:
     """Runs LMS login -> course list -> per-course scrape -> transform_to_sync_tasks (D-07, D-09)."""
+    validate_lms_settings(settings)
+
     if relogin:
         settings.session_cache_path.unlink(missing_ok=True)
 
@@ -76,6 +100,13 @@ def collect_tasks(
     with factory(settings=settings, headful=headed) as session:
         page = session.get_authenticated_page()
         courses = extract_courses(page, settings.lms_url)
+
+        if not courses:
+            logger.warning(
+                "수강 과목을 찾지 못했습니다: 해당 학기에 등록된 과목이 없거나 LMS 목록 조회에 문제가 있을 수 있습니다."
+            )
+            return PipelineResult(course_count=0, tasks=[], errors=[])
+
         navigator = CourseNavigator(settings)
 
         lectures_by_course: dict[str, list[LectureItem]] = {}
