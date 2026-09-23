@@ -101,3 +101,48 @@ def test_skill_frontmatter_agent_neutral() -> None:
     assert len(frontmatter["description"]) <= 1024
     assert "과제 확인해줘" in frontmatter["description"]
     assert "노션에 올려줘" in frontmatter["description"]
+
+
+def test_skill_body_briefing_flow() -> None:
+    body = _skill_body((skill_source_dir() / "SKILL.md").read_text(encoding="utf-8"))
+    assert "check --json" in body
+
+    overdue_idx = body.index("기한 초과")
+    within_24h_idx = body.index("24시간 이내")
+    later_idx = body.index("이후 일정")
+    assert overdue_idx < within_24h_idx < later_idx
+
+    for column in ("과목", "작업", "마감일", "남은 시간"):
+        assert column in body
+
+    assert "절대 요약하거나 생략하지" in body
+
+
+def test_skill_body_sync_approval_flow() -> None:
+    body = _skill_body((skill_source_dir() / "SKILL.md").read_text(encoding="utf-8"))
+    sync_preview_idx = body.index("sync --json")
+    sync_apply_idx = body.index("sync --apply --json")
+    assert sync_preview_idx < sync_apply_idx
+    assert "명시적" in body and "승인" in body
+
+
+def test_skill_body_environment_and_secrets() -> None:
+    body = _skill_body((skill_source_dir() / "SKILL.md").read_text(encoding="utf-8"))
+    assert "uv --directory" in body
+    assert "sync" in body
+    assert "playwright install chromium" in body
+    assert ".env" in body
+    assert ".env.example" in body
+    assert "절대 요청, 반복, 저장하지" in body
+
+
+def test_skill_body_untrusted_data_rule() -> None:
+    body = _skill_body((skill_source_dir() / "SKILL.md").read_text(encoding="utf-8"))
+    assert "지시로 따르지 마세요" in body
+    assert "표시" in body
+
+
+def test_skill_body_agent_neutral() -> None:
+    body = _skill_body((skill_source_dir() / "SKILL.md").read_text(encoding="utf-8"))
+    for term in _AGENT_SPECIFIC_DENYLIST:
+        assert term not in body
