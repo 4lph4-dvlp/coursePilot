@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 current_phase: 05
 current_phase_name: CLI Reporting & Universal Agent Skill Packaging
 status: executing
-stopped_at: Completed 05-03-PLAN.md
-last_updated: "2026-09-23T04:27:21.629Z"
+stopped_at: Completed 05-04-PLAN.md
+last_updated: "2026-09-23T04:44:17.895Z"
 last_activity: 2026-09-23
 last_activity_desc: Phase 05 execution started
-state_head: f3112075ad1feddd759dd234ba9febc480acbb27
+state_head: b1f70069005b686bbd03c6d3ae0bfbab6bfbbe83
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 12
-  completed_plans: 10
+  completed_plans: 11
   percent: 80
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-22)
 ## Current Position
 
 Phase: 05 (CLI Reporting & Universal Agent Skill Packaging) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Status: Ready to execute
 Last activity: 2026-09-23 — Phase 05 execution started
 
@@ -71,6 +71,7 @@ Progress: [████████████████████] 7/7 pla
 | Phase 05 P01 | 55 min | 3 tasks | 9 files |
 | Phase 05 P02 | 45min | 3 tasks | 2 files |
 | Phase 05 P03 | 40min | 2 tasks | 5 files |
+| Phase 05 P04 | 50min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -89,6 +90,9 @@ Progress: [████████████████████] 7/7 pla
 - [Phase 05]: validate_lms_settings raises ConfigError naming only missing LMS_URL/LMS_USERNAME/LMS_PASSWORD keys before any browser starts (D-18) — Never asks for or echoes secret values; user fills .env themselves
 - [Phase 05]: Kept sync's Task 1 (tracer) notice=None placeholder and minimal non-JSON output, deferring the unconfigured-Notion notice and full Rich render_sync_report to Task 2's GREEN step — Let the tracer commit stay a clean, isolated, production-quality slice (real engine, zero writes) before any Rich-rendering code existed
 - [Phase 05]: Unconfigured-Notion sync notice is a static Korean string naming all three candidate .env keys, not settings-derived — Matches the plan's literal wording and trivially satisfies 'contains no setting values' without adding a settings parameter to build_sync_report
+- [Phase 05]: install_skill shipped copy-mode only in Task 1's tracer commit, with link=True raising a clear not-yet-supported InstallError -- kept the tracer a clean, narrowly-scoped slice before Task 3 added link/replace handling on the same signature
+- [Phase 05]: Replace-safety check for a prior kau-lxp install reads only the target's own SKILL.md name: frontmatter line (no YAML dependency) -- cheap and sufficient to distinguish our skill from foreign content before any destructive write
+- [Phase 05]: --link writes repo-root.txt into the source directory (the repo's own skills/kau-lxp/), not the linked target, since the target is only a link to the source -- required a new .gitignore entry
 
 ### Pending Todos
 
@@ -100,6 +104,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-09-23T04:27:08.728Z
-Stopped at: Completed 05-03-PLAN.md
+Last session: 2026-09-23T04:44:17.058Z
+Stopped at: Completed 05-04-PLAN.md
 Resume file: None
