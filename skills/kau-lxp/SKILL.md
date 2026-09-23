@@ -22,6 +22,7 @@ uv --directory "{{KAU_LXP_REPO}}" run python -m kau_assistant <check|sync> --jso
 - 표준출력(stdout)만 JSON으로 파싱하세요. 표준에러(stderr)는 진행 상황/로그 텍스트이므로 절대 파싱하지 마세요.
 - 터미널에 표시되는 Rich(색상/테두리) 리포트를 그대로 채팅에 붙여넣지 마세요. 항상 JSON을 다시 마크다운으로 구성해서 보여주세요.
 - 종료 코드: `0` 성공 / `1` 부분 실패(결과는 여전히 유효하며 오류도 함께 표시) / `2` 치명적 오류(`errors[].message`를 보여주고 중단).
+- JSON의 정확한 필드 구조, 타입, enum 값, 버전 규칙이 궁금하면 같은 폴더의 `JSON_CONTRACT.md`를 참고하세요.
 
 ## 3. 처음 실행 / 환경 진단
 

@@ -38,7 +38,7 @@
 - **Notion 데이터베이스**: `Scheduler` (database container: `21d53280-64be-80e9-827a-e6fd0f85499a`, data source: `21d53280-64be-80ec-af4e-000b679f03bb`)
   - 필드: `이름`(Title), `선택`(Select: 루틴/이벤트), `구분`(Multi-select: 학업 등), `DueDate`(Date), `Plan`(Date), `우선순위`(Select: 🔴 긴급 (P1)/🟡 중요 (P2)/🔵 보통 (P3)/⚪ 낮음 (P4)), `상태`(Status: 시작 전/진행 중/완료/폐기), `메모`(Text)
   - 기존 네이밍 관례: `[공수2] 3주차 강의 시청`, `[자구] 3주차 강의 시청`, `[디시설] 2주차 개념 강의 정리` 등 `[{과목약어}] ...` 브래킷 표기법 준수
-- **동작 방식**: 에이전트 스킬 호출 시 Python 스크립트를 헤드리스로 구동하여 스크래핑 후 JSON 결과 반환 및 노션 동기화
+- **동작 방식**: 범용 Agent Skill(`skills/kau-lxp/SKILL.md`)을 `install-skill` 명령으로 Claude Code, Codex, Antigravity, Pi, Hermes(그 외 SKILL.md를 지원하는 모든 에이전트 포함)에 설치하고, 에이전트가 자연어 요청을 받으면 `python -m kau_assistant check|sync --json`을 직접 실행해 버전이 명시된 JSON(schema_version 1)을 읽어 채팅창에 브리핑하며, 사용자가 승인한 뒤에만 Notion에 동기화
 
 ## Constraints
 
