@@ -363,31 +363,8 @@ def _render_errors(errors: list[ErrorItem], console: Console) -> None:
         console.print(Text(error.message))
 
 
-def render_check_report(report: CheckReport, console: Console) -> None:
-    """Renders the full urgency-grouped Rich briefing (D-01..D-04, D-09)."""
-    header = (
-        f"과목 {report.summary.course_count}개 · "
-        f"기한 초과 {report.summary.overdue_count} · "
-        f"24시간 이내 {report.summary.due_within_24h_count} · "
-        f"이후 일정 {report.summary.later_count}"
-    )
-    if report.errors:
-        header += f" · 수집 오류 {len(report.errors)}"
-    header += f"\n생성 시각: {report.generated_at.strftime('%Y-%m-%d %H:%M:%S KST')}"
-    console.print(Panel(header, title="check 결과"))
-
-    _render_section_table(SECTION_TITLES["overdue"], report.items.overdue, console)
-    _render_detail_blocks(report.items.overdue, console)
-
-    _render_section_table(SECTION_TITLES["due_within_24h"], report.items.due_within_24h, console)
-    _render_detail_blocks(report.items.due_within_24h, console)
-
-    _render_section_table(SECTION_TITLES["later"], report.items.later, console)
-
-    _render_errors(report.errors, console)
-
-
-def _sync_header(report: SyncReport) -> str:
+def _summary_header(report: CheckReport | SyncReport) -> str:
+    """Shared summary header used by both `check` and `sync` Rich reports (D-03)."""
     header = (
         f"과목 {report.summary.course_count}개 · "
         f"기한 초과 {report.summary.overdue_count} · "
@@ -398,6 +375,21 @@ def _sync_header(report: SyncReport) -> str:
         header += f" · 수집 오류 {len(report.errors)}"
     header += f"\n생성 시각: {report.generated_at.strftime('%Y-%m-%d %H:%M:%S KST')}"
     return header
+
+
+def render_check_report(report: CheckReport, console: Console) -> None:
+    """Renders the full urgency-grouped Rich briefing (D-01..D-04, D-09)."""
+    console.print(Panel(_summary_header(report), title="check 결과"))
+
+    _render_section_table(SECTION_TITLES["overdue"], report.items.overdue, console)
+    _render_detail_blocks(report.items.overdue, console)
+
+    _render_section_table(SECTION_TITLES["due_within_24h"], report.items.due_within_24h, console)
+    _render_detail_blocks(report.items.due_within_24h, console)
+
+    _render_section_table(SECTION_TITLES["later"], report.items.later, console)
+
+    _render_errors(report.errors, console)
 
 
 def _sync_mode_banner(sync: SyncSection | None) -> str:
@@ -466,7 +458,7 @@ def _render_sync_skip_table(items: list[SyncSkipItem], console: Console) -> None
 
 def render_sync_report(report: SyncReport, console: Console) -> None:
     """Renders the Rich `sync` report: header, mode banner, plan tables, errors (D-03, D-14, D-16)."""
-    console.print(Panel(_sync_header(report), title="sync 결과"))
+    console.print(Panel(_summary_header(report), title="sync 결과"))
     console.print(f"\n{_sync_mode_banner(report.sync)}")
 
     if report.sync is not None:
