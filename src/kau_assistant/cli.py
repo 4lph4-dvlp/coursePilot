@@ -15,6 +15,7 @@ from kau_assistant.reporter import (
     build_check_report,
     build_sync_report,
     render_check_report,
+    render_sync_report,
     to_json,
 )
 from kau_assistant.scraper.date_parser import get_current_kst_time
@@ -132,14 +133,7 @@ def sync(ctx: click.Context, as_json: bool, headed: bool, relogin: bool, apply_c
     if as_json:
         click.echo(to_json(report))
     else:
-        # Full Rich sync report (render_sync_report) arrives in Task 2; until
-        # then the non-JSON path writes just the summary header.
-        out.print(
-            f"과목 {report.summary.course_count}개 · "
-            f"기한 초과 {report.summary.overdue_count} · "
-            f"24시간 이내 {report.summary.due_within_24h_count} · "
-            f"이후 일정 {report.summary.later_count}"
-        )
+        render_sync_report(report, out)
 
     ctx.exit(exit_code_for(report.errors))
 

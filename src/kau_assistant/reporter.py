@@ -167,6 +167,17 @@ def to_json(report: CheckReport | SyncReport) -> str:
     return report.model_dump_json(indent=2)
 
 
+_NOTION_DISABLED_NOTICE = (
+    "NOTION_TOKEN, NOTION_DATABASE_NAME 또는 NOTION_DATABASE_ID 값이 비어 있습니다. "
+    "저장소의 .env 파일에 직접 입력한 뒤 다시 시도하세요."
+)
+
+SKIP_REASON_LABELS: dict[str, str] = {
+    "unchanged": "변경 없음",
+    "notion_disabled": "Notion 미설정",
+}
+
+
 def notion_page_url(page_id: str) -> str:
     """Builds a Notion page URL from a page id, matching Notion's own hyphen-free format."""
     return "https://www.notion.so/" + page_id.replace("-", "")
@@ -226,7 +237,7 @@ def _build_sync_section(sync_result: SyncResult) -> SyncSection:
         dry_run=sync_result.dry_run,
         applied=sync_result.enabled and not sync_result.dry_run,
         target_title=sync_result.target.title if sync_result.target else None,
-        notice=None,  # Task 2 adds the unconfigured-Notion notice
+        notice=None if sync_result.enabled else _NOTION_DISABLED_NOTICE,
         create=create_items,
         update=update_items,
         skip=skip_items,
@@ -372,5 +383,97 @@ def render_check_report(report: CheckReport, console: Console) -> None:
     _render_detail_blocks(report.items.due_within_24h, console)
 
     _render_section_table(SECTION_TITLES["later"], report.items.later, console)
+
+    _render_errors(report.errors, console)
+
+
+def _sync_header(report: SyncReport) -> str:
+    header = (
+        f"과목 {report.summary.course_count}개 · "
+        f"기한 초과 {report.summary.overdue_count} · "
+        f"24시간 이내 {report.summary.due_within_24h_count} · "
+        f"이후 일정 {report.summary.later_count}"
+    )
+    if report.errors:
+        header += f" · 수집 오류 {len(report.errors)}"
+    header += f"\n생성 시각: {report.generated_at.strftime('%Y-%m-%d %H:%M:%S KST')}"
+    return header
+
+
+def _sync_mode_banner(sync: SyncSection | None) -> str:
+    if sync is None:
+        return "Notion 동기화를 진행하지 않았습니다."
+    if not sync.enabled:
+        return sync.notice or "Notion 동기화를 진행하지 않았습니다."
+    if sync.dry_run:
+        return "노션 동기화 미리보기 — 아직 아무것도 쓰지 않았습니다. 적용하려면 --apply"
+    return "노션 동기화 적용 완료"
+
+
+def _render_sync_create_table(title: str, items: list[SyncCreateItem], console: Console) -> None:
+    console.print(f"\n[bold]{title}[/bold]")
+    if not items:
+        console.print("없음")
+        return
+
+    table = Table(show_lines=False, expand=False)
+    table.add_column("작업", overflow="fold")
+    table.add_column("과목", overflow="fold")
+    table.add_column("마감일", overflow="fold")
+
+    for item in items:
+        table.add_row(Text(item.title), Text(item.course_name), Text(_format_due(item.due_date)))
+
+    console.print(table)
+
+
+def _render_sync_update_table(title: str, items: list[SyncUpdateItem], console: Console) -> None:
+    console.print(f"\n[bold]{title}[/bold]")
+    if not items:
+        console.print("없음")
+        return
+
+    table = Table(show_lines=False, expand=False)
+    table.add_column("작업", overflow="fold")
+    table.add_column("변경 내용", overflow="fold")
+    table.add_column("Notion 링크", overflow="fold")
+
+    for item in items:
+        changes_text = "\n".join(
+            f"{change.field}: {change.before} -> {change.after}" for change in item.changes
+        )
+        table.add_row(Text(item.title), Text(changes_text), Text(item.notion_url))
+
+    console.print(table)
+
+
+def _render_sync_skip_table(items: list[SyncSkipItem], console: Console) -> None:
+    console.print("\n[bold]건너뜀[/bold]")
+    if not items:
+        console.print("없음")
+        return
+
+    table = Table(show_lines=False, expand=False)
+    table.add_column("작업", overflow="fold")
+    table.add_column("사유", overflow="fold")
+
+    for item in items:
+        reason_label = SKIP_REASON_LABELS.get(item.reason, item.reason)
+        table.add_row(Text(item.title), Text(reason_label))
+
+    console.print(table)
+
+
+def render_sync_report(report: SyncReport, console: Console) -> None:
+    """Renders the Rich `sync` report: header, mode banner, plan tables, errors (D-03, D-14, D-16)."""
+    console.print(Panel(_sync_header(report), title="sync 결과"))
+    console.print(f"\n{_sync_mode_banner(report.sync)}")
+
+    if report.sync is not None:
+        create_title = "생성됨" if report.sync.applied else "생성 예정"
+        update_title = "수정됨" if report.sync.applied else "수정 예정"
+        _render_sync_create_table(create_title, report.sync.create, console)
+        _render_sync_update_table(update_title, report.sync.update, console)
+        _render_sync_skip_table(report.sync.skip, console)
 
     _render_errors(report.errors, console)
