@@ -147,19 +147,26 @@ def sync(ctx: click.Context, as_json: bool, headed: bool, relogin: bool, apply_c
     required=True,
     help="스킬을 설치할 에이전트를 선택하세요.",
 )
+@click.option(
+    "--link",
+    "link",
+    is_flag=True,
+    help="복사 대신 심볼릭 링크(또는 Windows 접합점)로 설치합니다 (개발용).",
+)
 @click.pass_context
-def install_skill_command(ctx: click.Context, agent: str) -> None:
+def install_skill_command(ctx: click.Context, agent: str, link: bool) -> None:
     """이 저장소의 kau-lxp 스킬을 에이전트의 사용자 스킬 폴더에 설치합니다 (D-21..D-23)."""
     err = Console(stderr=True)
     out = Console()
 
     try:
-        result = install_skill(agent)
+        result = install_skill(agent, link=link)
     except InstallError as error:
         err.print(str(error), markup=False, highlight=False)
         ctx.exit(2)
 
-    out.print(f"설치 완료 (복사): {result.target}", markup=False, highlight=False)
+    mode_label = "링크" if result.mode == "link" else "복사"
+    out.print(f"설치 완료 ({mode_label}): {result.target}", markup=False, highlight=False)
     out.print(
         "에이전트를 재시작(또는 새 세션 시작)한 뒤 '과제 확인해줘'라고 요청해 보세요.",
         markup=False,

@@ -9,7 +9,10 @@ the repo path so the installed copy works from any working directory.
 
 from __future__ import annotations
 
+import os
 import shutil
+import subprocess
+import sys
 from pathlib import Path
 from typing import Literal
 
@@ -114,6 +117,106 @@ def resolve_install_target(agent: str, *, home: Path | None = None) -> Path:
     return base.joinpath(*target_agent.skills_dir, SKILL_NAME)
 
 
+_FILE_ATTRIBUTE_REPARSE_POINT = 0x400
+
+
+def _is_link_or_junction(path: Path) -> bool:
+    """True for a symlink (any OS) or a Windows NTFS junction."""
+    if path.is_symlink():
+        return True
+    if sys.platform != "win32":
+        return False
+    isjunction = getattr(os.path, "isjunction", None)
+    if isjunction is not None:  # Python >= 3.12
+        return bool(isjunction(str(path)))
+    try:
+        attrs = os.lstat(path).st_file_attributes  # type: ignore[attr-defined]
+    except (AttributeError, OSError):
+        return False
+    return bool(attrs & _FILE_ATTRIBUTE_REPARSE_POINT)
+
+
+def _remove_link(path: Path) -> None:
+    """Remove a symlink/junction itself, never the directory it points to."""
+    if sys.platform == "win32":
+        os.rmdir(path)
+    else:
+        os.unlink(path)
+
+
+def _frontmatter_name(skill_md: Path) -> str | None:
+    """Read only the `name:` frontmatter value, tolerating any read failure."""
+    try:
+        content = skill_md.read_text(encoding="utf-8")
+    except OSError:
+        return None
+    lines = content.splitlines()
+    if not lines or lines[0] != "---":
+        return None
+    for line in lines[1:]:
+        if line == "---":
+            break
+        if line.startswith("name:"):
+            return line.split(":", 1)[1].strip()
+    return None
+
+
+def _prepare_replace(target: Path) -> None:
+    """Safely clear `target` for a fresh install (runs before any write).
+
+    A link/junction is removed as a link only (never touching what it points
+    to). A real directory is removed wholesale only when its own SKILL.md
+    identifies it as our skill; anything else at the target is refused
+    without modification (T-05-15).
+    """
+    if not target.exists() and not target.is_symlink():
+        return
+
+    if _is_link_or_junction(target):
+        _remove_link(target)
+        return
+
+    if target.is_dir():
+        if _frontmatter_name(target / "SKILL.md") == SKILL_NAME:
+            shutil.rmtree(target)
+            return
+        raise InstallError(
+            f"설치 대상에 다른 스킬 또는 알 수 없는 내용이 있습니다: {target}. "
+            "직접 확인 후 제거하거나 다른 위치를 사용하세요."
+        )
+
+    raise InstallError(f"설치 대상이 올바른 스킬 폴더가 아닙니다: {target}")
+
+
+def _create_link(source: Path, target: Path) -> None:
+    """Symlink first; on Windows privilege errors, fall back to an NTFS junction.
+
+    Never falls back to a silent copy (RESEARCH.md Pitfall 4) — if both a
+    symlink and a junction fail, this raises InstallError loudly.
+    """
+    try:
+        os.symlink(source, target, target_is_directory=True)
+        return
+    except OSError as symlink_error:
+        if os.name == "nt":
+            try:
+                subprocess.run(
+                    ["cmd", "/c", "mklink", "/J", str(target), str(source)],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+                return
+            except (OSError, subprocess.CalledProcessError) as junction_error:
+                raise InstallError(
+                    "심볼릭 링크와 NTFS 접합점(junction) 생성이 모두 실패했습니다. "
+                    "--link 없이 다시 실행해 복사 설치를 사용하세요."
+                ) from junction_error
+        raise InstallError(
+            "심볼릭 링크 생성에 실패했습니다. --link 없이 다시 실행해 복사 설치를 사용하세요."
+        ) from symlink_error
+
+
 def _install_copy(source: Path, target: Path) -> None:
     """Copy `source` to `target`, resolving the repo path in the installed SKILL.md."""
     shutil.copytree(
@@ -142,6 +245,9 @@ def install_skill(
     target_agent = AGENT_SKILL_PATHS[agent]
     home_dir = home or Path.home()
     src = source or skill_source_dir()
+    if not (src / "SKILL.md").exists():
+        raise InstallError(f"스킬 소스 폴더를 찾을 수 없습니다: {src} (SKILL.md 없음)")
+
     target = resolve_install_target(agent, home=home_dir)
 
     # Containment check (before any filesystem write) — the target must live
@@ -152,18 +258,27 @@ def install_skill(
 
     agent_home_found = home_dir.joinpath(*target_agent.home_marker).exists()
 
-    if link:
-        raise InstallError(
-            "--link은 이 단계에서 아직 지원되지 않습니다. --link 없이 다시 실행해 복사 설치를 사용하세요."
-        )
-
+    # Replace handling runs before any write, only on this containment-checked
+    # target (T-05-15): a link is removed as a link only, a prior kau-lxp copy
+    # is replaced, anything foreign is refused untouched.
+    _prepare_replace(target)
     expected_skills_dir.mkdir(parents=True, exist_ok=True)
-    _install_copy(src, target)
+
+    if link:
+        _create_link(src, target)
+        # The linked SKILL.md keeps its placeholder; it resolves the repo via
+        # this file instead (written into the source, i.e. the repo's own
+        # skills/kau-lxp/ for the common no-source-override case).
+        (src / REPO_ROOT_FILE).write_text(f"{repo_root()}\n", encoding="utf-8")
+        mode: Literal["copy", "link"] = "link"
+    else:
+        _install_copy(src, target)
+        mode = "copy"
 
     return InstallResult(
         agent=agent,
         target=target,
-        mode="copy",
+        mode=mode,
         repo_root=repo_root(),
         agent_home_found=agent_home_found,
     )
