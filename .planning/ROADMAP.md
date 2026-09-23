@@ -133,7 +133,7 @@ Plans:
   2. `python -m kau_assistant check` 및 `python -m kau_assistant sync` CLI 명령어가 안정적으로 동작한다.
   3. 범용 Agent Skill 폴더(`skills/kau-lxp/SKILL.md`, 지침 및 메타데이터)가 완성되어 Claude Code, Codex, Antigravity, Pi, Hermes에서 설치 후 자연어 요청으로 스킬을 구동할 수 있다.
 
-**Plans**: 4/5 plans executed
+**Plans**: 5/5 plans executed
 
 Plans:
 
@@ -141,7 +141,7 @@ Plans:
 - [x] 05-02-PLAN.md — 파이프라인 복원력: 과목별 오류 격리, LMS 설정 검증, 진행 표시, `--relogin`/`--headed`, 읽기 전용 스크래핑 검증
 - [x] 05-03-PLAN.md — `sync` 명령: 기본 드라이런, `--apply` 쓰기 게이트, 동기화 리포트(Rich/JSON)
 - [x] 05-04-PLAN.md — 범용 `SKILL.md`와 `install-skill` (5개 에이전트 경로 데이터 테이블, 복사/링크 설치)
-- [ ] 05-05-PLAN.md — JSON 계약·README 설치 안내·PROJECT.md 문구, 라이브 E2E 증거, 5개 에이전트 설치 및 호출 검증
+- [x] 05-05-PLAN.md — JSON 계약·README 설치 안내·PROJECT.md 문구, 라이브 E2E 증거, 5개 에이전트 설치 및 호출 검증
 
 **Wave 1**
 
@@ -154,7 +154,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 05-04: 범용 `SKILL.md` 및 `install-skill`
+- [x] 05-04: 범용 `SKILL.md` 및 `install-skill`
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
@@ -173,4 +173,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. LMS Scraper Core | 2/2 | Complete    | 2026-09-21 |
 | 3. Domain Modeling & Naming Rules | 1/1 | Complete    | 2026-09-21 |
 | 4. Notion Scheduler Integration & Deduplication | 2/2 | Complete    | 2026-09-22 |
-| 5. CLI Reporting & Universal Agent Skill Packaging | 4/5 | In Progress|  |
+| 5. CLI Reporting & Universal Agent Skill Packaging | 5/5 | In Progress|  |
