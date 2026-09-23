@@ -1,21 +1,57 @@
-"""KAU LXP Assistant CLI: `check` wires pipeline -> reporter -> the versioned report contract (D-07, D-10)."""
+"""KAU LXP Assistant CLI: `check`/`sync` wire pipeline -> reporter -> the versioned report contract (D-07, D-10)."""
 
 import logging
 import sys
+from datetime import datetime
 
 import click
 from rich.console import Console
 
-from kau_assistant.config import get_settings
+from kau_assistant.config import Settings, get_settings
 from kau_assistant.errors import exit_code_for, safe_cli_error
-from kau_assistant.pipeline import collect_tasks
-from kau_assistant.reporter import build_check_report, render_check_report, to_json
+from kau_assistant.notion import NotionSyncEngine
+from kau_assistant.pipeline import PipelineResult, collect_tasks
+from kau_assistant.reporter import (
+    build_check_report,
+    build_sync_report,
+    render_check_report,
+    to_json,
+)
 from kau_assistant.scraper.date_parser import get_current_kst_time
 
 
 @click.group()
 def cli() -> None:
     """KAU LXP Assistant 명령행 도구."""
+
+
+def _collect_lms_tasks(
+    *,
+    headed: bool,
+    relogin: bool,
+    err: Console,
+    now: datetime,
+    status_message: str,
+) -> tuple[Settings, PipelineResult]:
+    """Shared settings-load + LMS-collect step for `check` and `sync` (D-07, D-08).
+
+    Progress lines go to stderr only; any exception (fatal config/login stage)
+    propagates unconverted for the caller's own fatal-report boundary.
+    """
+    err.print(status_message, markup=False, highlight=False)
+    settings = get_settings()
+
+    def _on_progress(index: int, total: int, name: str) -> None:
+        err.print(f"[{index}/{total}] {name} 수집 중", markup=False, highlight=False)
+
+    result = collect_tasks(
+        settings,
+        headed=headed,
+        relogin=relogin,
+        progress=_on_progress,
+        now=now,
+    )
+    return settings, result
 
 
 @cli.command()
@@ -30,18 +66,13 @@ def check(ctx: click.Context, as_json: bool, headed: bool, relogin: bool) -> Non
 
     now = get_current_kst_time()
 
-    def _on_progress(index: int, total: int, name: str) -> None:
-        err.print(f"[{index}/{total}] {name} 수집 중", markup=False, highlight=False)
-
     try:
-        err.print("LMS 로그인 및 과목 목록 수집 중…", markup=False, highlight=False)
-        settings = get_settings()
-        result = collect_tasks(
-            settings,
+        _settings, result = _collect_lms_tasks(
             headed=headed,
             relogin=relogin,
-            progress=_on_progress,
+            err=err,
             now=now,
+            status_message="LMS 로그인 및 과목 목록 수집 중…",
         )
         report = build_check_report(
             result.tasks,
@@ -57,6 +88,58 @@ def check(ctx: click.Context, as_json: bool, headed: bool, relogin: bool) -> Non
         click.echo(to_json(report))
     else:
         render_check_report(report, out)
+
+    ctx.exit(exit_code_for(report.errors))
+
+
+@cli.command()
+@click.option("--json", "as_json", is_flag=True, help="결과를 JSON으로 출력합니다.")
+@click.option("--headed", is_flag=True, help="브라우저 창을 표시하며 실행합니다.")
+@click.option("--relogin", is_flag=True, help="캐시된 세션을 무시하고 다시 로그인합니다.")
+@click.option("--apply", "apply_changes", is_flag=True, help="미리보기 대신 실제로 Notion에 반영합니다.")
+@click.pass_context
+def sync(ctx: click.Context, as_json: bool, headed: bool, relogin: bool, apply_changes: bool) -> None:
+    """LMS 현황을 Notion Scheduler에 동기화합니다 (기본은 미리보기, --apply로만 실제 반영, D-06)."""
+    err = Console(stderr=True)
+    out = Console()
+
+    now = get_current_kst_time()
+
+    try:
+        settings, result = _collect_lms_tasks(
+            headed=headed,
+            relogin=relogin,
+            err=err,
+            now=now,
+            status_message="LMS 로그인 및 과목 목록 수집 중…",
+        )
+    except Exception as error:  # noqa: BLE001 - top-level fatal boundary (D-08, D-12)
+        fatal = safe_cli_error(error, scope="fatal")
+        report = build_sync_report([], None, course_count=0, errors=[fatal], now=now)
+    else:
+        err.print("Notion Scheduler 조회 및 동기화 계획 수립 중…", markup=False, highlight=False)
+        sync_result = NotionSyncEngine(settings=settings).sync(
+            result.tasks, dry_run=not apply_changes
+        )
+        report = build_sync_report(
+            result.tasks,
+            sync_result,
+            course_count=result.course_count,
+            errors=result.errors,
+            now=now,
+        )
+
+    if as_json:
+        click.echo(to_json(report))
+    else:
+        # Full Rich sync report (render_sync_report) arrives in Task 2; until
+        # then the non-JSON path writes just the summary header.
+        out.print(
+            f"과목 {report.summary.course_count}개 · "
+            f"기한 초과 {report.summary.overdue_count} · "
+            f"24시간 이내 {report.summary.due_within_24h_count} · "
+            f"이후 일정 {report.summary.later_count}"
+        )
 
     ctx.exit(exit_code_for(report.errors))
 

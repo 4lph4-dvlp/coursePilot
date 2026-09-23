@@ -2,6 +2,7 @@
 
 from collections.abc import Sequence
 from datetime import datetime
+from enum import Enum
 
 from rich.console import Console
 from rich.panel import Panel
@@ -9,6 +10,7 @@ from rich.table import Table
 from rich.text import Text
 
 from kau_assistant.domain.models import SyncTask
+from kau_assistant.notion.models import SyncResult
 from kau_assistant.report_models import (
     BriefingSections,
     CheckReport,
@@ -16,6 +18,13 @@ from kau_assistant.report_models import (
     ErrorItem,
     ReportItem,
     ReportSummary,
+    SyncChange,
+    SyncCounts,
+    SyncCreateItem,
+    SyncReport,
+    SyncSection,
+    SyncSkipItem,
+    SyncUpdateItem,
 )
 from kau_assistant.scraper.date_parser import get_current_kst_time
 
@@ -98,6 +107,20 @@ def _to_report_item(task: SyncTask, current: datetime, *, include_detail: bool) 
     )
 
 
+def _classify_by_urgency(
+    tasks: list[SyncTask],
+) -> tuple[list[SyncTask], list[SyncTask], list[SyncTask]]:
+    """Splits tasks into overdue / due-within-24h / later purely from existing flags (D-01, D-05).
+
+    Shared by build_check_report and build_sync_report so both summary headers
+    agree on the same urgency classification.
+    """
+    overdue_tasks = [t for t in tasks if t.is_overdue]
+    due_within_24h_tasks = [t for t in tasks if t.is_urgent and not t.is_overdue]
+    later_tasks = [t for t in tasks if not t.is_overdue and not t.is_urgent]
+    return overdue_tasks, due_within_24h_tasks, later_tasks
+
+
 def build_check_report(
     tasks: list[SyncTask],
     *,
@@ -108,9 +131,7 @@ def build_check_report(
     """Classifies tasks into urgency sections purely from existing SyncTask flags (D-01, D-05)."""
     current = now or get_current_kst_time()
 
-    overdue_tasks = [t for t in tasks if t.is_overdue]
-    due_within_24h_tasks = [t for t in tasks if t.is_urgent and not t.is_overdue]
-    later_tasks = [t for t in tasks if not t.is_overdue and not t.is_urgent]
+    overdue_tasks, due_within_24h_tasks, later_tasks = _classify_by_urgency(tasks)
 
     overdue_items = [_to_report_item(t, current, include_detail=True) for t in overdue_tasks]
     due_within_24h_items = [
@@ -141,9 +162,127 @@ def build_check_report(
     )
 
 
-def to_json(report: CheckReport) -> str:
+def to_json(report: CheckReport | SyncReport) -> str:
     """Serializes the report via Pydantic's own serializer, keeping Korean text unescaped (Pitfall 3)."""
     return report.model_dump_json(indent=2)
+
+
+def notion_page_url(page_id: str) -> str:
+    """Builds a Notion page URL from a page id, matching Notion's own hyphen-free format."""
+    return "https://www.notion.so/" + page_id.replace("-", "")
+
+
+def _display(value: object) -> str | None:
+    """Renders a FieldDiff before/after value as a display string (None/datetime/Enum/other)."""
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value.isoformat()
+    if isinstance(value, Enum):
+        return value.value
+    return str(value)
+
+
+def _build_sync_section(sync_result: SyncResult) -> SyncSection:
+    create_items = [
+        SyncCreateItem(
+            task_id=action.task_id,
+            title=action.title,
+            course_name=action.task.course_name,
+            due_date=action.task.due_date,
+        )
+        for action in sync_result.created
+    ]
+    update_items = [
+        SyncUpdateItem(
+            task_id=action.task_id,
+            title=action.title,
+            page_id=action.page_id,
+            notion_url=notion_page_url(action.page_id),
+            changes=[
+                SyncChange(
+                    field=diff.property_name,
+                    before=_display(diff.before),
+                    after=_display(diff.after),
+                )
+                for diff in action.diffs
+            ],
+        )
+        for action in sync_result.updated
+    ]
+    skip_items = [
+        SyncSkipItem(
+            task_id=action.task_id,
+            title=action.title,
+            page_id=action.page_id,
+            notion_url=notion_page_url(action.page_id) if action.page_id else None,
+            reason=action.reason,
+        )
+        for action in sync_result.skipped
+    ]
+
+    return SyncSection(
+        enabled=sync_result.enabled,
+        dry_run=sync_result.dry_run,
+        applied=sync_result.enabled and not sync_result.dry_run,
+        target_title=sync_result.target.title if sync_result.target else None,
+        notice=None,  # Task 2 adds the unconfigured-Notion notice
+        create=create_items,
+        update=update_items,
+        skip=skip_items,
+        counts=SyncCounts(
+            total=sync_result.stats.total,
+            create=sync_result.stats.created,
+            update=sync_result.stats.updated,
+            skip=sync_result.stats.skipped,
+            error=sync_result.stats.errors,
+        ),
+    )
+
+
+def build_sync_report(
+    tasks: list[SyncTask],
+    sync_result: SyncResult | None,
+    *,
+    course_count: int,
+    errors: Sequence[ErrorItem] = (),
+    now: datetime | None = None,
+) -> SyncReport:
+    """Maps a real SyncResult into the sync half of contract v1, never model_dump()'d (D-13, D-16)."""
+    current = now or get_current_kst_time()
+    overdue_tasks, due_within_24h_tasks, later_tasks = _classify_by_urgency(tasks)
+
+    sync_section: SyncSection | None = None
+    notion_errors: list[ErrorItem] = []
+    if sync_result is not None:
+        sync_section = _build_sync_section(sync_result)
+        notion_errors = [
+            ErrorItem(
+                scope="notion",
+                code=action.code,
+                message=action.message,
+                task_title=action.title or None,
+            )
+            for action in sync_result.errors
+        ]
+
+    all_errors = [*errors, *notion_errors]
+
+    summary = ReportSummary(
+        course_count=course_count,
+        total_count=len(tasks),
+        overdue_count=len(overdue_tasks),
+        due_within_24h_count=len(due_within_24h_tasks),
+        later_count=len(later_tasks),
+        error_count=len(all_errors),
+    )
+
+    return SyncReport(
+        generated_at=current,
+        summary=summary,
+        sync=sync_section,
+        errors=all_errors,
+    )
 
 
 def _format_due(due_date: datetime | None) -> str:

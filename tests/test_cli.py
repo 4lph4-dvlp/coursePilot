@@ -1,7 +1,8 @@
-"""CliRunner coverage for the `check` command's JSON contract, stderr routing, and flags."""
+"""CliRunner coverage for the `check`/`sync` commands' JSON contract, stderr routing, and flags."""
 
 import json
 from datetime import datetime, timedelta
+from unittest.mock import MagicMock
 
 import pytest
 from click.testing import CliRunner
@@ -16,6 +17,8 @@ from kau_assistant.domain.models import (
     TaskType,
 )
 from kau_assistant.exceptions import AuthenticationError, ConfigError
+from kau_assistant.notion import NotionSyncEngine
+from kau_assistant.notion.models import ExistingPage, NotionTarget
 from kau_assistant.pipeline import PipelineResult
 from kau_assistant.report_models import ErrorItem
 from kau_assistant.scraper.date_parser import KST
@@ -339,3 +342,123 @@ def test_redaction_settings_values_never_printed(fake_pipeline, sample_settings)
         for secret in secrets:
             assert secret not in result.stdout
             assert secret not in result.stderr
+
+
+SYNC_OLD_DUE = NOW - timedelta(days=1)
+SYNC_NEW_DUE = NOW + timedelta(days=5)
+SYNC_UNCHANGED_DUE = NOW + timedelta(days=10)
+
+
+def _sync_task(
+    *,
+    task_id: str,
+    title: str,
+    course_id: str = "course-2",
+    course_name: str = "공학수학 2",
+    course_abbr: str = "공수2",
+    due_date: datetime | None,
+    memo: str = "LMS 바로가기: https://lms.kau.ac.kr/course/2",
+) -> SyncTask:
+    return SyncTask(
+        id=task_id,
+        course_id=course_id,
+        course_name=course_name,
+        course_abbr=course_abbr,
+        title=title,
+        raw_title=title,
+        task_type=TaskType.ASSIGNMENT,
+        selection=TaskSelect.EVENT,
+        due_date=due_date,
+        priority=TaskPriority.P2,
+        status=TaskStatus.NOT_STARTED,
+        memo=memo,
+        source_url="https://lms.kau.ac.kr/course/2",
+    )
+
+
+def _sync_sample_tasks() -> list[SyncTask]:
+    """One new title, one matching an existing page with a different due date, one unchanged."""
+    return [
+        _sync_task(task_id="task-new", title="[공수2] 신규 과제 제출", due_date=SYNC_NEW_DUE),
+        _sync_task(task_id="task-update", title="[공수2] 3주차 과제 제출", due_date=SYNC_NEW_DUE),
+        _sync_task(
+            task_id="task-unchanged",
+            title="[자구] 4주차 강의 시청",
+            course_id="course-1",
+            course_name="자료구조",
+            course_abbr="자구",
+            due_date=SYNC_UNCHANGED_DUE,
+            memo="LMS 바로가기: https://lms.kau.ac.kr/course/1",
+        ),
+    ]
+
+
+def _fake_notion_client() -> MagicMock:
+    """MagicMock Notion client following the tests/test_notion_engine.py fixture pattern."""
+    client = MagicMock()
+    client.resolve_target.return_value = NotionTarget(
+        database_id="database-id", data_source_id="source-id", title="Scheduler"
+    )
+    client.query_existing_pages.return_value = [
+        ExistingPage(
+            page_id="page-update",
+            title="[공수2] 3주차 과제 제출",
+            due_date=SYNC_OLD_DUE,
+            priority=TaskPriority.P2,
+            memo="LMS 바로가기: https://lms.kau.ac.kr/course/2",
+        ),
+        ExistingPage(
+            page_id="page-unchanged",
+            title="[자구] 4주차 강의 시청",
+            due_date=SYNC_UNCHANGED_DUE,
+            priority=TaskPriority.P2,
+            memo="LMS 바로가기: https://lms.kau.ac.kr/course/1",
+        ),
+    ]
+    return client
+
+
+def test_sync_dry_run_default_never_writes(monkeypatch, sample_settings):
+    monkeypatch.setattr("kau_assistant.cli.get_settings", lambda: sample_settings)
+
+    def _fake_collect_tasks(settings, *, headed=False, relogin=False, progress=None, now=None):
+        if progress is not None:
+            progress(1, 2, "자료구조")
+        return PipelineResult(course_count=2, tasks=_sync_sample_tasks(), errors=[])
+
+    monkeypatch.setattr("kau_assistant.cli.collect_tasks", _fake_collect_tasks)
+
+    fake_client = _fake_notion_client()
+
+    def _engine_factory(settings=None, client=None):
+        return NotionSyncEngine(settings=settings, client=fake_client)
+
+    monkeypatch.setattr("kau_assistant.cli.NotionSyncEngine", _engine_factory)
+
+    runner = CliRunner()
+    result = runner.invoke(cli, ["sync", "--json"])
+
+    assert result.exit_code == 0, result.output
+    payload = json.loads(result.stdout)
+    assert set(payload.keys()) == {
+        "schema_version",
+        "command",
+        "generated_at",
+        "summary",
+        "sync",
+        "errors",
+    }
+    assert payload["schema_version"] == 1
+    assert payload["command"] == "sync"
+    assert payload["sync"]["dry_run"] is True
+    assert payload["sync"]["applied"] is False
+    assert len(payload["sync"]["create"]) == 1
+    assert len(payload["sync"]["update"]) == 1
+    assert payload["sync"]["update"][0]["changes"][0]["field"] == "DueDate"
+    assert "before" in payload["sync"]["update"][0]["changes"][0]
+    assert "after" in payload["sync"]["update"][0]["changes"][0]
+    assert len(payload["sync"]["skip"]) == 1
+    assert payload["sync"]["skip"][0]["reason"] == "unchanged"
+
+    fake_client.create_page.assert_not_called()
+    fake_client.update_page.assert_not_called()

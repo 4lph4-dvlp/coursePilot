@@ -84,3 +84,89 @@ class CheckReport(BaseModel):
     summary: ReportSummary
     items: BriefingSections
     errors: list[ErrorItem]
+
+
+class SyncChange(BaseModel):
+    """One changed Scheduler property, rendered before/after as display strings."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    field: str
+    before: str | None
+    after: str | None
+
+
+class SyncCreateItem(BaseModel):
+    """A task that will become a new Scheduler page."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    task_id: str
+    title: str
+    course_name: str
+    due_date: datetime | None
+
+
+class SyncUpdateItem(BaseModel):
+    """An existing Scheduler page that will receive an allowlisted partial update."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    task_id: str
+    title: str
+    page_id: str
+    notion_url: str
+    changes: list[SyncChange]
+
+
+class SyncSkipItem(BaseModel):
+    """A task intentionally left unchanged."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    task_id: str
+    title: str
+    page_id: str | None
+    notion_url: str | None
+    reason: str
+
+
+class SyncCounts(BaseModel):
+    """Aggregate create/update/skip/error counts for the sync plan."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    total: int
+    create: int
+    update: int
+    skip: int
+    error: int
+
+
+class SyncSection(BaseModel):
+    """Sync half of the JSON contract v1: the create/update/skip plan (D-13, D-16)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    enabled: bool
+    dry_run: bool
+    applied: bool
+    target_title: str | None
+    notice: str | None
+    create: list[SyncCreateItem]
+    update: list[SyncUpdateItem]
+    skip: list[SyncSkipItem]
+    counts: SyncCounts
+
+
+class SyncReport(BaseModel):
+    """Versioned `sync` command JSON envelope, never a raw SyncResult dump (D-13)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    schema_version: Literal[1] = SCHEMA_VERSION
+    command: Literal["sync"] = "sync"
+    generated_at: datetime
+    summary: ReportSummary
+    sync: SyncSection | None
+    errors: list[ErrorItem]
