@@ -71,3 +71,46 @@ This gap is also recorded in `.planning/WINDOWS.md` as an `unmet-truth` entry ag
 ## Verdict
 
 **PARTIAL — real, redacted evidence recorded; D-26's full "working live check + dry-run sync against real course/assignment data" truth is unmet due to an empty `LMS_USERNAME`/`LMS_PASSWORD` in `.env`.** No secret, raw payload, or plain-text task/assignment title was recorded at any point. No Notion write occurred (62 pages before, 62 after). No `--apply` was ever invoked. This is a genuine environmental precondition gap, not a code defect — resolving it requires the user to fill in their real LMS credentials.
+
+---
+
+## UAT Re-run — 2026-09-23 (after real LMS credentials were filled in)
+
+Run during `/gsd-verify-work 05` Test 1, again from the OS temp scratch folder via `uv --directory "D:/dev/kau-lxp-assistant" run python -m kau_assistant ...`. `.env` was not opened. Only counts, exit codes, error scopes/codes and structural markers are recorded here. All captured HTML/JSON was deleted right after the counts were taken.
+
+### Current term (2026 2학기): mechanics PASS, 0 active courses
+
+| Item | Result |
+|---|---|
+| `check --json` exit / duration | 0 / 28s |
+| `check` summary | course_count 0, total 0, overdue 0, within_24h 0, later 0, error_count 0 |
+| `check` (Rich) | exit 0; all three section headings rendered (기한 초과 / 24시간 이내 / 이후 일정), each "없음" |
+| `sync --json` exit / duration | 0 / 20s |
+| `sync` flags | enabled=true, dry_run=true, applied=false, counts all 0 (create/update/skip/error) |
+| Notion Scheduler page count before → after `sync` | 62 → 62 (read-only `query_existing_pages`) |
+| `--apply` used | never |
+
+Why course_count is 0: this is the real state, not a scraper miss. The LMS header popover shows "진행중인 강좌 (0)", and `/local/ubion/user/?year=2026&semester=20` shows "참여중인 강좌가 없습니다". The LMS defaults that page to 2026 1학기, which has 6 courses.
+
+Minor: `extract_courses` waits for `.block_coursemos_my_courses, .course_list, #dashboard, .my-course-lists, [role='main']`. On the real dashboard none of these are visible (`.my-course-lists` is inside a hidden popover and the main region is empty), so every run spends the full 15s timeout before continuing.
+
+### Real-data parse probe (2026 1학기 courses, read-only)
+
+The real `collect_tasks` pipeline ran with only the course source swapped to the 2026 1학기 list (`/local/ubion/user/?year=2026&semester=10`). Everything else was unchanged.
+
+| Item | Result |
+|---|---|
+| Courses extracted | 6 (`[i/N]` progress 1/6 … 6/6), errors 0 |
+| Assessments parsed | 50 (assignments 30, quizzes 20). Status mix: submitted 20, not_attempted 30. 48 of 50 have a due date |
+| Lectures parsed | 69 across 4 courses (2 courses have no VOD). **0 of 69 have a due date; all 69 are `incomplete`** |
+| Tasks after transform | 30 (quiz 19, assignment 11, **lecture 0**) |
+| Report classification (real now) | overdue 28, within_24h 0, later 2 |
+
+**Defect found (G-05-1): lecture deadlines are never parsed on the KAU LMS.**
+- `CourseNavigator.navigate_progress_page` requests `/report/progress/index.php?id=N`, which does not exist here, so every course falls back to the course-home parser. The real attendance/progress page linked from the course home is `/report/ubcompletion/progress.php?id=N` (`table.user_progress`). Its headers are `주 | 강의 자료 | 출석인정 요구시간 | 총 학습시간`, with the week cell row-spanned. It has no period/deadline column and no O/X column, so the current column map (`주차/차시/진도/출석/기간`) would not match it either.
+- On the course home, each VOD activity is `li.activity.vod.modtype_vod`. Its period is in `span.displayoptions > span.text-ubstrap` (format `YYYY-MM-DD HH:MM:SS ~ YYYY-MM-DD HH:MM:SS`). `parse_lectures_from_course_sections` only reads `availabilityinfo|activity-dates`, so `raw_due_date` is always empty.
+- Result: every lecture gets `due_date=None` and is excluded by D-11. Completion is never read from the real progress data either. **No lecture can appear in `check` or `sync`.**
+
+### Verdict (UAT Test 1)
+
+**ISSUE (major).** The D-26 mechanics are verified live: foreign cwd, exit codes, JSON contract, dry-run with no Notion write. Assignment/quiz parsing works on real data. The lecture half of "real course data" fails (G-05-1). WINDOWS entry 1 (empty credentials) is closed; entry 2 tracks G-05-1.
