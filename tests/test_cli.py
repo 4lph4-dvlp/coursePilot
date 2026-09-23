@@ -462,3 +462,157 @@ def test_sync_dry_run_default_never_writes(monkeypatch, sample_settings):
 
     fake_client.create_page.assert_not_called()
     fake_client.update_page.assert_not_called()
+
+
+def test_sync_apply_writes_planned_actions(monkeypatch, sample_settings):
+    monkeypatch.setattr("kau_assistant.cli.get_settings", lambda: sample_settings)
+
+    def _fake_collect_tasks(settings, *, headed=False, relogin=False, progress=None, now=None):
+        return PipelineResult(course_count=2, tasks=_sync_sample_tasks(), errors=[])
+
+    monkeypatch.setattr("kau_assistant.cli.collect_tasks", _fake_collect_tasks)
+
+    fake_client = _fake_notion_client()
+    fake_client.create_page.return_value = {"id": "new-page-id"}
+    fake_client.update_page.return_value = {"id": "page-update"}
+
+    def _engine_factory(settings=None, client=None):
+        return NotionSyncEngine(settings=settings, client=fake_client)
+
+    monkeypatch.setattr("kau_assistant.cli.NotionSyncEngine", _engine_factory)
+
+    runner = CliRunner()
+    result = runner.invoke(cli, ["sync", "--apply", "--json"])
+
+    assert result.exit_code == 0, result.output
+    payload = json.loads(result.stdout)
+    assert payload["sync"]["applied"] is True
+    assert payload["sync"]["dry_run"] is False
+    fake_client.create_page.assert_called_once()
+    fake_client.update_page.assert_called_once()
+
+
+def test_check_no_notion_engine_constructed(fake_pipeline, monkeypatch):
+    def _raise(*args, **kwargs):
+        raise AssertionError("NotionSyncEngine must never be constructed by check")
+
+    monkeypatch.setattr("kau_assistant.cli.NotionSyncEngine", _raise)
+
+    runner = CliRunner()
+    result = runner.invoke(cli, ["check", "--json"])
+
+    assert result.exit_code == 0, result.output
+
+
+def test_sync_no_notion_configured_notice(monkeypatch, tmp_path):
+    settings = Settings(
+        lms_url="https://lms.kau.ac.kr",
+        lms_username="2020123456",
+        lms_password="supersecretpassword",
+        notion_token="",
+        notion_api_key="",
+        notion_database_id="",
+        notion_database_name="",
+        session_cache_path=tmp_path / "session.json",
+        course_mappings_path=tmp_path / "course_mappings.json",
+    )
+    monkeypatch.setattr("kau_assistant.cli.get_settings", lambda: settings)
+
+    sample_tasks = _sync_sample_tasks()
+
+    def _fake_collect_tasks(*args, **kwargs):
+        return PipelineResult(course_count=1, tasks=sample_tasks, errors=[])
+
+    monkeypatch.setattr("kau_assistant.cli.collect_tasks", _fake_collect_tasks)
+
+    runner = CliRunner()
+    result = runner.invoke(cli, ["sync", "--json"])
+
+    assert result.exit_code == 0, result.output
+    payload = json.loads(result.stdout)
+    assert payload["sync"]["enabled"] is False
+    notice = payload["sync"]["notice"]
+    assert notice is not None
+    assert "NOTION_TOKEN" in notice
+    assert "NOTION_DATABASE_NAME" in notice or "NOTION_DATABASE_ID" in notice
+    for value in (settings.lms_username, settings.lms_password):
+        assert value not in notice
+    assert payload["summary"]["total_count"] == len(sample_tasks)
+
+
+def test_exit_code_sync_notion_error_is_partial(monkeypatch, sample_settings):
+    monkeypatch.setattr("kau_assistant.cli.get_settings", lambda: sample_settings)
+
+    def _fake_collect_tasks(*args, **kwargs):
+        return PipelineResult(course_count=1, tasks=_sync_sample_tasks(), errors=[])
+
+    monkeypatch.setattr("kau_assistant.cli.collect_tasks", _fake_collect_tasks)
+
+    from kau_assistant.exceptions import NotionAuthenticationError
+
+    fake_client = MagicMock()
+    fake_client.resolve_target.side_effect = NotionAuthenticationError("Notion 토큰이 유효하지 않습니다.")
+
+    def _engine_factory(settings=None, client=None):
+        return NotionSyncEngine(settings=settings, client=fake_client)
+
+    monkeypatch.setattr("kau_assistant.cli.NotionSyncEngine", _engine_factory)
+
+    runner = CliRunner()
+    result = runner.invoke(cli, ["sync", "--json"])
+
+    assert result.exit_code == 1, result.output
+    payload = json.loads(result.stdout)
+    assert payload["errors"][0]["scope"] == "notion"
+
+
+def test_exit_code_sync_fatal_skips_notion(monkeypatch, sample_settings):
+    monkeypatch.setattr("kau_assistant.cli.get_settings", lambda: sample_settings)
+
+    def _fake_collect_tasks(*args, **kwargs):
+        raise ConfigError("LMS_USERNAME 환경 변수가 설정되지 않았습니다.")
+
+    monkeypatch.setattr("kau_assistant.cli.collect_tasks", _fake_collect_tasks)
+
+    engine_calls: list = []
+
+    def _engine_factory(settings=None, client=None):
+        engine_calls.append(1)
+        raise AssertionError("NotionSyncEngine must not be constructed on the fatal path")
+
+    monkeypatch.setattr("kau_assistant.cli.NotionSyncEngine", _engine_factory)
+
+    runner = CliRunner()
+    result = runner.invoke(cli, ["sync", "--json"])
+
+    assert result.exit_code == 2, result.output
+    payload = json.loads(result.stdout)
+    assert payload["sync"] is None
+    assert engine_calls == []
+
+
+def test_redaction_sync_outputs(monkeypatch, sample_settings):
+    monkeypatch.setattr("kau_assistant.cli.get_settings", lambda: sample_settings)
+
+    def _fake_collect_tasks(*args, **kwargs):
+        return PipelineResult(course_count=2, tasks=_sync_sample_tasks(), errors=[])
+
+    monkeypatch.setattr("kau_assistant.cli.collect_tasks", _fake_collect_tasks)
+
+    fake_client = _fake_notion_client()
+    fake_client.create_page.return_value = {"id": "new-page-id"}
+    fake_client.update_page.return_value = {"id": "page-update"}
+
+    def _engine_factory(settings=None, client=None):
+        return NotionSyncEngine(settings=settings, client=fake_client)
+
+    monkeypatch.setattr("kau_assistant.cli.NotionSyncEngine", _engine_factory)
+
+    runner = CliRunner()
+    secrets = (sample_settings.lms_username, sample_settings.lms_password, sample_settings.notion_token)
+
+    for args in (["sync", "--json"], ["sync"], ["sync", "--apply", "--json"], ["sync", "--apply"]):
+        result = runner.invoke(cli, args, env={"COLUMNS": "200"})
+        for secret in secrets:
+            assert secret not in result.stdout
+            assert secret not in result.stderr

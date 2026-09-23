@@ -1,6 +1,7 @@
 """Pure reporter coverage: grouping, detail blocks, no truncation, JSON encoding (D-01..D-05, D-09)."""
 
 import io
+import json
 from datetime import datetime, timedelta
 
 from rich.console import Console
@@ -12,8 +13,24 @@ from kau_assistant.domain.models import (
     TaskStatus,
     TaskType,
 )
+from kau_assistant.notion.models import (
+    CreateAction,
+    FieldDiff,
+    NotionTarget,
+    SkipAction,
+    SyncResult,
+    SyncStats,
+    UpdateAction,
+)
 from kau_assistant.report_models import ErrorItem
-from kau_assistant.reporter import build_check_report, format_remaining, render_check_report, to_json
+from kau_assistant.reporter import (
+    build_check_report,
+    build_sync_report,
+    format_remaining,
+    render_check_report,
+    render_sync_report,
+    to_json,
+)
 from kau_assistant.scraper.date_parser import KST
 
 NOW = datetime(2026, 9, 23, 12, 0, tzinfo=KST)
@@ -256,3 +273,124 @@ def test_format_remaining_cases():
     assert format_remaining(now + timedelta(minutes=45), now) == "45분 남음"
     assert format_remaining(now - timedelta(days=2, hours=3), now) == "2일 3시간 지남"
     assert format_remaining(None, now) == "마감일 없음"
+
+
+def _render_sync(report, *, width: int = 200) -> str:
+    buf = io.StringIO()
+    console = Console(file=buf, width=width, color_system=None)
+    render_sync_report(report, console)
+    return buf.getvalue()
+
+
+def _sync_result_sample(*, dry_run: bool = True) -> SyncResult:
+    new_task = _task(task_id="t1", title="[공수2] 신규 과제 제출", due_date=NOW + timedelta(days=1))
+    target = NotionTarget(database_id="db-id", data_source_id="ds-id", title="Scheduler")
+    created = [CreateAction(task_id="t1", title=new_task.title, task=new_task)]
+    updated = [
+        UpdateAction(
+            task_id="t2",
+            title="[공수2] 3주차 과제 제출",
+            page_id="page-1",
+            diffs=[
+                FieldDiff(
+                    property_name="DueDate",
+                    before=NOW - timedelta(days=1),
+                    after=NOW + timedelta(days=2),
+                )
+            ],
+        )
+    ]
+    skipped = [SkipAction(task_id="t3", title="[자구] 4주차 강의 시청", page_id="page-2", reason="unchanged")]
+    return SyncResult(
+        enabled=True,
+        dry_run=dry_run,
+        target=target,
+        created=created,
+        updated=updated,
+        skipped=skipped,
+        errors=[],
+        stats=SyncStats(total=3, created=1, updated=1, skipped=1, errors=0),
+    )
+
+
+def test_json_contract_sync_envelope_keys():
+    sync_result = _sync_result_sample()
+    report = build_sync_report([], sync_result, course_count=2, now=NOW)
+
+    payload = json.loads(to_json(report))
+    assert set(payload["sync"].keys()) == {
+        "enabled",
+        "dry_run",
+        "applied",
+        "target_title",
+        "notice",
+        "create",
+        "update",
+        "skip",
+        "counts",
+    }
+
+
+def test_detail_sync_render_sections():
+    dry_run_report = build_sync_report([], _sync_result_sample(dry_run=True), course_count=2, now=NOW)
+    dry_run_output = _render_sync(dry_run_report)
+
+    assert "미리보기" in dry_run_output
+    assert "--apply" in dry_run_output
+    assert "DueDate" in dry_run_output
+    assert "->" in dry_run_output
+    assert "변경 없음" in dry_run_output
+
+    apply_report = build_sync_report([], _sync_result_sample(dry_run=False), course_count=2, now=NOW)
+    apply_output = _render_sync(apply_report)
+    assert "적용 완료" in apply_output
+
+    errors_report = build_sync_report(
+        [],
+        None,
+        course_count=0,
+        errors=[
+            ErrorItem(
+                scope="notion",
+                code="NotionAuthenticationError",
+                message="Notion 토큰이 유효하지 않습니다.",
+            )
+        ],
+        now=NOW,
+    )
+    errors_output = _render_sync(errors_report)
+    assert "NotionAuthenticationError" in errors_output
+
+
+def test_detail_sync_no_truncation():
+    created = [
+        CreateAction(
+            task_id=f"t{i}",
+            title=f"[과{i}] {i}주차 신규 과제 제출 - 매우 긴 제목입니다 테스트용 텍스트",
+            task=_task(
+                task_id=f"t{i}",
+                title=f"[과{i}] {i}주차 신규 과제 제출 - 매우 긴 제목입니다 테스트용 텍스트",
+                due_date=NOW + timedelta(days=i),
+            ),
+        )
+        for i in range(40)
+    ]
+    sync_result = SyncResult(
+        enabled=True,
+        dry_run=True,
+        target=None,
+        created=created,
+        updated=[],
+        skipped=[],
+        errors=[],
+        stats=SyncStats(total=40, created=40, updated=0, skipped=0, errors=0),
+    )
+    report = build_sync_report([], sync_result, course_count=40, now=NOW)
+
+    wide_output = _render_sync(report, width=200)
+    for i in range(40):
+        title = f"[과{i}] {i}주차 신규 과제 제출 - 매우 긴 제목입니다 테스트용 텍스트"
+        assert title in wide_output
+
+    narrow_output = _render_sync(report, width=40)
+    assert "…" not in narrow_output
