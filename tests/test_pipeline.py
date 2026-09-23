@@ -5,6 +5,8 @@ relogin/headed forwarding, mappings, zero-course handling, and read-only scrapin
 import json
 import logging
 from datetime import datetime, timedelta
+from pathlib import Path
+from unittest.mock import MagicMock
 
 import pytest
 from click.testing import CliRunner
@@ -12,11 +14,46 @@ from click.testing import CliRunner
 import kau_assistant.pipeline as pipeline
 from kau_assistant.cli import cli
 from kau_assistant.exceptions import AuthenticationError, ConfigError, CourseAccessDeniedError
-from kau_assistant.pipeline import collect_tasks
+from kau_assistant.pipeline import collect_tasks, scrape_course
 from kau_assistant.scraper.date_parser import KST
 from kau_assistant.scraper.models import AttendanceStatus, CourseItem, LectureItem
+from kau_assistant.scraper.navigator import CourseNavigator
 
 NOW = datetime(2026, 9, 23, 12, 0, tzinfo=KST)
+
+FIXTURES_DIR = Path(__file__).parent / "fixtures"
+PROGRESS_REPORT_HTML = (FIXTURES_DIR / "progress_report.html").read_text(encoding="utf-8")
+ASSIGNMENT_LIST_HTML = (FIXTURES_DIR / "assignment_list.html").read_text(encoding="utf-8")
+ASSIGNMENT_DETAIL_HTML = (FIXTURES_DIR / "assignment_detail.html").read_text(encoding="utf-8")
+
+EMPTY_QUIZ_HTML = "<html><body><div id='region-main'>등록된 퀴즈가 없습니다.</div></body></html>"
+PLAIN_COURSE_HOME_HTML = "<html><body><div id='region-main'>강의실 홈</div></body></html>"
+NO_PROGRESS_MARKERS_HTML = (
+    "<html><body><div id='region-main'>진행 정보를 표시할 수 없습니다.</div></body></html>"
+)
+COURSE_SECTIONS_HTML = """
+<div class="course-content">
+  <ul class="topics">
+    <li class="section main" id="section-1">
+      <h3 class="sectionname">1주차</h3>
+      <ul class="section img-text">
+        <li class="activity vod modtype_vod" id="module-201">
+          <div class="mod-indent-outer">
+            <div class="activityinstance">
+              <a href="/mod/vod/view.php?id=201">
+                <span class="instancename">01차시: 강의 개요 (동영상)</span>
+              </a>
+            </div>
+            <div class="availabilityinfo">
+              마감일: 2026-09-30 23:59
+            </div>
+          </div>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+"""
 
 
 class FakePage:
@@ -274,3 +311,103 @@ def test_zero_courses_warns_not_errors(monkeypatch, sample_settings, caplog):
         record.levelno == logging.WARNING and record.name == "kau_assistant.pipeline"
         for record in caplog.records
     )
+
+
+# --- Task 3: real per-course scraping sequence over fixture HTML, proven read-only ---
+
+
+def _assessment_course() -> CourseItem:
+    return CourseItem(
+        course_id="10101",
+        raw_name="공학수학2(01분반) [2026-1학기]",
+        clean_name="공학수학2",
+        url="https://canvas.kau.ac.kr/course/view.php?id=10101",
+    )
+
+
+def _make_mock_page(*, progress_html: str, course_home_html: str) -> MagicMock:
+    """A MagicMock page whose content() reflects the last goto() URL (mirrors
+    tests/test_assessment_parser.py::test_scrape_course_assessments_flow's idiom).
+    """
+    state = {"last_url": ""}
+
+    def _goto(url, wait_until=None, timeout=None):
+        state["last_url"] = url
+        response = MagicMock()
+        response.status = 200
+        return response
+
+    def _content():
+        url = state["last_url"]
+        if "/report/progress/" in url:
+            return progress_html
+        if "/mod/assign/index.php" in url:
+            return ASSIGNMENT_LIST_HTML
+        if "/mod/quiz/index.php" in url:
+            return EMPTY_QUIZ_HTML
+        if "/mod/assign/view.php" in url:
+            return ASSIGNMENT_DETAIL_HTML
+        return course_home_html
+
+    page = MagicMock()
+    page.goto.side_effect = _goto
+    page.content.side_effect = _content
+    return page
+
+
+def _method_call_names(page: MagicMock) -> set[str]:
+    return {call[0] for call in page.method_calls}
+
+
+def test_scrape_course_uses_progress_report(sample_settings):
+    """scrape_course uses the progress report and collects assessments (SKIL-02)."""
+    course = _assessment_course()
+    page = _make_mock_page(
+        progress_html=PROGRESS_REPORT_HTML, course_home_html=PLAIN_COURSE_HOME_HTML
+    )
+    navigator = CourseNavigator(sample_settings, min_delay=0, max_delay=0)
+
+    lectures, assessments = scrape_course(page, course, navigator)
+
+    assert len(lectures) >= 1
+    assert len(assessments) == 4
+
+
+def test_scrape_course_falls_back_to_course_sections(sample_settings):
+    """When the progress page has no progress markers, lectures come from course-home sections."""
+    course = _assessment_course()
+    page = _make_mock_page(
+        progress_html=NO_PROGRESS_MARKERS_HTML, course_home_html=COURSE_SECTIONS_HTML
+    )
+    navigator = CourseNavigator(sample_settings, min_delay=0, max_delay=0)
+
+    lectures, assessments = scrape_course(page, course, navigator)
+
+    assert len(lectures) == 1
+    assert lectures[0].title == "01차시: 강의 개요"
+    assert lectures[0].due_date is not None
+    assert len(assessments) == 4
+
+
+def test_scrape_course_is_read_only(sample_settings):
+    """scrape_course never calls a page-mutation method (SKIL-02 ethics prohibition)."""
+    course = _assessment_course()
+    navigator = CourseNavigator(sample_settings, min_delay=0, max_delay=0)
+    mutating_methods = {"click", "fill", "press", "check", "set_input_files"}
+    allowed_methods = {"goto", "content", "wait_for_selector", "wait_for_timeout", "screenshot"}
+
+    page_a = _make_mock_page(
+        progress_html=PROGRESS_REPORT_HTML, course_home_html=PLAIN_COURSE_HOME_HTML
+    )
+    scrape_course(page_a, course, navigator)
+    calls_a = _method_call_names(page_a)
+
+    page_b = _make_mock_page(
+        progress_html=NO_PROGRESS_MARKERS_HTML, course_home_html=COURSE_SECTIONS_HTML
+    )
+    scrape_course(page_b, course, navigator)
+    calls_b = _method_call_names(page_b)
+
+    all_calls = calls_a | calls_b
+    assert all_calls.isdisjoint(mutating_methods)
+    assert all_calls <= allowed_methods
