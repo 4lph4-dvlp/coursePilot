@@ -1,13 +1,67 @@
 """Course list extractor and course name cleaner for LMS."""
 
+import copy
 import re
-from typing import Any
 from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup, Tag
 from playwright.sync_api import Page
 
+from kau_assistant.exceptions import UnsupportedLmsError
 from kau_assistant.scraper.models import CourseItem
+
+_BADGE_CLASS_PATTERN = re.compile(
+    r"badge|prof(?:essor)?|teacher|instructor|avatar|avata|initial|csms-avata",
+    re.IGNORECASE,
+)
+_TITLE_CLASS_PATTERN = re.compile(
+    r"text-truncate|course[_-]?title|coursename",
+    re.IGNORECASE,
+)
+
+
+def looks_like_coursemos(html: str) -> bool:
+    """Returns True if the HTML exhibits Moodle or Coursemos markup markers."""
+    if not html:
+        return False
+    lowered = html.lower()
+    if re.search(r"m\.cfg|m\s*=\s*\{\s*cfg", lowered):
+        return True
+    if "/theme/" in lowered:
+        return True
+    if "pagelayout-" in lowered:
+        return True
+    if "coursemos" in lowered:
+        return True
+    if "moodle" in lowered:
+        return True
+    if "ubion" in lowered:
+        return True
+    if re.search(r'<body[^>]*\bid=["\']page-', lowered):
+        return True
+    return False
+
+
+def _derive_course_title(a: Tag) -> str:
+    """Extracts raw course title from link, discarding professor avatar/badge elements."""
+    a_copy = copy.deepcopy(a)
+    for badge in a_copy.find_all(class_=_BADGE_CLASS_PATTERN):
+        badge.decompose()
+
+    # Prefer dedicated title elements
+    title_el = a_copy.find(class_=_TITLE_CLASS_PATTERN) or a_copy.find(["h3", "h4", "h5"])
+    if title_el:
+        text = title_el.get_text(strip=True)
+        if text:
+            return text
+
+    # Fall back to cleaned link text
+    cleaned_link_text = a_copy.get_text(strip=True)
+    if cleaned_link_text:
+        return cleaned_link_text
+
+    # Ultimate fallback to original link text
+    return a.get_text(strip=True)
 
 
 def clean_course_name(raw_name: str) -> str:
@@ -110,7 +164,7 @@ def extract_courses_from_html(html: str, base_url: str = "") -> list[CourseItem]
         if not container:
             container = a.parent
 
-        raw_name = a.get_text(strip=True)
+        raw_name = _derive_course_title(a)
         if not raw_name:
             continue
 
@@ -156,15 +210,21 @@ def extract_courses(
     dashboard_url = f"{lms_url.rstrip('/')}/my/"
     page.goto(dashboard_url, wait_until="domcontentloaded")
 
-    # Smart wait for dashboard container
+    # Smart wait for attached course link
     try:
         page.wait_for_selector(
-            ".block_coursemos_my_courses, .course_list, #dashboard, .my-course-lists, [role='main']",
-            timeout=15000,
+            "a[href*='/course/view.php?id=']",
+            state="attached",
+            timeout=5000,
         )
     except Exception:
-        # Fallback: proceed to extract whatever is in page.content()
+        # Proceed to extract whatever is in page.content()
         pass
 
     html = page.content()
-    return extract_courses_from_html(html, base_url=lms_url)
+    courses = extract_courses_from_html(html, base_url=lms_url)
+
+    if not courses and not looks_like_coursemos(html):
+        raise UnsupportedLmsError("The target site does not appear to be a Coursemos/Moodle LMS.")
+
+    return courses
