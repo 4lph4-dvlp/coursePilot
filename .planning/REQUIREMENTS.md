@@ -37,7 +37,11 @@
 - [x] **SKIL-02**: 상태 조회(`check`) 및 노션 동기화(`sync`)를 수행할 수 있는 CLI 명령어를 제공한다.
 - [x] **SKIL-03**: 에이전트 중립 Agent Skill 형식(`SKILL.md`)으로 패키징하고 에이전트별 설치 명령을 제공하여 Claude Code, Codex, Antigravity, Pi, Hermes 등 모든 지원 에이전트가 자연어 요청으로 스킬을 호출할 수 있도록 한다.
 
-## v2 Requirements
+### VOD Player Advanced Control (WATCH)
+
+- [ ] **WATCH-04**: 특정 주차의 N번째 영상만 핀포인트 지정하여 시청할 수 있는 `--video-index` 및 과목명 퍼지/유사어 매칭 기능을 지원한다.
+- [ ] **WATCH-05**: 백그라운드 재생 중 5초 간격으로 `watch_state.json`에 상태를 기록하고, `watch status`로 진행률 조회 및 `watch stop`으로 안전한 중단을 제공한다.
+- [ ] **WATCH-06**: 시청 완료된 내역을 `watch_history.json`에 보관하여, 사후 요청 시 `watch sync-notion`으로 Notion Scheduler 완료 상태를 소급 동기화한다.
 
 ### Advanced Automation & Notifications
 
@@ -49,7 +53,6 @@
 
 | Feature | Reason |
 |---------|--------|
-| 온라인 강의 자동 재생 / 출석 대리 | 대학 학칙 위반 및 부정행위 방지를 위해 상태 조회 및 알림만 지원 |
 | 2차 인증(OTP/캡차) 자동 크랙/우회 | 보안 규정 준수 및 단순 ID/PW 기반 환경 우선 지원 (필요 시 세션 수동 저장 지원) |
 | 다중 사용자 호스팅 SaaS 서버 구축 | 개인정보(학번/비밀번호) 보호를 위해 로컬 환경 전용 에이전트 스킬로 설계 |
 
@@ -74,13 +77,17 @@
 | SKIL-01 | Phase 5 | Complete |
 | SKIL-02 | Phase 5 | Complete |
 | SKIL-03 | Phase 5 | Complete |
+| WATCH-04 | Phase 12 | Planned |
+| WATCH-05 | Phase 12 | Planned |
+| WATCH-06 | Phase 12 | Planned |
 
 **Coverage:**
 
-- v1 requirements: 17 total
-- Mapped to phases: 17
+- v1 & v2 requirements tracked: 20 total
+- Mapped to phases: 20
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-09-21*
-*Last updated: 2026-09-21 after initial definition*
+*Last updated: 2026-09-25 for Milestone 4 (Phase 12)*
+
