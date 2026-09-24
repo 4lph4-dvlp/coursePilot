@@ -18,8 +18,10 @@ from kau_assistant.installer import (
     REPO_ROOT_FILE,
     SKILL_NAME,
     install_skill,
-    resolve_install_target,
     repo_root,
+    resolve_agent_home,
+    resolve_install_target,
+    resolve_skills_dir,
     skill_source_dir,
 )
 
@@ -32,6 +34,15 @@ _AGENT_SPECIFIC_DENYLIST = (
     "claude_code",
     "codex exec",
 )
+
+
+@pytest.fixture(autouse=True)
+def isolate_hermes_and_localappdata(tmp_path: Path, monkeypatch) -> None:
+    """Isolates LOCALAPPDATA and clears HERMES_HOME for every test so real user folders are never touched."""
+    fake_local = tmp_path / "localappdata"
+    fake_local.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setenv("LOCALAPPDATA", str(fake_local))
+    monkeypatch.delenv("HERMES_HOME", raising=False)
 
 
 def _parse_frontmatter(content: str) -> dict[str, str]:
@@ -178,9 +189,97 @@ def tmp_src(tmp_path: Path) -> Path:
 def test_path_all_agents_table(
     fake_home: Path, agent: str, expected_parts: tuple[str, ...]
 ) -> None:
-    target = resolve_install_target(agent, home=fake_home)
+    target = resolve_install_target(agent, home=fake_home, env={}, platform="linux")
     assert target == fake_home.joinpath(*expected_parts, SKILL_NAME)
     assert target.parent == fake_home.joinpath(*expected_parts)
+
+
+def test_hermes_home_env_var_wins(fake_home: Path, tmp_path: Path) -> None:
+    custom_hermes = tmp_path / "custom_hermes"
+    target = resolve_install_target(
+        "hermes",
+        home=fake_home,
+        env={"HERMES_HOME": str(custom_hermes), "LOCALAPPDATA": "C:/dummy"},
+        platform="win32",
+    )
+    assert target == custom_hermes / "skills" / "kau-lxp"
+
+
+def test_hermes_windows_localappdata(fake_home: Path, tmp_path: Path) -> None:
+    win_local = tmp_path / "win_local"
+    target = resolve_install_target(
+        "hermes",
+        home=fake_home,
+        env={"LOCALAPPDATA": str(win_local)},
+        platform="win32",
+    )
+    assert target == win_local / "hermes" / "skills" / "kau-lxp"
+
+
+def test_hermes_posix_and_windows_fallback(fake_home: Path) -> None:
+    posix_target = resolve_install_target("hermes", home=fake_home, env={}, platform="linux")
+    assert posix_target == fake_home / ".hermes" / "skills" / "kau-lxp"
+
+    win_target = resolve_install_target("hermes", home=fake_home, env={}, platform="win32")
+    assert win_target == fake_home / ".hermes" / "skills" / "kau-lxp"
+
+
+def test_other_agents_ignore_hermes_env(fake_home: Path, tmp_path: Path) -> None:
+    env = {"HERMES_HOME": str(tmp_path / "hermes"), "LOCALAPPDATA": str(tmp_path / "local")}
+    for agent in ("claude", "codex", "antigravity", "pi"):
+        target = resolve_install_target(agent, home=fake_home, env=env, platform="win32")
+        expected = fake_home.joinpath(*AGENT_SKILL_PATHS[agent].skills_dir, "kau-lxp")
+        assert target == expected
+
+
+def test_skills_dir_starts_with_home_marker() -> None:
+    for target in AGENT_SKILL_PATHS.values():
+        marker_len = len(target.home_marker)
+        assert target.skills_dir[:marker_len] == target.home_marker
+
+
+def test_cli_install_hermes_uses_hermes_home(tmp_path: Path, monkeypatch) -> None:
+    hermes_home = tmp_path / "hermes-env"
+    hermes_home.mkdir()
+    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+
+    runner = CliRunner()
+    result = runner.invoke(cli, ["install-skill", "--agent", "hermes"])
+    assert result.exit_code == 0
+    installed = hermes_home / "skills" / "kau-lxp" / "SKILL.md"
+    assert installed.exists()
+    assert "경고" not in result.output
+
+
+def test_install_skill_prints_lms_url_hint() -> None:
+    runner = CliRunner()
+    result = runner.invoke(cli, ["install-skill", "--agent", "claude"])
+    assert "LMS_URL" in result.output
+    assert "https://lxp.kau.ac.kr" in result.output
+    assert "Coursemos" in result.output
+
+
+def test_skill_body_lms_url_guidance() -> None:
+    body = _skill_body((skill_source_dir() / "SKILL.md").read_text(encoding="utf-8"))
+    assert "LMS_URL" in body
+    assert "https://lxp.kau.ac.kr" in body
+    assert "Coursemos" in body
+
+
+def test_skill_body_relays_notices_first() -> None:
+    body = _skill_body((skill_source_dir() / "SKILL.md").read_text(encoding="utf-8"))
+    assert "notices" in body
+    assert "no_courses_found" in body
+    notices_idx = body.index("notices")
+    summary_idx = body.index("한 줄 요약")
+    assert notices_idx < summary_idx
+
+
+def test_skill_body_unsupported_lms_and_fresh_run_rules() -> None:
+    body = _skill_body((skill_source_dir() / "SKILL.md").read_text(encoding="utf-8"))
+    assert "UnsupportedLmsError" in body
+    assert "stdout" in body
+    assert "새로 실행" in body
 
 
 def test_link_real_filesystem_reflects_source_edits(fake_home: Path, tmp_src: Path) -> None:
@@ -293,6 +392,7 @@ def test_path_missing_agent_home_warns(tmp_path: Path, tmp_src: Path, monkeypatc
     home_cli.mkdir()
     monkeypatch.setenv("HOME", str(home_cli))
     monkeypatch.setenv("USERPROFILE", str(home_cli))
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "local-cli"))
 
     runner = CliRunner()
     invoke_result = runner.invoke(cli, ["install-skill", "--agent", "hermes"])

@@ -38,6 +38,8 @@ class AgentTarget(BaseModel):
     display_name: str
     home_marker: tuple[str, ...]
     skills_dir: tuple[str, ...]
+    home_env_var: str | None = None
+    windows_localappdata_home: tuple[str, ...] | None = None
 
 
 # Evidence levels below come from 05-RESEARCH.md's Assumptions Log (A1-A4).
@@ -76,9 +78,12 @@ AGENT_SKILL_PATHS: dict[str, AgentTarget] = {
     "hermes": AgentTarget(
         agent_id="hermes",
         display_name="Hermes",
-        # LOW confidence: WebSearch only (A4); no in-repo evidence available.
+        # UAT 2026-09-23 on Windows: Hermes home is %LOCALAPPDATA%\hermes with
+        # config.yaml, skills/, state.db; HERMES_HOME overrides; ~/.hermes elsewhere.
         home_marker=(".hermes",),
         skills_dir=(".hermes", "skills"),
+        home_env_var="HERMES_HOME",
+        windows_localappdata_home=("hermes",),
     ),
 }
 
@@ -108,13 +113,73 @@ def skill_source_dir(root: Path | None = None) -> Path:
     return base
 
 
-def resolve_install_target(agent: str, *, home: Path | None = None) -> Path:
-    """Compute the install target path for `agent`. Pure — no filesystem access."""
+def resolve_agent_home(
+    agent: str,
+    *,
+    home: Path | None = None,
+    env: dict[str, str] | None = None,
+    platform: str | None = None,
+) -> Path:
+    """Resolves the root configuration/home directory for `agent`.
+
+    Order:
+    1. Non-empty env[home_env_var] (e.g. HERMES_HOME) -> that path.
+    2. platform == "win32" and windows_localappdata_home and non-empty env["LOCALAPPDATA"] -> LOCALAPPDATA / windows_localappdata_home.
+    3. Otherwise home (or Path.home()) / home_marker.
+    """
     if agent not in AGENT_SKILL_PATHS:
         raise InstallError(f"지원하지 않는 에이전트입니다: {agent}")
+
     target_agent = AGENT_SKILL_PATHS[agent]
-    base = home or Path.home()
-    return base.joinpath(*target_agent.skills_dir, SKILL_NAME)
+    environ = os.environ if env is None else env
+    plat = sys.platform if platform is None else platform
+    base_home = home or Path.home()
+
+    # 1. Environment variable override (e.g. HERMES_HOME)
+    if target_agent.home_env_var:
+        env_val = environ.get(target_agent.home_env_var, "").strip()
+        if env_val:
+            return Path(env_val)
+
+    # 2. Windows LOCALAPPDATA override
+    if plat == "win32" and target_agent.windows_localappdata_home:
+        local_app_data = environ.get("LOCALAPPDATA", "").strip()
+        if local_app_data:
+            return Path(local_app_data).joinpath(*target_agent.windows_localappdata_home)
+
+    # 3. Default fallback
+    return base_home.joinpath(*target_agent.home_marker)
+
+
+def resolve_skills_dir(
+    agent: str,
+    *,
+    home: Path | None = None,
+    env: dict[str, str] | None = None,
+    platform: str | None = None,
+) -> Path:
+    """Resolves the skills directory for `agent`."""
+    if agent not in AGENT_SKILL_PATHS:
+        raise InstallError(f"지원하지 않는 에이전트입니다: {agent}")
+
+    target_agent = AGENT_SKILL_PATHS[agent]
+    agent_home = resolve_agent_home(agent, home=home, env=env, platform=platform)
+
+    marker_len = len(target_agent.home_marker)
+    rel_skills = target_agent.skills_dir[marker_len:]
+    return agent_home.joinpath(*rel_skills)
+
+
+def resolve_install_target(
+    agent: str,
+    *,
+    home: Path | None = None,
+    env: dict[str, str] | None = None,
+    platform: str | None = None,
+) -> Path:
+    """Compute the install target path for `agent`. Pure — no filesystem access."""
+    skills_dir = resolve_skills_dir(agent, home=home, env=env, platform=platform)
+    return skills_dir / SKILL_NAME
 
 
 _FILE_ATTRIBUTE_REPARSE_POINT = 0x400
@@ -237,26 +302,28 @@ def install_skill(
     link: bool = False,
     home: Path | None = None,
     source: Path | None = None,
+    env: dict[str, str] | None = None,
+    platform: str | None = None,
 ) -> InstallResult:
     """Install (copy by default) the kau-lxp skill for `agent` (D-21..D-23)."""
     if agent not in AGENT_SKILL_PATHS:
         raise InstallError(f"지원하지 않는 에이전트입니다: {agent}")
 
     target_agent = AGENT_SKILL_PATHS[agent]
-    home_dir = home or Path.home()
     src = source or skill_source_dir()
     if not (src / "SKILL.md").exists():
         raise InstallError(f"스킬 소스 폴더를 찾을 수 없습니다: {src} (SKILL.md 없음)")
 
-    target = resolve_install_target(agent, home=home_dir)
+    target = resolve_install_target(agent, home=home, env=env, platform=platform)
 
     # Containment check (before any filesystem write) — the target must live
     # directly inside the agent's resolved skills directory as SKILL_NAME.
-    expected_skills_dir = home_dir.joinpath(*target_agent.skills_dir)
+    expected_skills_dir = resolve_skills_dir(agent, home=home, env=env, platform=platform)
     if target.parent.resolve() != expected_skills_dir.resolve() or target.name != SKILL_NAME:
         raise InstallError(f"설치 대상 경로가 올바르지 않습니다: {target}")
 
-    agent_home_found = home_dir.joinpath(*target_agent.home_marker).exists()
+    agent_home = resolve_agent_home(agent, home=home, env=env, platform=platform)
+    agent_home_found = agent_home.exists()
 
     # Replace handling runs before any write, only on this containment-checked
     # target (T-05-15): a link is removed as a link only, a prior kau-lxp copy

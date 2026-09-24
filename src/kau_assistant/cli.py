@@ -7,7 +7,7 @@ from datetime import datetime
 import click
 from rich.console import Console
 
-from kau_assistant.config import Settings, get_settings
+from kau_assistant.config import DEFAULT_LMS_URL, Settings, get_settings
 from kau_assistant.errors import exit_code_for, safe_cli_error
 from kau_assistant.installer import AGENT_SKILL_PATHS, InstallError, install_skill
 from kau_assistant.notion import NotionSyncEngine
@@ -169,6 +169,11 @@ def install_skill_command(ctx: click.Context, agent: str, link: bool) -> None:
     out.print(f"설치 완료 ({mode_label}): {result.target}", markup=False, highlight=False)
     out.print(
         "에이전트를 재시작(또는 새 세션 시작)한 뒤 '과제 확인해줘'라고 요청해 보세요.",
+        markup=False,
+        highlight=False,
+    )
+    out.print(
+        f"LMS 주소(LMS_URL): 설정하지 않으면 한국항공대 LXP({DEFAULT_LMS_URL})를 조회합니다. 다른 Coursemos(Moodle) 기반 학교라면 저장소 .env의 LMS_URL을 학교 LXP/LMS 주소로 직접 설정하세요.",
         markup=False,
         highlight=False,
     )

@@ -128,3 +128,41 @@ def test_get_settings_singleton(clean_env):
 
     s3 = get_settings(reload=True)
     assert s3 is not s1
+
+
+def test_env_example_documents_lxp_default():
+    from kau_assistant.config import DEFAULT_LMS_URL
+
+    repo_dir = Path(__file__).resolve().parents[1]
+    env_example = repo_dir / ".env.example"
+    assert env_example.exists(), ".env.example must exist at repo root"
+
+    content = env_example.read_text(encoding="utf-8")
+    assert "Coursemos" in content, ".env.example should mention Coursemos"
+
+    pairs: dict[str, str] = {}
+    for line in content.splitlines():
+        trimmed = line.strip()
+        if trimmed and not trimmed.startswith("#") and "=" in trimmed:
+            k, v = trimmed.split("=", 1)
+            pairs[k.strip()] = v.strip()
+
+    assert (
+        pairs.get("LMS_URL") == DEFAULT_LMS_URL
+    ), f"LMS_URL in .env.example should be {DEFAULT_LMS_URL}"
+    assert pairs.get("LMS_USERNAME") == "", "LMS_USERNAME in .env.example must be empty"
+    assert pairs.get("LMS_PASSWORD") == "", "LMS_PASSWORD in .env.example must be empty"
+    assert pairs.get("NOTION_TOKEN") == "", "NOTION_TOKEN in .env.example must be empty"
+
+
+def test_env_example_loads_through_settings(clean_env):
+    from kau_assistant.config import DEFAULT_LMS_URL
+
+    repo_dir = Path(__file__).resolve().parents[1]
+    env_example = repo_dir / ".env.example"
+
+    settings = Settings(_env_file=str(env_example))
+    assert (
+        settings.lms_url == DEFAULT_LMS_URL
+    ), "Loading .env.example must yield DEFAULT_LMS_URL"
+

@@ -1,6 +1,6 @@
 # KAU LXP Assistant & Notion Scheduler Sync
 
-한국항공대학교(KAU) LMS(코스모스/Canvas) 자동 출결/과제 확인 및 개인 Notion 스케줄러 동기화 도구.
+한국항공대학교(KAU) LMS(코스모스/Coursemos) 자동 출결/과제 확인 및 개인 Notion 스케줄러 동기화 도구.
 
 ## 개요 (Overview)
 
@@ -29,11 +29,18 @@
 
 3. `.env.example`을 `.env`로 복사한 뒤, 아래 키 값을 **직접** 채워 넣으세요. 이 값들은 절대 채팅이나 커밋에 공유하지 마세요.
 
-   - `LMS_URL` — 학교 LMS 주소
+   - `LMS_URL` — 학교의 Coursemos(Moodle) 기반 LXP/LMS 주소 — 한국항공대는 기본값 https://lxp.kau.ac.kr 이므로 비워 두거나 그대로 두면 됩니다.
    - `LMS_USERNAME` — LMS 학번/아이디
    - `LMS_PASSWORD` — LMS 비밀번호
    - `NOTION_TOKEN` — Notion 통합(integration) 토큰
    - `NOTION_DATABASE_NAME` 또는 `NOTION_DATABASE_ID` — 동기화 대상 Notion `Scheduler` 데이터베이스 (둘 중 하나만 있으면 됩니다)
+
+## LMS 주소 (LMS_URL)
+
+- **기본 주소**: 한국항공대 학생의 이번 학기 강의는 https://lxp.kau.ac.kr (KAU LXP)에서 열립니다. `.env`에 `LMS_URL`을 설정하지 않으면 자동으로 이 주소를 조회합니다.
+- **이전 LMS**: 이전 주소인 https://lms.kau.ac.kr 은 지난 학기 강좌만 보관하므로 현재 학기 과목이 0개로 나타납니다.
+- **다른 학교 지원 (Coursemos 패밀리)**: 같은 유비온 Coursemos (Moodle) 엔진을 사용하는 타 대학 학생인 경우, `.env`의 `LMS_URL`을 해당 학교의 LXP/LMS 주소로 변경하여 사용할 수 있습니다.
+- **미지원 플랫폼**: Canvas, Blackboard 등 Coursemos 계열이 아닌 학습 관리 시스템은 지원하지 않습니다.
 
 ## 명령어 (Commands)
 
@@ -62,6 +69,15 @@
 
 JSON 출력의 정확한 필드 구조는 [`skills/kau-lxp/JSON_CONTRACT.md`](skills/kau-lxp/JSON_CONTRACT.md)를 참고하세요.
 
+## 문제 해결 (Troubleshooting)
+
+- **수강 중인 과목을 찾지 못함 (`no_courses_found`)**:
+  로그인에는 성공했으나 과목이 0개인 경우 안내 문구가 표시됩니다. 저장소 `.env`의 `LMS_URL`이 현재 학기 강의가 열리는 주소(한국항공대 기본값 https://lxp.kau.ac.kr)인지, 그리고 이번 학기 수강 신청된 과목이 있는지 확인하세요.
+- **지원하지 않는 사이트 구조 (`UnsupportedLmsError`)**:
+  `LMS_URL`이 가리키는 사이트가 Coursemos(Moodle) 기반 사이트가 아닌 경우 치명적 오류(종료 코드 2)가 발생합니다. 저장소 `.env`의 `LMS_URL`을 확인하고 학교의 Coursemos LXP/LMS 주소로 수정하세요.
+- **인증 실패 (`AuthenticationError`)**:
+  종료 코드 2와 함께 인증 오류가 발생하면 `.env`의 학번과 비밀번호, 그리고 `LMS_URL`이 맞는지 확인하세요. 필요시 `--relogin` 옵션으로 캐시를 지우거나 `--headed` 옵션으로 로그인 화면을 직접 확인하세요.
+
 ## Notion 안전성 (Notion Safety)
 
 `sync`는 기본적으로 **미리보기(dry-run)**입니다 — 생성/수정될 항목 목록만 보여주고 아무것도 쓰지 않습니다. 실제로 Notion에 반영하려면 명시적으로 `--apply`를 붙여야 합니다. 에이전트를 통해 대화로 요청하는 경우("노션에 올려줘")에도 스킬은 먼저 미리보기를 보여주고, 사용자의 명확한 승인을 받은 뒤에만 `--apply`를 실행합니다.
@@ -72,13 +88,13 @@ JSON 출력의 정확한 필드 구조는 [`skills/kau-lxp/JSON_CONTRACT.md`](sk
 
 | 에이전트 | 설치 명령 | 설치 경로 (예시) | 상태 |
 |----------|-----------|-------------------|------|
-| Claude Code | `python -m kau_assistant install-skill --agent claude` | `~/.claude/skills/kau-lxp` | 잠정 — 05-AGENT-SKILL-EVIDENCE.md에서 확인 |
-| Codex | `python -m kau_assistant install-skill --agent codex` | `~/.codex/skills/kau-lxp` | 잠정 — 05-AGENT-SKILL-EVIDENCE.md에서 확인 |
-| Antigravity | `python -m kau_assistant install-skill --agent antigravity` | `~/.gemini/antigravity/skills/kau-lxp` | 잠정 — 05-AGENT-SKILL-EVIDENCE.md에서 확인 |
-| Pi | `python -m kau_assistant install-skill --agent pi` | `~/.pi/agent/skills/kau-lxp` | 잠정 — 05-AGENT-SKILL-EVIDENCE.md에서 확인 |
-| Hermes | `python -m kau_assistant install-skill --agent hermes` | `~/.hermes/skills/kau-lxp` | 잠정 — 05-AGENT-SKILL-EVIDENCE.md에서 확인 |
+| Claude Code | `python -m kau_assistant install-skill --agent claude` | `~/.claude/skills/kau-lxp` | 확인됨 (과제 확인, 노션 미리보기) |
+| Codex | `python -m kau_assistant install-skill --agent codex` | `~/.codex/skills/kau-lxp` | 과제 확인 확인됨, 노션 미리보기 재확인 대기 |
+| Antigravity | `python -m kau_assistant install-skill --agent antigravity` | `~/.gemini/antigravity/skills/kau-lxp` | 빈 폴더에서 재확인 대기 |
+| Pi | `python -m kau_assistant install-skill --agent pi` | `~/.pi/agent/skills/kau-lxp` | 과제 확인 확인됨, 노션 미리보기 재확인 대기 |
+| Hermes | `python -m kau_assistant install-skill --agent hermes` | `$HERMES_HOME/skills/kau-lxp` (또는 Windows `%LOCALAPPDATA%\hermes\skills\kau-lxp`, 그 외 `~/.hermes/skills/kau-lxp`) | 설치 경로 수정됨, 재확인 대기 |
 
-설치가 끝나면 **해당 에이전트를 재시작(또는 새 세션 시작)**한 뒤 "과제 확인해줘"처럼 자연어로 요청해 보세요. 위 "상태" 값이 "잠정"인 이유와 실제 확인 결과는 `.planning/phases/05-cli-reporting-antigravity-skill-packaging/05-AGENT-SKILL-EVIDENCE.md`에 기록됩니다. 만약 실제 설치 경로가 위 표와 다르다면, 코드 변경 없이 `src/kau_assistant/installer.py`의 `AGENT_SKILL_PATHS` 테이블 한 줄만 고치면 됩니다.
+설치가 끝나면 **해당 에이전트를 재시작(또는 새 세션 시작)**한 뒤 "과제 확인해줘"처럼 자연어로 요청해 보세요. 상세 확인 결과는 `.planning/phases/05-cli-reporting-antigravity-skill-packaging/05-AGENT-SKILL-EVIDENCE.md`에 기록됩니다.
 
 ### 개발용 `--link` 설치
 
