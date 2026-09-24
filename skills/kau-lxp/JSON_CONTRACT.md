@@ -1,6 +1,6 @@
 # kau-lxp CLI JSON 계약 v1 (JSON Contract v1)
 
-이 문서는 `python -m kau_assistant check --json`과 `python -m kau_assistant sync --json`이 표준출력(stdout)에 출력하는 JSON의 정확한 구조를 설명합니다. 실제 소스는 `src/kau_assistant/report_models.py`의 Pydantic 모델이며, 이 문서는 그 모델을 사람이 읽을 수 있게 옮긴 참조 자료입니다. `skills/kau-lxp/SKILL.md`는 이 문서를 가리킵니다.
+이 문서는 `python -m kau_assistant check --json`, `python -m kau_assistant sync --json`, 그리고 `python -m kau_assistant watch --json`이 표준출력(stdout)에 출력하는 JSON의 정확한 구조를 설명합니다. 실제 소스는 `src/kau_assistant/report_models.py`와 `src/kau_assistant/player/runner.py`의 Pydantic 모델이며, 이 문서는 그 모델을 사람이 읽을 수 있게 옮긴 참조 자료입니다. `skills/kau-lxp/SKILL.md`는 이 문서를 가리킵니다.
 
 ## 버전 규칙 (Versioning)
 
@@ -342,5 +342,75 @@ JSON 계약 v1의 sync 절반 — 생성/수정/건너뜀 계획 (D-13, D-16).
   },
   "errors": [],
   "notices": []
+}
+```
+
+### `WatchResult`
+
+`watch` 명령의 실행 결과 객체입니다 (`src/kau_assistant/player/runner.py`).
+
+| 필드 | 타입 | Nullable | 의미 |
+|------|------|----------|------|
+| `course_id` | `str` | 아니오 | 대상 과목 고유 식별자 |
+| `course_name` | `str` | 아니오 | 대상 과목 전체 이름 |
+| `target_week` | `str` | 아니오 | 시청 대상 주차 (`current`, `all`, 또는 `4` 등) |
+| `total_vods` | `int` | 아니오 | 이번 실행에서 감지된 시청 대상 미완료 VOD 수 |
+| `completed_vods` | `int` | 아니오 | 이번 실행에서 정상적으로 시청을 완료한 VOD 수 |
+| `skipped_vods` | `int` | 아니오 | 이미 수강 완료되어 건너뛴 VOD 수 |
+| `playback_results` | `list[PlaybackProgress]` | 아니오 (빈 배열 가능) | 개별 VOD 시청 진행/완료 상세 결과 목록 |
+| `notion_updated_count` | `int` | 아니오 | `--update-notion` 플래그 활성화 시 '완료' 상태로 업데이트된 Notion 페이지 수 |
+| `dry_run` | `bool` | 아니오 | 미리보기 모드 여부 (`--dry-run` 플래그) |
+| `error_message` | `str \| None` | 예 | 과목 탐색 실패 또는 실행 오류 메시지 (성공 시 `null`) |
+
+### `PlaybackProgress`
+
+개별 VOD 영상의 재생 진행 상황 및 결과입니다 (`src/kau_assistant/player/models.py`).
+
+| 필드 | 타입 | Nullable | 의미 |
+|------|------|----------|------|
+| `vod_url` | `str` | 아니오 | VOD 접속 링크 URL |
+| `title` | `str` | 아니오 | 영상 제목 |
+| `duration` | `float` | 아니오 | 영상 전체 길이(초) |
+| `current_time` | `float` | 아니오 | 최종 재생 위치(초) |
+| `progress_percent` | `float` | 아니오 | 시청 진행률 (%) |
+| `is_completed` | `bool` | 아니오 | 시청 완료 여부 (출석 인정 조건 충족) |
+| `is_paused` | `bool` | 아니오 | 영상 일시정지 여부 |
+| `error_message` | `str \| None` | 예 | 개별 영상 재생 실패 시 오류 메시지 |
+
+### `watch --json` 예시
+
+```json
+{
+  "course_id": "84321",
+  "course_name": "기초전자실험",
+  "target_week": "current",
+  "total_vods": 2,
+  "completed_vods": 2,
+  "skipped_vods": 1,
+  "playback_results": [
+    {
+      "vod_url": "https://lxp.kau.ac.kr/mod/vod/view.php?id=12345",
+      "title": "[기전실] 4주차 1강: 오실로스코프 사용법",
+      "duration": 1500.0,
+      "current_time": 1500.0,
+      "progress_percent": 100.0,
+      "is_completed": true,
+      "is_paused": false,
+      "error_message": null
+    },
+    {
+      "vod_url": "https://lxp.kau.ac.kr/mod/vod/view.php?id=12346",
+      "title": "[기전실] 4주차 2강: 함수발생기 실습",
+      "duration": 1800.0,
+      "current_time": 1800.0,
+      "progress_percent": 100.0,
+      "is_completed": true,
+      "is_paused": false,
+      "error_message": null
+    }
+  ],
+  "notion_updated_count": 2,
+  "dry_run": false,
+  "error_message": null
 }
 ```
