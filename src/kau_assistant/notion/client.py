@@ -203,3 +203,8 @@ class NotionClient:
     def update_page(self, page_id: str, properties: dict[str, Any]) -> dict[str, Any]:
         """Apply an allowlisted partial property update."""
         return self._write(self._sdk.pages.update, page_id=page_id, properties=properties)
+
+    def mark_task_completed(self, page_id: str) -> dict[str, Any]:
+        """Update a page status to '완료' (Done)."""
+        return self.update_page(page_id, {"상태": {"status": {"name": "완료"}}})
+

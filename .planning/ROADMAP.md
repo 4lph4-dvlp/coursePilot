@@ -21,7 +21,7 @@
 ## Milestone 3: Automated VOD Attendance Player & Notion Completion Sync (v1.2)
 
 - [x] **Phase 9: VOD Playback Engine & Heartbeat Automation** - Video.js 플레이어 자동 재생, 음소거, 이어보기 모달 처리, 진도 하트비트 세션 유지 엔진 구축 (completed 2026-09-25)
-- [ ] **Phase 10: Watch Pipeline, CLI Runner & Notion Completion Mode** - 과목/주차 필터링 기반 순차 VOD 시청 파이프라인, `watch` CLI 명령어 및 Notion `완료` 상태 동기화 모드
+- [x] **Phase 10: Watch Pipeline, CLI Runner & Notion Completion Mode** - 과목/주차 필터링 기반 순차 VOD 시청 파이프라인, `watch` CLI 명령어 및 Notion `완료` 상태 동기화 모드 (completed 2026-09-25)
 - [ ] **Phase 11: Background Sub-agent Automation & Multi-Agent Skill Packaging** - 비동기 백그라운드/서브에이전트 시청 실행 가이드, 범용 `SKILL.md` 업데이트 및 5개 에이전트 재배포
 
 ## Phase Details
@@ -275,7 +275,9 @@ Plans:
   3. `--update-notion` 플래그 활성화 시, 시청이 완료된 강의의 Notion Scheduler DB 상태(`상태`)를 `완료`로 업데이트한다 (기본값은 보호).
   4. `kau-assistant watch` CLI 서브커맨드를 추가하고 에러 및 타임아웃 상황을 격리한다.
 
-**Plans**: 0/1 plans executed
+**Plans**: 1/1 plans executed
+
+- [x] 10-01-PLAN.md — 과목/주차 필터링 기반 순차 VOD 시청 파이프라인, `watch` CLI 명령어 및 Notion `완료` 상태 동기화 모드
 
 ---
 
@@ -310,8 +312,9 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 7. VOD Activity & Attendance Completion Tracking | 1/1 | Complete    | 2026-09-24 |
 | 8. End-to-End Verification & Agent Re-deployment | 1/1 | Complete    | 2026-09-24 |
 | 9. VOD Playback Engine & Heartbeat Automation | 1/1 | Complete    | 2026-09-25 |
-| 10. Watch Pipeline, CLI Runner & Notion Completion Mode | 0/1 | Planned |  |
+| 10. Watch Pipeline, CLI Runner & Notion Completion Mode | 1/1 | Complete    | 2026-09-25 |
 | 11. Background Sub-agent Automation & Multi-Agent Skill Packaging | 0/1 | Planned |  |
+
 
 
 

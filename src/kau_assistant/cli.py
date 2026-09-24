@@ -186,6 +186,123 @@ def install_skill_command(ctx: click.Context, agent: str, link: bool) -> None:
         )
 
 
+@cli.command("watch")
+@click.option(
+    "--course",
+    "course_query",
+    type=str,
+    required=True,
+    help="시청할 과목 이름, 약칭, 또는 과목 ID (예: '기초전자실험', '디시설')",
+)
+@click.option(
+    "--week",
+    "week_query",
+    type=str,
+    default="current",
+    show_default=True,
+    help="시청할 주차 ('current', 'all', 또는 주차 번호 예: '4')",
+)
+@click.option(
+    "--update-notion",
+    "update_notion",
+    is_flag=True,
+    help="시청 완료된 강의의 Notion Scheduler 작업 상태를 '완료'로 변경합니다.",
+)
+@click.option(
+    "--dry-run",
+    "dry_run",
+    is_flag=True,
+    help="실제 영상을 재생하지 않고 시청 대상 영상 목록만 미리 확인합니다.",
+)
+@click.option(
+    "--json",
+    "as_json",
+    is_flag=True,
+    help="결과를 JSON 형식으로 출력합니다.",
+)
+@click.option(
+    "--relogin",
+    "relogin",
+    is_flag=True,
+    help="캐시된 세션을 무시하고 새로 로그인합니다.",
+)
+@click.option(
+    "--headed",
+    "headed",
+    is_flag=True,
+    help="브라우저 창을 화면에 표시합니다 (기본값: 헤드리스).",
+)
+@click.pass_context
+def watch_command(
+    ctx: click.Context,
+    course_query: str,
+    week_query: str,
+    update_notion: bool,
+    dry_run: bool,
+    as_json: bool,
+    relogin: bool,
+    headed: bool,
+) -> None:
+    """지정된 과목의 미시청 VOD를 백그라운드에서 자동 재생합니다."""
+    from kau_assistant.player.runner import watch_course_vods
+
+    err = Console(stderr=True)
+    out = Console()
+
+    settings = get_settings().model_copy(
+        update={
+            "headless": not headed,
+        }
+    )
+
+    if relogin and settings.session_cache_path.exists():
+        settings.session_cache_path.unlink()
+
+    def on_vod_start(vod, idx, total):
+        err.print(f"[{idx}/{total}] VOD 재생 시작: {vod.title}...", markup=False, highlight=False)
+
+    def on_vod_complete(progress):
+        err.print(f"✓ VOD 시청 완료: {progress.title}", markup=False, highlight=False)
+
+    result = watch_course_vods(
+        settings=settings,
+        course_query=course_query,
+        week_query=week_query,
+        dry_run=dry_run,
+        update_notion=update_notion,
+        on_vod_start=on_vod_start,
+        on_vod_complete=on_vod_complete,
+    )
+
+    if as_json:
+        click.echo(result.model_dump_json(indent=2))
+    else:
+        if result.error_message:
+            err.print(f"[오류] {result.error_message}", markup=False, highlight=False)
+            ctx.exit(1)
+
+        if dry_run:
+            out.print(f"VOD 시청 계획 미리보기 (--dry-run):", markup=False, highlight=False)
+            out.print(f"과목: {result.course_name} ({result.course_id}) | 대상 주차: {result.target_week}", markup=False, highlight=False)
+            out.print(f"시청 대상: {result.total_vods}개 영상 (이미 완료: {result.skipped_vods}개 건너뜀)", markup=False, highlight=False)
+        else:
+            out.print(
+                f"VOD 시청 작업 완료: {result.course_name} ({result.target_week}) - 총 {result.completed_vods}/{result.total_vods}개 완료",
+                markup=False,
+                highlight=False,
+            )
+            if result.notion_updated_count > 0:
+                out.print(
+                    f"Notion Scheduler: {result.notion_updated_count}개 작업 상태를 '완료'로 변경했습니다.",
+                    markup=False,
+                    highlight=False,
+                )
+
+    exit_code = 1 if result.error_message or (result.total_vods > 0 and result.completed_vods < result.total_vods and not dry_run) else 0
+    ctx.exit(exit_code)
+
+
+
 def _configure_streams() -> None:
     """Reconfigures stdout/stderr to UTF-8 so Korean text survives a cp949 parent pipe (D-11)."""
     for stream in (sys.stdout, sys.stderr):
