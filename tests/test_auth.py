@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 from kau_assistant.auth import (
     find_first_visible,
     perform_login,
+    is_logged_in,
     USERNAME_SELECTORS,
     PASSWORD_SELECTORS,
     SUBMIT_SELECTORS,
@@ -188,6 +189,7 @@ def test_perform_login_failure_no_logged_in_selector():
         mock_first = MagicMock()
         mock_first.is_visible.return_value = selector in visible_selectors
         mock_loc.first = mock_first
+        mock_loc.count.return_value = 0
         return mock_loc
 
     page.locator.side_effect = locator_side_effect
@@ -198,4 +200,104 @@ def test_perform_login_failure_no_logged_in_selector():
             username="2020123456",
             password="secretpassword",
             lms_url="https://lms.kau.ac.kr",
+        )
+
+
+def _make_mock_page(visible_selectors=None, counts=None):
+    """Helper to create a mock Page with predictable visibility and counts."""
+    visible = set(visible_selectors or [])
+    counts_map = counts or {}
+
+    page = MagicMock()
+
+    def locator_side_effect(selector):
+        mock_loc = MagicMock()
+        mock_first = MagicMock()
+        mock_first.is_visible.return_value = selector in visible
+        mock_loc.first = mock_first
+        mock_loc.count.return_value = counts_map.get(selector, 0)
+        return mock_loc
+
+    page.locator.side_effect = locator_side_effect
+    return page
+
+
+def test_is_logged_in_visible_selector():
+    """Verify is_logged_in returns True when any LOGGED_IN_SELECTORS entry is visible."""
+    page = _make_mock_page(visible_selectors=[LOGGED_IN_SELECTORS[0]])
+    assert is_logged_in(page) is True
+
+
+def test_is_logged_in_lxp_attached_logout_link():
+    """Verify is_logged_in returns True when logout link is attached and body has no notloggedin."""
+    page = _make_mock_page(
+        visible_selectors=[],
+        counts={"a[href*='logout']": 1, "body.notloggedin": 0},
+    )
+    assert is_logged_in(page) is True
+
+
+def test_is_logged_in_rejects_notloggedin_body():
+    """Verify is_logged_in returns False when body has notloggedin class or logout count is 0."""
+    page_not_logged = _make_mock_page(
+        visible_selectors=[],
+        counts={"a[href*='logout']": 1, "body.notloggedin": 1},
+    )
+    assert is_logged_in(page_not_logged) is False
+
+    page_no_logout = _make_mock_page(
+        visible_selectors=[],
+        counts={"a[href*='logout']": 0, "body.notloggedin": 0},
+    )
+    assert is_logged_in(page_no_logout) is False
+
+
+def test_is_logged_in_locator_error_is_false():
+    """Verify is_logged_in handles locator exceptions gracefully and returns False."""
+    page = MagicMock()
+    page.locator.side_effect = Exception("Browser connection error")
+    assert is_logged_in(page) is False
+
+
+def test_perform_login_lxp_hidden_logout_succeeds():
+    """Verify perform_login succeeds when logout link is attached even if hidden (LXP shape)."""
+    form_visible = {
+        USERNAME_SELECTORS[0],
+        PASSWORD_SELECTORS[0],
+        SUBMIT_SELECTORS[0],
+    }
+    counts = {"a[href*='logout']": 1, "body.notloggedin": 0}
+    page = _make_mock_page(visible_selectors=form_visible, counts=counts)
+    page.url = "https://lxp.kau.ac.kr/"
+
+    perform_login(
+        page=page,
+        username="2020123456",
+        password="secretpassword",
+        lms_url="https://lxp.kau.ac.kr",
+    )
+
+    page.goto.assert_called_once_with("https://lxp.kau.ac.kr", timeout=30000)
+    page.fill.assert_any_call(USERNAME_SELECTORS[0], "2020123456")
+    page.fill.assert_any_call(PASSWORD_SELECTORS[0], "secretpassword")
+    page.click.assert_called_once_with(SUBMIT_SELECTORS[0])
+
+
+def test_perform_login_lxp_notloggedin_body_fails():
+    """Verify perform_login fails when body retains notloggedin class despite attached logout."""
+    form_visible = {
+        USERNAME_SELECTORS[0],
+        PASSWORD_SELECTORS[0],
+        SUBMIT_SELECTORS[0],
+    }
+    counts = {"a[href*='logout']": 1, "body.notloggedin": 1}
+    page = _make_mock_page(visible_selectors=form_visible, counts=counts)
+    page.url = "https://lxp.kau.ac.kr/"
+
+    with pytest.raises(AuthenticationError, match="대시보드 인증 요소를 확인할 수 없습니다"):
+        perform_login(
+            page=page,
+            username="2020123456",
+            password="secretpassword",
+            lms_url="https://lxp.kau.ac.kr",
         )

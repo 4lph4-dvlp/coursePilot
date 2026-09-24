@@ -54,6 +54,23 @@ def find_first_visible(page: Page, selectors: list[str], timeout: int = 5000) ->
     return None
 
 
+def is_logged_in(page: Page, timeout: int = 5000) -> bool:
+    """Check if the current page indicates an authenticated session.
+
+    Returns True if any LOGGED_IN_SELECTORS element is visible, or if an attached
+    logout link exists in the DOM and the body tag does not have the 'notloggedin' class.
+    """
+    if find_first_visible(page, LOGGED_IN_SELECTORS, timeout=timeout):
+        return True
+
+    try:
+        logout_count = page.locator("a[href*='logout']").count()
+        notloggedin_count = page.locator("body.notloggedin").count()
+        return logout_count >= 1 and notloggedin_count == 0
+    except Exception:
+        return False
+
+
 def perform_login(
     page: Page,
     username: str,
@@ -104,8 +121,7 @@ def perform_login(
 
         raise AuthenticationError(f"로그인 실패: {err_text}")
 
-    logged_in_sel = find_first_visible(page, LOGGED_IN_SELECTORS, timeout=10000)
-    if not logged_in_sel:
+    if not is_logged_in(page, timeout=10000):
         raise AuthenticationError("로그인 후 대시보드 인증 요소를 확인할 수 없습니다.")
 
     logger.info("로그인 성공 및 대시보드 진입 확인 완료.")

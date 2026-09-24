@@ -80,3 +80,48 @@ def test_is_past_deadline():
 
     # None due date -> returns False
     assert not is_past_deadline(None)
+
+
+def test_parse_moodle_long_form_korean():
+    dt, fb = parse_lms_date("화요일, 6 10월 2026, 1:00 PM")
+    assert not fb
+    assert dt == datetime(2026, 10, 6, 13, 0, 0, tzinfo=KST)
+
+    dt, fb = parse_lms_date("월요일, 14 9월 2026, 3:20 PM")
+    assert not fb
+    assert dt == datetime(2026, 9, 14, 15, 20, 0, tzinfo=KST)
+
+    dt, fb = parse_lms_date("6 10월 2026, 23:59")
+    assert not fb
+    assert dt == datetime(2026, 10, 6, 23, 59, 0, tzinfo=KST)
+
+
+def test_parse_moodle_long_form_english():
+    dt, fb = parse_lms_date("Tuesday, 6 October 2026, 1:00 PM")
+    assert not fb
+    assert dt == datetime(2026, 10, 6, 13, 0, 0, tzinfo=KST)
+
+    dt, fb = parse_lms_date("Fri, 25 Sep 2026, 11:30 AM")
+    assert not fb
+    assert dt == datetime(2026, 9, 25, 11, 30, 0, tzinfo=KST)
+
+
+def test_parse_korean_am_pm():
+    dt, fb = parse_lms_date("2026년 10월 6일 (화) 오후 1:00")
+    assert not fb
+    assert dt == datetime(2026, 10, 6, 13, 0, 0, tzinfo=KST)
+
+    dt, fb = parse_lms_date("2026년 10월 6일 화요일 오전 9:05")
+    assert not fb
+    assert dt == datetime(2026, 10, 6, 9, 5, 0, tzinfo=KST)
+
+
+def test_parse_twelve_hour_edges():
+    dt, fb = parse_lms_date("일요일, 4 10월 2026, 12:00 AM")
+    assert not fb
+    assert dt == datetime(2026, 10, 4, 0, 0, 0, tzinfo=KST)
+
+    dt, fb = parse_lms_date("목요일, 1 10월 2026, 12:30 PM")
+    assert not fb
+    assert dt == datetime(2026, 10, 1, 12, 30, 0, tzinfo=KST)
+

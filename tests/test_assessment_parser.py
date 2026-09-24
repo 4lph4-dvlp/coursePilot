@@ -123,3 +123,87 @@ def test_scrape_course_assessments_flow(course):
     # Check that details were enriched
     assert results[0].attachments is not None
     assert results[0].cutoff_date is not None
+
+
+def test_parse_lxp_quiz_index_titles_and_due_dates():
+    fixture_path = Path(__file__).parent / "fixtures" / "lxp_quiz_index.html"
+    html_content = fixture_path.read_text(encoding="utf-8")
+
+    items = parse_assessment_list(html_content, course_id="10101", item_type=AssessmentType.QUIZ)
+    assert len(items) == 3
+
+    # Row 1: Sample Quiz 1 - not attempted, due Oct 6
+    assert items[0].item_id == "9001"
+    assert items[0].title == "샘플 퀴즈 1"
+    assert items[0].due_date == datetime(2026, 10, 6, 13, 0, 0, tzinfo=KST)
+    assert items[0].status == SubmissionStatus.NOT_ATTEMPTED
+
+    # Row 2: Sample Quiz 2 - grade 8.00 -> GRADED, due Sep 14
+    assert items[1].item_id == "9002"
+    assert items[1].title == "샘플 퀴즈 2"
+    assert items[1].due_date == datetime(2026, 9, 14, 15, 20, 0, tzinfo=KST)
+    assert items[1].status == SubmissionStatus.GRADED
+
+    # Row 3: Sample Quiz 3 - grade '-' -> NOT_ATTEMPTED, due Sep 30
+    assert items[2].item_id == "9003"
+    assert items[2].title == "샘플 퀴즈 3"
+    assert items[2].due_date == datetime(2026, 9, 30, 23, 59, 0, tzinfo=KST)
+    assert items[2].status == SubmissionStatus.NOT_ATTEMPTED
+
+    # Ensure no title was mistaken for a date
+    for item in items:
+        assert not any(day in item.title for day in ("화요일", "월요일", "수요일"))
+
+
+def test_header_mapping_deadline_before_title():
+    # Table where header has "시험 마감" (which contains "시험", a title keyword, and "마감", a due keyword)
+    # and "이름" (title keyword)
+    html = """
+    <table class="generaltable">
+      <thead>
+        <tr>
+          <th>주</th>
+          <th>이름</th>
+          <th>시험 마감</th>
+          <th>성적</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td><a href="https://lxp.kau.ac.kr/mod/quiz/view.php?id=999">특별 시험</a></td>
+          <td>2026-10-15 23:59</td>
+          <td>-</td>
+        </tr>
+      </tbody>
+    </table>
+    """
+    items = parse_assessment_list(html, course_id="10101", item_type=AssessmentType.QUIZ)
+    assert len(items) == 1
+    assert items[0].title == "특별 시험"
+    assert items[0].due_date == datetime(2026, 10, 15, 23, 59, 0, tzinfo=KST)
+
+
+def test_lxp_quiz_index_reaches_check_report(course):
+    from kau_assistant.domain.transformer import transform_to_sync_tasks
+    from kau_assistant.reporter import build_check_report
+
+    fixture_path = Path(__file__).parent / "fixtures" / "lxp_quiz_index.html"
+    html_content = fixture_path.read_text(encoding="utf-8")
+    items = parse_assessment_list(html_content, course_id=course.course_id, item_type=AssessmentType.QUIZ)
+
+    now = datetime(2026, 9, 24, 12, 0, 0, tzinfo=KST)
+    tasks = transform_to_sync_tasks([course], {}, {course.course_id: items}, mappings={}, now=now)
+    report = build_check_report(tasks, course_count=1, now=now)
+
+    # Graded quiz (9002) is completed and excluded; 2 pending quizzes remain
+    later_items = [item for group in report.items.later for item in group.items]
+    assert len(later_items) == 2
+    assert report.summary.later_count == 2
+
+    later_titles = [item.title for item in later_items]
+    assert any("샘플 퀴즈 1" in t for t in later_titles)
+    assert any("샘플 퀴즈 3" in t for t in later_titles)
+    for item in later_items:
+        assert item.due_date is not None
+        assert not any(day in item.title for day in ("화요일", "월요일", "수요일", "PM", "AM"))

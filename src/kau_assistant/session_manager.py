@@ -5,7 +5,7 @@ import logging
 from pathlib import Path
 from playwright.sync_api import sync_playwright, Browser, BrowserContext, Page, Playwright
 from kau_assistant.config import Settings, get_settings
-from kau_assistant.auth import perform_login, find_first_visible, LOGGED_IN_SELECTORS
+from kau_assistant.auth import perform_login, is_logged_in
 from kau_assistant.exceptions import NavigationTimeoutError
 
 logger = logging.getLogger("kau_assistant.session_manager")
@@ -85,8 +85,7 @@ class SessionManager:
         """Check if the current page indicates an active authenticated session."""
         if "login" in page.url.lower():
             return False
-        logged_in = find_first_visible(page, LOGGED_IN_SELECTORS, timeout=5000)
-        return logged_in is not None
+        return is_logged_in(page, timeout=5000)
 
     def get_authenticated_page(self) -> Page:
         """Obtain an authenticated Page, reusing existing cached session or performing auto-login."""

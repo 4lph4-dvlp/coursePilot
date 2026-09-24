@@ -173,3 +173,36 @@ def test_context_manager_lifecycle(mock_playwright_stack):
     mock_playwright_stack["context"].close.assert_called_once()
     mock_playwright_stack["browser"].close.assert_called_once()
     mock_playwright_stack["playwright"].stop.assert_called_once()
+
+
+def test_check_authenticated_lxp_attached_logout():
+    """Verify _check_authenticated returns True for LXP-shaped page with attached logout."""
+    settings = Settings(_env_file=None)
+    sm = SessionManager(settings=settings)
+
+    page = MagicMock()
+    page.url = "https://lxp.kau.ac.kr/"
+
+    def locator_side_effect(selector):
+        mock_loc = MagicMock()
+        mock_loc.first.is_visible.return_value = False
+        if selector == "a[href*='logout']":
+            mock_loc.count.return_value = 1
+        elif selector == "body.notloggedin":
+            mock_loc.count.return_value = 0
+        else:
+            mock_loc.count.return_value = 0
+        return mock_loc
+
+    page.locator.side_effect = locator_side_effect
+    assert sm._check_authenticated(page) is True
+
+
+def test_check_authenticated_login_url_is_false():
+    """Verify _check_authenticated returns False when URL contains login."""
+    settings = Settings(_env_file=None)
+    sm = SessionManager(settings=settings)
+
+    page = MagicMock()
+    page.url = "https://lxp.kau.ac.kr/login/index.php"
+    assert sm._check_authenticated(page) is False

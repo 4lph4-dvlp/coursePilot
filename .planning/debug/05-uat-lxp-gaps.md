@@ -30,3 +30,96 @@ f. **G-05-1b** (old LMS): `extract_courses` waits 15s for `.block_coursemos_my_c
 ## Scope (user decision 2026-09-24): A + B
 
 A: default to the KAU LXP and fix a–e. B: Coursemos-family schools via a documented `LMS_URL`, with a loud "unsupported structure / 0 courses — check LMS_URL and term" diagnostic instead of a silent empty report. Canvas and other platforms are out of scope.
+
+## LXP markup shapes (redacted probe, 2026-09-24)
+
+### Login
+- Landing URL: `https://lxp.kau.ac.kr/`
+- Site title: `홈 | 한국항공대LXP`
+- Attached logout link present: True
+- body.notloggedin count: 0
+
+### /my/ dashboard
+- Distinct course links found: 7
+- Moodle markers: M.cfg: True, /theme/: True, page-my-index: False, pagelayout-: True, coursemos: True, ubion: True
+- Wait selectors status:
+  - `.block_coursemos_my_courses`: attached=False, visible=False, count=0
+  - `.course_list`: attached=False, visible=False, count=0
+  - `#dashboard`: attached=False, visible=False, count=0
+  - `.my-course-lists`: attached=False, visible=False, count=0
+  - `[role='main']`: attached=True, visible=True, count=1
+  - `a[href*='/course/view.php?id=']`: attached=True, visible=False, count=7
+- First course link text starts with single Hangul syllable: False
+- Course card container skeleton:
+```xml
+<li.dropdown-item-course>
+  <a.dropdown-item.dropdown-item-icon>
+    <div.csms-avata.csms-avata-NN.csms-avata-picture.csms-avata-Nxsm>
+«text:1»
+    </div>
+    <div.text-truncate>
+«text:17»
+    </div>
+  </a>
+</li>
+```
+
+### Course home (VOD sections)
+- Course [id=NNNN]:
+  - VOD activity li count: 0, distinct module IDs: 0
+  - span.displayoptions span.text-ubstrap count: 0
+  - Current regex matched count: 1, top-level li.section count: 0
+  - Section headings (sample up to 4): []
+  - span.instancename has .accesshide child: False
+- Course [id=NNNN]:
+  - VOD activity li count: 15, distinct module IDs: 15
+  - span.displayoptions span.text-ubstrap count: 0
+  - Current regex matched count: 49, top-level li.section count: 15
+  - Section headings (sample up to 4): ['강의 개요', 'N주차', 'N주차', 'N주차']
+  - span.instancename has .accesshide child: False
+- Course [id=NNNN]:
+  - VOD activity li count: 0, distinct module IDs: 0
+  - span.displayoptions span.text-ubstrap count: 0
+  - Current regex matched count: 1, top-level li.section count: 0
+  - Section headings (sample up to 4): []
+  - span.instancename has .accesshide child: False
+- First VOD ancestor chain: ul.section -> div.course-section-content.course-content-item-content -> div.section-item -> li.section.course-section.main.clearfix -> ul.ubsweeks.weeks.ubformat
+- First VOD li skeleton:
+```xml
+<li#module-NNNN.activity.activity-wrapper.vod.modtype_vod.hasinfo.activity-incomplete>
+  <div.activity-item.focus-control>
+    <div.activity-flex>
+      <a.activity-container.activity-container-link>
+        <div.activity-icon-area.has-extend-info>
+          <div.bulkselect.d-none.form-check>
+
+          </div>
+          <div.activity-icon.activityiconcontainer.other.courseicon>
+
+          </div>
+        </div>
+        <div.activity-name-area>
+          <div.activitytitle.modtype_vod.position-relative>
+
+          </div>
+          <div.activity-extend-info>
+
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+</li>
+```
+
+### Progress page
+- HTTP status: 404
+- table.user_progress exists: False
+
+### Assessment index pages
+- Quiz index (`table.generaltable`):
+  - Headers: ['주', '이름', '시험 마감', '성적']
+  - First row cells (masked): ['N주차', '«title:len»', '월요일, NN N월 NNNN, N:NN PM', 'NN.NN/NN.NN']
+- Assign index (`table.generaltable`):
+  - Headers: ['주', '과제물들', '종료 일시', '제출물', '성적']
+  - First row cells (masked): ['', '«title:len»', '-', '제출 완료', '-']

@@ -35,25 +35,31 @@ def parse_assessment_list(
     if not table:
         return []
 
-    # Map column indexes
+    # Map column indexes: classified once in priority order (due -> submission -> grade -> title)
     header_row = table.find("tr")
     col_map: dict[str, int] = {}
     if header_row:
         for idx, cell in enumerate(header_row.find_all(["th", "td"])):
             txt = cell.get_text(strip=True)
-            if any(k in txt for k in ("과제", "퀴즈", "토론", "시험", "제목", "활동", "Name")):
-                col_map["title"] = idx
-            elif any(k in txt for k in ("마감일시", "마감일", "종료", "Due")):
+            if "due" not in col_map and any(k in txt for k in ("마감", "종료", "Due")):
                 col_map["due"] = idx
-            elif any(k in txt for k in ("제출여부", "제출 상태", "Status", "제출")):
+            elif "submission" not in col_map and any(k in txt for k in ("제출", "Status")):
                 col_map["submission"] = idx
-            elif any(k in txt for k in ("채점여부", "채점", "Grade")):
+            elif "grade" not in col_map and any(k in txt for k in ("채점", "성적", "Grade")):
                 col_map["grade"] = idx
+            elif "title" not in col_map and any(k in txt for k in ("이름", "과제", "퀴즈", "토론", "시험", "제목", "활동", "Name")):
+                col_map["title"] = idx
 
-    col_title = col_map.get("title", 1)
-    col_due = col_map.get("due", 2)
-    col_submission = col_map.get("submission", 3)
-    col_grade = col_map.get("grade", 4)
+    if col_map:
+        col_title = col_map.get("title")
+        col_due = col_map.get("due")
+        col_submission = col_map.get("submission")
+        col_grade = col_map.get("grade")
+    else:
+        col_title = 1
+        col_due = 2
+        col_submission = 3
+        col_grade = 4
 
     rows = table.find("tbody").find_all("tr") if table.find("tbody") else table.find_all("tr")[1:]
 
@@ -66,7 +72,7 @@ def parse_assessment_list(
         raw_title = ""
         item_id = ""
         link = ""
-        if col_title < len(cells):
+        if col_title is not None and col_title < len(cells):
             cell_title = cells[col_title]
             a_el = cell_title.find("a")
             if a_el:
@@ -87,22 +93,23 @@ def parse_assessment_list(
 
         # Extract due date
         raw_due_date = ""
-        if col_due < len(cells):
+        if col_due is not None and col_due < len(cells):
             raw_due_date = cells[col_due].get_text(strip=True)
 
         due_date, _ = parse_lms_date(raw_due_date)
 
         # Extract submission status and grade
-        sub_text = cells[col_submission].get_text(strip=True) if col_submission < len(cells) else ""
-        grade_text = cells[col_grade].get_text(strip=True) if col_grade < len(cells) else ""
+        sub_text = cells[col_submission].get_text(strip=True) if (col_submission is not None and col_submission < len(cells)) else ""
+        grade_text = cells[col_grade].get_text(strip=True) if (col_grade is not None and col_grade < len(cells)) else ""
 
         # Status determination (D-10):
         # - Submitted / Graded: complete
         # - Draft: incomplete
         # - Not attempted: incomplete
+        has_numeric_grade = any(c.isdigit() for c in grade_text)
         if any(k in sub_text for k in ("제출 완료", "제출완료", "Submitted", "제출됨")):
             status = SubmissionStatus.SUBMITTED
-        elif any(k in grade_text for k in ("채점 완료", "Graded")) or "채점 완료" in sub_text:
+        elif any(k in grade_text for k in ("채점 완료", "Graded")) or "채점 완료" in sub_text or has_numeric_grade:
             status = SubmissionStatus.GRADED
         elif any(k in sub_text for k in ("임시저장", "초안", "Draft")):
             status = SubmissionStatus.DRAFT
