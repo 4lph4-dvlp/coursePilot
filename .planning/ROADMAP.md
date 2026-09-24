@@ -24,6 +24,15 @@
 - [x] **Phase 10: Watch Pipeline, CLI Runner & Notion Completion Mode** - 과목/주차 필터링 기반 순차 VOD 시청 파이프라인, `watch` CLI 명령어 및 Notion `완료` 상태 동기화 모드 (completed 2026-09-25)
 - [x] **Phase 11: Background Sub-agent Automation & Multi-Agent Skill Packaging** - 비동기 백그라운드/서브에이전트 시청 실행 가이드, 범용 `SKILL.md` 업데이트 및 5개 에이전트 재배포 (completed 2026-09-25)
 
+## Milestone 4: Comprehensive Academic Automation & Dashboard (v2.0)
+
+- [ ] **Phase 12: VOD Player Advanced Control & Retroactive Notion Sync** - 특정 영상 지목(`--video-index`), 퍼지 과목 매칭, 실시간 진행 상태 조회(`watch status`), 중단(`watch stop`), 사후 노션 완료 처리(`watch sync-notion`)
+- [ ] **Phase 13: Learning Materials (ubfile) Auto-Completion & File Downloader** - 미열람 학습자료(`ubfile`) 자동 열람을 통한 진도율 100% 이수 및 과목/주차 계층 구조 로컬 다운로더 구현
+- [ ] **Phase 14: Pure-Python VOD Stream Downloader Integration** - 최소 설치 환경 유지를 위한 순수 파이썬 HLS/m3u8 스트림 캡처 및 백그라운드 영상 로컬 다운로더 구현
+- [ ] **Phase 15: Course Announcements & Q&A Board Briefing** - 과목별 `ubboard`(공지사항 및 질문과 답변) 파싱, 최근 3개 기본 및 사용자 맞춤 스코프 브리핑 CLI 구현
+- [ ] **Phase 16: Comprehensive Activity Progress Dashboard** - 전체 학습활동(동영상+과제+퀴즈+자료) 종합 진척도 계산, 전체/지나온 주차/이번 주차 진척도 대시보드(`progress`) 구현
+- [ ] **Phase 17: Universal Skill Packaging, Multi-Agent Deployment & End-to-End Verification** - 전체 신규 기능을 `SKILL.md` 및 `JSON_CONTRACT.md`에 반영, 5개 에이전트 일괄 재배포 및 E2E 실사이트 검증
+
 ## Phase Details
 
 ### Phase 1: Foundation & Session Management
@@ -297,10 +306,96 @@ Plans:
 
 ---
 
+### Phase 12: VOD Player Advanced Control & Retroactive Notion Sync
+
+**Goal**: 특정 영상 지정(`--video-index`), 퍼지 과목 매칭, 실시간 진행 상태 조회(`watch status`), 중단(`watch stop`), 사후 노션 완료 처리(`watch sync-notion`) 구현
+**Depends on**: Phase 11
+**Requirements**: WATCH-04, WATCH-05, WATCH-06
+**Success Criteria** (what must be TRUE):
+  1. `기초전자정보실험`과 같은 유사 과목명이나 약칭을 공식 과목명으로 안정적으로 해석한다.
+  2. `--video-index 2`와 같이 특정 주차의 N번째 영상만 지정하여 시청할 수 있다.
+  3. 재생 중 5초 단위로 갱신되는 `watch_state.json`을 통해 다른 대화 세션에서도 `watch status`로 남은 시간과 진행률을 확인할 수 있다.
+  4. `watch stop` 명령으로 백그라운드 재생 프로세스를 즉시 안전하게 종료할 수 있다.
+  5. 시청 완료 후 나중에 사용자가 요청했을 때 `watch sync-notion`으로 최근 시청된 영상의 Notion Scheduler 상태를 `완료`로 변경할 수 있다.
+
+**Plans**: 0/1 plans executed
+
+---
+
+### Phase 13: Learning Materials (ubfile) Auto-Completion & File Downloader
+
+**Goal**: 미열람 학습자료(`ubfile`) 자동 열람을 통한 진도율 100% 이수 및 과목/주차 계층 구조 로컬 다운로더 구현
+**Depends on**: Phase 12
+**Requirements**: RES-01, RES-02
+**Success Criteria** (what must be TRUE):
+  1. 미열람 상태의 `ubfile` 학습자료 페이지를 방문(열람)하여 LXP 진도율을 100% 완료 상태로 갱신한다.
+  2. 첨부 파일(PDF, PPT, ZIP 등)을 `.env` 또는 요청된 기본 경로 하위 `<과목명>/W{주차}/` 폴더에 자동으로 다운로드 및 정리한다.
+  3. 파일 다운로드 및 열람 결과를 브리핑 리포트 및 JSON으로 제공한다.
+
+**Plans**: 0/1 plans executed
+
+---
+
+### Phase 14: Pure-Python VOD Stream Downloader Integration
+
+**Goal**: 최소 설치 환경 유지를 위한 순수 파이썬 HLS/m3u8 스트림 캡처 및 백그라운드 영상 로컬 다운로더 구현
+**Depends on**: Phase 13
+**Requirements**: VDL-01, VDL-02
+**Success Criteria** (what must be TRUE):
+  1. 시스템에 `ffmpeg` 설치가 없어도 동작하는 순수 파이썬 HLS/m3u8 세그먼트 파서 및 다운로더를 구현한다.
+  2. VOD 시청(`watch`) 실행 시 네트워크 요청을 감시하여 미디어 스트림 URL을 감지하고 로컬 파일(`W{주차}-{영상번호}.mp4`)로 다운로드한다.
+  3. 출석 인정(1.0배속 하트비트 재생)과 영상 로컬 소장을 동시에 완수한다.
+
+**Plans**: 0/1 plans executed
+
+---
+
+### Phase 15: Course Announcements & Q&A Board Briefing
+
+**Goal**: 과목별 `ubboard`(공지사항 및 질문과 답변) 파싱, 최근 3개 기본 및 사용자 맞춤 스코프 브리핑 CLI 구현
+**Depends on**: Phase 14
+**Requirements**: BRD-01, BRD-02
+**Success Criteria** (what must be TRUE):
+  1. 과목별 공지사항 게시판(`ubboard`)의 최근 공지글 목록(제목, 작성자, 작성일) 및 본문 내용을 추출한다.
+  2. Q&A 게시판의 질문글 및 답변 상태(답변 완료 여부)를 파싱하여 요약 브리핑을 생성한다.
+  3. 기본값 최근 3개 및 사용자 지정 개수/범위(`--limit`, `--all`)를 지원한다.
+
+**Plans**: 0/1 plans executed
+
+---
+
+### Phase 16: Comprehensive Activity Progress Dashboard
+
+**Goal**: 전체 학습활동(동영상+과제+퀴즈+자료) 종합 진척도 계산, 전체/지나온 주차/이번 주차 진척도 대시보드(`progress`) 구현
+**Depends on**: Phase 15
+**Requirements**: PROG-01, PROG-02
+**Success Criteria** (what must be TRUE):
+  1. 각 과목별로 전체 학습활동(동영상, 과제, 퀴즈, 자료)의 종합 이수율을 계산한다.
+  2. "전체 진도율", "지나온 주차 누적 이수율", "이번 주차 현황(완료/미완료 목록)"을 한눈에 볼 수 있는 `progress` 리포트를 제공한다.
+  3. 콘솔 및 JSON 계약 형식으로 에이전트 브리핑을 지원한다.
+
+**Plans**: 0/1 plans executed
+
+---
+
+### Phase 17: Universal Skill Packaging, Multi-Agent Deployment & End-to-End Verification
+
+**Goal**: 전체 신규 기능을 `SKILL.md` 및 `JSON_CONTRACT.md`에 반영, 5개 에이전트 일괄 재배포 및 E2E 실사이트 검증
+**Depends on**: Phase 16
+**Requirements**: SKIL-04, VERIF-03
+**Success Criteria** (what must be TRUE):
+  1. `skills/kau-lxp/SKILL.md` 및 `JSON_CONTRACT.md`에 신규 서브커맨드(`progress`, `notices`, `qna`, 다운로드 옵션 등)가 완벽히 문서화된다.
+  2. 5개 AI 에이전트(Claude Code, Codex, Antigravity, Pi, Hermes)에 업데이트된 스킬이 정상 재배포된다.
+  3. 실제 LXP 환경에서 신규 기능들의 E2E 통합 테스트를 통과한다.
+
+**Plans**: 0/1 plans executed
+
+---
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -315,6 +410,12 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 9. VOD Playback Engine & Heartbeat Automation | 1/1 | Complete    | 2026-09-25 |
 | 10. Watch Pipeline, CLI Runner & Notion Completion Mode | 1/1 | Complete    | 2026-09-25 |
 | 11. Background Sub-agent Automation & Multi-Agent Skill Packaging | 1/1 | Complete | 2026-09-25 |
+| 12. VOD Player Advanced Control & Retroactive Notion Sync | 0/1 | Planned |  |
+| 13. Learning Materials (ubfile) Auto-Completion & File Downloader | 0/1 | Planned |  |
+| 14. Pure-Python VOD Stream Downloader Integration | 0/1 | Planned |  |
+| 15. Course Announcements & Q&A Board Briefing | 0/1 | Planned |  |
+| 16. Comprehensive Activity Progress Dashboard | 0/1 | Planned |  |
+| 17. Universal Skill Packaging, Multi-Agent Deployment & End-to-End Verification | 0/1 | Planned |  |
 
 
 
