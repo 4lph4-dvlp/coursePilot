@@ -1,7 +1,7 @@
 {
   "contract": "1.0.0",
   "flavor": "core",
-  "milestone": null,
+  "milestone": "v1.0 — Completed)",
   "phases": [
     {
       "number": "1",
@@ -26,13 +26,73 @@
     {
       "number": "5",
       "name": "CLI Reporting & Universal Agent Skill Packaging",
-      "status": "in_progress"
+      "status": "complete"
+    },
+    {
+      "number": "6",
+      "name": "Quiz Submission Status Enrichment",
+      "status": "complete"
+    },
+    {
+      "number": "7",
+      "name": "VOD Activity & Attendance Completion Tracking",
+      "status": "complete"
+    },
+    {
+      "number": "8",
+      "name": "End-to-End Verification & Agent Re-deployment",
+      "status": "complete"
+    },
+    {
+      "number": "9",
+      "name": "VOD Playback Engine & Heartbeat Automation",
+      "status": "complete"
+    },
+    {
+      "number": "10",
+      "name": "Watch Pipeline, CLI Runner & Notion Completion Mode",
+      "status": "complete"
+    },
+    {
+      "number": "11",
+      "name": "Background Sub-agent Automation & Multi-Agent Skill Packaging",
+      "status": "complete"
+    },
+    {
+      "number": "12",
+      "name": "VOD Player Advanced Control & Retroactive Notion Sync",
+      "status": "pending"
+    },
+    {
+      "number": "13",
+      "name": "Learning Materials (ubfile) Auto-Completion & File Downloader",
+      "status": "pending"
+    },
+    {
+      "number": "14",
+      "name": "Pure-Python VOD Stream Downloader Integration",
+      "status": "pending"
+    },
+    {
+      "number": "15",
+      "name": "Course Announcements & Q&A Board Briefing",
+      "status": "pending"
+    },
+    {
+      "number": "16",
+      "name": "Comprehensive Activity Progress Dashboard",
+      "status": "pending"
+    },
+    {
+      "number": "17",
+      "name": "Universal Skill Packaging, Multi-Agent Deployment & End-to-End Verification",
+      "status": "pending"
     }
   ],
   "next": {
-    "command": "/gsd:progress --next",
-    "label": "Advance to the next step (verify)",
-    "reason": "Phase 5 of 5 · 80% · ready to verify"
+    "command": "/gsd-progress",
+    "label": "Show progress",
+    "reason": "Unsure of state — showing progress"
   },
-  "updated_at": "2026-09-23T04:59:18.583Z"
+  "updated_at": "2026-09-24T18:53:14.478Z"
 }
