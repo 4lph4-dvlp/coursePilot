@@ -55,7 +55,7 @@ All five installs were run in **copy mode** (never `--link`), from the repositor
 | Claude Code | `C:\Users\alpha\.claude\skills\kau-lxp` | 0 | PASS | PASS | PASS | Re-tested on 2026-09-23; dry-run preview and no `--apply` confirmed |
 | Codex | `C:\Users\alpha\.codex\skills\kau-lxp` | 0 | PASS | PASS | pending (human) | "과제 확인해줘" passed in earlier UAT; Notion approval flow pending |
 | Antigravity | `C:\Users\alpha\.gemini\antigravity\skills\kau-lxp` | 0 | PASS | pending (human) | pending (human) | Earlier run read leftover files in old folder; re-test in clean folder pending |
-| Pi | `C:\Users\alpha\.pi\agent\skills\kau-lxp` | 0 | PASS | PASS | pending (human) | "과제 확인해줘" passed in earlier UAT; Notion approval flow pending |
+| Pi | `C:\Users\alpha\.pi\agent\skills\kau-lxp` | 0 | PASS | PASS | PASS | Re-tested on 2026-09-24 (clean folder); "과제 확인해줘" 7과목/15개 항목 브리핑 성공; "노션에 올려줘" 16개 항목 dry-run 미리보기 및 승인 게이트 정상 확인 |
 | Hermes | `C:\Users\alpha\AppData\Local\hermes\skills\kau-lxp` | 0 | PASS | pending (human) | pending (human) | Corrected path (`%LOCALAPPDATA%`) applied; stale `~/.hermes` copy deleted; re-test pending |
 
 ### How to verify (gap-closure re-test)
