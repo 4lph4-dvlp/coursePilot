@@ -15,7 +15,7 @@
 ## Milestone 2: LXP Quiz Submission Verification & VOD Completion Enhancement (v1.1)
 
 - [x] **Phase 6: Quiz Submission Status Enrichment** - 성적 비공개 퀴즈의 상세 페이지(view.php) 응시 내역(답안 검토, 응시 횟수 초과) 파싱 및 완료 상태 판정 (completed 2026-09-24)
-- [ ] **Phase 7: VOD Activity & Attendance Completion Tracking** - LXP 실제 활동 현황(/report/ublogs/completion.php) 연동 및 개별 VOD 시청 완료/미완료 상태 및 마감일 파싱
+- [x] **Phase 7: VOD Activity & Attendance Completion Tracking** - LXP 실제 활동 현황(/report/ublogs/completion.php) 연동 및 개별 VOD 시청 완료/미완료 상태 및 미지정 마감일 보존 (completed 2026-09-24)
 - [ ] **Phase 8: End-to-End Verification & Agent Re-deployment** - 실사이트 LXP 대상 E2E 검증 및 5개 에이전트 스킬 일괄 재배포
 
 ## Phase Details
@@ -217,7 +217,9 @@ Plans:
   2. 코스 홈의 VOD 활동과 활동 현황의 완료 여부를 매핑하여 `LectureItem.status`에 반영한다.
   3. VOD 마감일(출석 인정 기간 또는 과목 기본 일정)을 적절히 산출하여 미완료 강의가 `check` 및 `sync`에 정상적으로 포함되도록 한다.
 
-**Plans**: 0/1 plans executed
+**Plans**: 1/1 plans executed
+
+- [x] 07-01-PLAN.md — LXP 실제 활동 현황(/report/ublogs/completion.php) 연동 및 개별 VOD 시청 완료/미완료 상태 및 미지정 마감일 보존
 
 ---
 
@@ -248,5 +250,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 4. Notion Scheduler Integration & Deduplication | 2/2 | Complete    | 2026-09-22 |
 | 5. CLI Reporting & Universal Agent Skill Packaging | 11/11 | Complete| 2026-09-24 |
 | 6. Quiz Submission Status Enrichment | 1/1 | Complete    | 2026-09-24 |
-| 7. VOD Activity & Attendance Completion Tracking | 0/1 | Planned |  |
+| 7. VOD Activity & Attendance Completion Tracking | 1/1 | Complete    | 2026-09-24 |
 | 8. End-to-End Verification & Agent Re-deployment | 0/1 | Planned |  |

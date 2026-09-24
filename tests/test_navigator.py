@@ -74,16 +74,47 @@ def test_navigate_to_course_restricted_content_raises_access_denied(settings, co
 def test_navigate_progress_page_success(settings, course):
     navigator = CourseNavigator(settings, min_delay=0, max_delay=0)
     mock_page = MagicMock()
-    mock_page.content.return_value = "<table class='generaltable progress-report'><tr><td>학습현황</td></tr></table>"
+    mock_response = MagicMock()
+    mock_response.status = 200
+    mock_page.goto.return_value = mock_response
+    mock_page.content.return_value = "<table class='table-learning-student-activity'><tr><td>학습활동</td><td>완료 상태</td></tr></table>"
+    mock_page.wait_for_selector.return_value = True
+
+    html = navigator.navigate_progress_page(mock_page, course)
+    assert html is not None
+    assert "table-learning-student-activity" in html
+    mock_page.goto.assert_called_once_with(
+        "https://canvas.kau.ac.kr/report/ublogs/completion.php?id=10101",
+        wait_until="domcontentloaded",
+    )
+
+
+def test_navigate_progress_page_fallback_to_ubcompletion(settings, course):
+    navigator = CourseNavigator(settings, min_delay=0, max_delay=0)
+    mock_page = MagicMock()
+
+    def _goto(url, wait_until=None):
+        resp = MagicMock()
+        if "ublogs" in url:
+            resp.status = 404
+        else:
+            resp.status = 200
+        return resp
+
+    def _content():
+        if mock_page.goto.call_count == 1:
+            return "<div>404 Not Found</div>"
+        return "<table class='generaltable progress-report'><tr><td>학습현황</td></tr></table>"
+
+    mock_page.goto.side_effect = _goto
+    mock_page.content.side_effect = _content
     mock_page.wait_for_selector.return_value = True
 
     html = navigator.navigate_progress_page(mock_page, course)
     assert html is not None
     assert "progress-report" in html
-    mock_page.goto.assert_called_once_with(
-        "https://canvas.kau.ac.kr/report/ubcompletion/progress.php?id=10101",
-        wait_until="domcontentloaded",
-    )
+    assert mock_page.goto.call_count == 2
+
 
 
 def test_navigate_progress_page_accepts_user_progress_table(settings, course):

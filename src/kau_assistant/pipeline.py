@@ -20,9 +20,11 @@ from kau_assistant.scraper.assessment_parser import scrape_course_assessments
 from kau_assistant.scraper.course_list import extract_courses
 from kau_assistant.scraper.lecture_parser import (
     merge_lecture_progress,
+    merge_ublogs_completion,
     parse_lectures_from_course_sections,
     parse_lectures_from_progress_table,
     parse_ubcompletion_progress,
+    parse_ublogs_completion,
 )
 from kau_assistant.scraper.models import AssessmentItem, CourseItem, LectureItem
 from kau_assistant.scraper.navigator import CourseNavigator
@@ -67,17 +69,22 @@ def scrape_course(
     course: CourseItem,
     navigator: CourseNavigator,
 ) -> tuple[list[LectureItem], list[AssessmentItem]]:
-    """Scrapes one course's lectures (course home + ubcompletion merge, falling back to legacy progress table) and assessments."""
+    """Scrapes one course's lectures (course home + ublogs/ubcompletion merge, falling back to legacy progress table) and assessments."""
     home_html = navigator.navigate_to_course(page, course)
     lectures = parse_lectures_from_course_sections(home_html, course)
 
     progress_html = navigator.navigate_progress_page(page, course)
     if progress_html:
-        ub_rows = parse_ubcompletion_progress(progress_html)
-        if lectures and ub_rows:
-            lectures = merge_lecture_progress(lectures, ub_rows)
-        elif not lectures and not ub_rows:
-            lectures = parse_lectures_from_progress_table(progress_html, course)
+        if "table-learning-student-activity" in progress_html or "완료 상태" in progress_html:
+            ublogs_records = parse_ublogs_completion(progress_html)
+            if lectures and ublogs_records:
+                lectures = merge_ublogs_completion(lectures, ublogs_records)
+        else:
+            ub_rows = parse_ubcompletion_progress(progress_html)
+            if lectures and ub_rows:
+                lectures = merge_lecture_progress(lectures, ub_rows)
+            elif not lectures and not ub_rows:
+                lectures = parse_lectures_from_progress_table(progress_html, course)
 
     assessments = scrape_course_assessments(page, course, navigator)
     return lectures, assessments

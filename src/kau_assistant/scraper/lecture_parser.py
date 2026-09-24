@@ -583,3 +583,162 @@ def merge_lecture_progress(
         merged.append(updated_lec)
 
     return merged
+
+
+class UblogsActivityStatus(BaseModel):
+    """Activity completion record from /report/ublogs/completion.php."""
+
+    week_number: int
+    activity_title: str
+    status: str
+    completion_time: str | None = None
+    is_completed: bool
+
+
+def parse_ublogs_completion(html: str) -> list[UblogsActivityStatus]:
+    """Parses /report/ublogs/completion.php table into activity completion records."""
+    soup = BeautifulSoup(html, "lxml")
+    table = soup.find(
+        "table",
+        class_=re.compile(r"table-learning-student-activity|table-coursemos", re.I),
+    )
+    if not table:
+        return []
+
+    results: list[UblogsActivityStatus] = []
+    current_week = 1
+
+    tbody = table.find("tbody") or table
+    for tr in tbody.find_all("tr"):
+        cells = tr.find_all(["td", "th"])
+        if not cells:
+            continue
+
+        cell_texts = [c.get_text(strip=True) for c in cells]
+        if any("학습활동" in txt for txt in cell_texts):
+            continue
+
+        if len(cells) >= 4:
+            w_text = cells[0].get_text(strip=True)
+            m_w = re.search(r"(\d+)\s*주", w_text)
+            if m_w:
+                current_week = int(m_w.group(1))
+
+            act_title = cells[1].get_text(strip=True)
+            stat_text = cells[2].get_text(strip=True)
+            comp_time = cells[3].get_text(strip=True) or None
+        elif len(cells) == 3:
+            act_title = cells[0].get_text(strip=True)
+            stat_text = cells[1].get_text(strip=True)
+            comp_time = cells[2].get_text(strip=True) or None
+        elif len(cells) == 2:
+            act_title = cells[0].get_text(strip=True)
+            stat_text = cells[1].get_text(strip=True)
+            comp_time = None
+        else:
+            continue
+
+        if not act_title:
+            continue
+
+        is_completed = "완료" in stat_text and "미완료" not in stat_text
+        results.append(
+            UblogsActivityStatus(
+                week_number=current_week,
+                activity_title=act_title,
+                status=stat_text,
+                completion_time=comp_time,
+                is_completed=is_completed,
+            )
+        )
+
+    return results
+
+
+def merge_ublogs_completion(
+    lectures: list[LectureItem],
+    ublogs_records: list[UblogsActivityStatus],
+    now: datetime | None = None,
+) -> list[LectureItem]:
+    """Merges ublogs completion statuses into parsed course home lectures."""
+    if not ublogs_records:
+        return lectures
+
+    merged: list[LectureItem] = []
+    unmatched_records = list(ublogs_records)
+
+    def norm_title(t: str) -> str:
+        t_clean = clean_lecture_title(t)
+        return re.sub(r"\s+", " ", t_clean).strip().lower()
+
+    # Step 1: match by exact/normalized title within same week
+    matches: dict[int, UblogsActivityStatus] = {}
+    for lec_idx, lec in enumerate(lectures):
+        lec_norm = norm_title(lec.title)
+        for r_idx, r in enumerate(unmatched_records):
+            r_norm = norm_title(r.activity_title)
+            if r.week_number == lec.week_number and (r_norm == lec_norm or lec_norm in r_norm or r_norm in lec_norm):
+                matches[lec_idx] = r
+                unmatched_records.pop(r_idx)
+                break
+
+    # Step 2: match by normalized title across any week
+    for lec_idx, lec in enumerate(lectures):
+        if lec_idx in matches:
+            continue
+        lec_norm = norm_title(lec.title)
+        for r_idx, r in enumerate(unmatched_records):
+            r_norm = norm_title(r.activity_title)
+            if r_norm == lec_norm or lec_norm in r_norm or r_norm in lec_norm:
+                matches[lec_idx] = r
+                unmatched_records.pop(r_idx)
+                break
+
+    # Step 3: fallback to sequential order within same week
+    unmatched_lec_by_week: dict[int, list[int]] = {}
+    for lec_idx, lec in enumerate(lectures):
+        if lec_idx not in matches:
+            unmatched_lec_by_week.setdefault(lec.week_number, []).append(lec_idx)
+
+    unmatched_records_by_week: dict[int, list[UblogsActivityStatus]] = {}
+    for r in list(unmatched_records):
+        unmatched_records_by_week.setdefault(r.week_number, []).append(r)
+
+    for week_num, lec_indices in unmatched_lec_by_week.items():
+        recs = unmatched_records_by_week.get(week_num, [])
+        if len(lec_indices) == len(recs):
+            for l_idx, r_item in zip(lec_indices, recs):
+                matches[l_idx] = r_item
+                if r_item in unmatched_records:
+                    unmatched_records.remove(r_item)
+
+    # Apply matches
+    for lec_idx, lec in enumerate(lectures):
+        record = matches.get(lec_idx)
+        if record is None:
+            merged.append(lec)
+            continue
+
+        if record.is_completed:
+            status = AttendanceStatus.COMPLETED
+            progress_percent = 100.0
+            is_overdue = False
+        else:
+            status = AttendanceStatus.INCOMPLETE
+            progress_percent = 0.0
+            is_overdue = False
+            if is_past_deadline(lec.due_date, now):
+                is_overdue = True
+                status = AttendanceStatus.OVERDUE
+
+        updated_lec = lec.model_copy(
+            update={
+                "status": status,
+                "progress_percent": progress_percent,
+                "is_overdue": is_overdue,
+            }
+        )
+        merged.append(updated_lec)
+
+    return merged
+

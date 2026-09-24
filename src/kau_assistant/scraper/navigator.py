@@ -73,16 +73,31 @@ class CourseNavigator:
         return content
 
     def navigate_progress_page(self, page: Page, course: CourseItem) -> str | None:
-        """Navigates to course progress report page. Returns HTML if found, or None to trigger fallback."""
+        """Navigates to course progress/completion report page. Returns HTML if found, or None to trigger fallback."""
         self.polite_delay()
         base_url = self.settings.lms_url.rstrip("/")
+
+        # 1. Try ublogs completion first (KAU LXP primary activity status page)
+        ublogs_url = f"{base_url}/report/ublogs/completion.php?id={course.course_id}"
+        logger.info(f"Attempting navigation to activity completion for course {course.course_id}")
+        try:
+            resp = page.goto(ublogs_url, wait_until="domcontentloaded")
+            if resp and resp.status == 200:
+                selectors = ".table-learning-student-activity, table.user_progress, .table-coursemos"
+                found = self.smart_wait(page, selectors, timeout_ms=3000)
+                content = page.content()
+                if found and any(k in content for k in ("table-learning-student-activity", "학습활동", "완료 상태")):
+                    return content
+        except Exception as e:
+            logger.debug(f"ublogs navigation failed: {e}")
+
+        # 2. Fallback to ubcompletion progress report
         progress_url = f"{base_url}/report/ubcompletion/progress.php?id={course.course_id}"
         logger.info(f"Attempting navigation to progress report for course {course.course_id}")
-
         page.goto(progress_url, wait_until="domcontentloaded")
 
         selectors = "table.user_progress, table.progress-report, .generaltable.progress-report"
-        found = self.smart_wait(page, selectors, timeout_ms=5000)
+        found = self.smart_wait(page, selectors, timeout_ms=3000)
         content = page.content()
 
         # Validate that actual progress content exists

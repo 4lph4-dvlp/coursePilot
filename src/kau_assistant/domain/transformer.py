@@ -101,9 +101,14 @@ def transform_lecture_to_task(
     mappings: dict[str, str],
     now: datetime | None = None,
 ) -> SyncTask | None:
-    """Transforms LectureItem to SyncTask. Excludes open/OT videos without deadline (D-11)."""
+    """Transforms LectureItem to SyncTask. Retains incomplete lectures even if without explicit due date, excluding OT/open lectures (D-11)."""
     if lecture.due_date is None:
-        return None
+        title_norm = (lecture.title + " " + lecture.full_title).lower()
+        is_ot = lecture.week_number == 0 or bool(
+            re.search(r"\b(ot|orientation)\b|오리엔테이션|강의\s*개요|과목\s*소개", title_norm, re.I)
+        )
+        if is_ot:
+            return None
 
     is_completed = lecture.status == AttendanceStatus.COMPLETED
     priority, is_urgent, is_overdue = calculate_priority(

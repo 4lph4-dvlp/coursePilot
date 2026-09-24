@@ -5,12 +5,15 @@ import pytest
 from kau_assistant.scraper.date_parser import KST
 from kau_assistant.scraper.lecture_parser import (
     LectureProgress,
+    UblogsActivityStatus,
     _parse_duration_seconds,
     clean_lecture_title,
     merge_lecture_progress,
+    merge_ublogs_completion,
     parse_lectures_from_course_sections,
     parse_lectures_from_progress_table,
     parse_ubcompletion_progress,
+    parse_ublogs_completion,
 )
 from kau_assistant.scraper.models import AttendanceStatus, CourseItem
 
@@ -321,3 +324,100 @@ def test_merge_lecture_progress_order_fallback_and_unmatched(course):
     # week 6 clip 2 should get second row (incomplete)
     assert merged[5].week_number == 6 and merged[5].clip_number == 2
     assert merged[5].status == AttendanceStatus.INCOMPLETE
+
+
+def test_parse_ublogs_completion():
+    html = """
+    <table class="table table-bordered table-learning-student-activity">
+      <thead>
+        <tr>
+          <th>주차</th>
+          <th>학습활동명</th>
+          <th>완료 상태</th>
+          <th>완료 일시</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1주차</td>
+          <td>Ch01 논리회로 기초</td>
+          <td><span class="label label-success">완료</span></td>
+          <td>2026-09-10 14:20:00</td>
+        </tr>
+        <tr>
+          <td>1주차</td>
+          <td>Ch02 불 대수와 게이트</td>
+          <td><span class="label label-danger">미완료</span></td>
+          <td>-</td>
+        </tr>
+        <tr>
+          <td>2주차</td>
+          <td>Ch03 카르노 맵</td>
+          <td><span class="label label-success">완료</span></td>
+          <td>2026-09-17 18:30:00</td>
+        </tr>
+      </tbody>
+    </table>
+    """
+    records = parse_ublogs_completion(html)
+    assert len(records) == 3
+    assert records[0].week_number == 1
+    assert records[0].activity_title == "Ch01 논리회로 기초"
+    assert records[0].is_completed is True
+    assert records[0].completion_time == "2026-09-10 14:20:00"
+
+    assert records[1].week_number == 1
+    assert records[1].activity_title == "Ch02 불 대수와 게이트"
+    assert records[1].is_completed is False
+
+    assert records[2].week_number == 2
+    assert records[2].activity_title == "Ch03 카르노 맵"
+    assert records[2].is_completed is True
+
+
+def test_merge_ublogs_completion(course):
+    from kau_assistant.scraper.models import LectureItem
+
+    lectures = [
+        LectureItem(
+            course_id=course.course_id,
+            week_number=1,
+            clip_number=1,
+            title="Ch01 논리회로 기초 (동영상)",
+            full_title="1주차 1차시",
+            status=AttendanceStatus.INCOMPLETE,
+        ),
+        LectureItem(
+            course_id=course.course_id,
+            week_number=1,
+            clip_number=2,
+            title="Ch02 불 대수와 게이트 (동영상)",
+            full_title="1주차 2차시",
+            status=AttendanceStatus.INCOMPLETE,
+        ),
+    ]
+
+    records = [
+        UblogsActivityStatus(
+            week_number=1,
+            activity_title="Ch01 논리회로 기초",
+            status="완료",
+            is_completed=True,
+        ),
+        UblogsActivityStatus(
+            week_number=1,
+            activity_title="Ch02 불 대수와 게이트",
+            status="미완료",
+            is_completed=False,
+        ),
+    ]
+
+    merged = merge_ublogs_completion(lectures, records)
+    assert len(merged) == 2
+    assert merged[0].status == AttendanceStatus.COMPLETED
+    assert merged[0].progress_percent == 100.0
+    assert merged[0].is_overdue is False
+
+    assert merged[1].status == AttendanceStatus.INCOMPLETE
+    assert merged[1].progress_percent == 0.0
+

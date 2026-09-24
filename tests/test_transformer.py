@@ -261,3 +261,45 @@ def test_transform_to_sync_tasks_filtering_and_sorting(sample_course):
         mappings={"공학수학2": "공수2"},
     )
     assert len(all_tasks) == 5
+
+
+def test_transform_undated_incomplete_lecture_becomes_p3_task(sample_course):
+    """Undated incomplete regular lecture becomes SyncTask with P3 priority and due_date=None."""
+    lec = LectureItem(
+        course_id="10101",
+        week_number=1,
+        clip_number=1,
+        title="Ch01 논리회로 기초",
+        full_title="[디시설] 1주차 1차시: Ch01 논리회로 기초",
+        status=AttendanceStatus.INCOMPLETE,
+        due_date=None,
+    )
+    task = transform_lecture_to_task(sample_course, lec, {"디지털시스템설계": "디시설"})
+    assert task is not None
+    assert task.due_date is None
+    assert task.priority == TaskPriority.P3
+    assert task.is_overdue is False
+    assert task.is_urgent is False
+    assert task.is_completed is False
+
+
+def test_transform_undated_completed_lecture_is_excluded(sample_course):
+    """Undated completed lecture is excluded from default sync tasks."""
+    lec = LectureItem(
+        course_id="10101",
+        week_number=1,
+        clip_number=1,
+        title="Ch01 논리회로 기초",
+        full_title="[디시설] 1주차 1차시: Ch01 논리회로 기초",
+        status=AttendanceStatus.COMPLETED,
+        due_date=None,
+    )
+    tasks = transform_to_sync_tasks(
+        courses=[sample_course],
+        lectures_by_course={"10101": [lec]},
+        assessments_by_course={"10101": []},
+        mappings={"공학수학2": "공수2"},
+        include_completed=False,
+    )
+    assert len(tasks) == 0
+
