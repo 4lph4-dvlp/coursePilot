@@ -18,6 +18,12 @@
 - [x] **Phase 7: VOD Activity & Attendance Completion Tracking** - LXP 실제 활동 현황(/report/ublogs/completion.php) 연동 및 개별 VOD 시청 완료/미완료 상태 및 미지정 마감일 보존 (completed 2026-09-24)
 - [x] **Phase 8: End-to-End Verification & Agent Re-deployment** - 실사이트 LXP 대상 E2E 검증 및 5개 에이전트 스킬 일괄 재배포 (completed 2026-09-24)
 
+## Milestone 3: Automated VOD Attendance Player & Notion Completion Sync (v1.2)
+
+- [x] **Phase 9: VOD Playback Engine & Heartbeat Automation** - Video.js 플레이어 자동 재생, 음소거, 이어보기 모달 처리, 진도 하트비트 세션 유지 엔진 구축 (completed 2026-09-25)
+- [ ] **Phase 10: Watch Pipeline, CLI Runner & Notion Completion Mode** - 과목/주차 필터링 기반 순차 VOD 시청 파이프라인, `watch` CLI 명령어 및 Notion `완료` 상태 동기화 모드
+- [ ] **Phase 11: Background Sub-agent Automation & Multi-Agent Skill Packaging** - 비동기 백그라운드/서브에이전트 시청 실행 가이드, 범용 `SKILL.md` 업데이트 및 5개 에이전트 재배포
+
 ## Phase Details
 
 ### Phase 1: Foundation & Session Management
@@ -239,10 +245,59 @@ Plans:
 
 ---
 
+### Phase 9: VOD Playback Engine & Heartbeat Automation
+
+**Goal**: Playwright 기반으로 Coursemos Video.js VOD 플레이어를 자동 제어하고, 음소거, 이어보기 대화상자 자동 승인, 정상 재생 및 주기적 진도 하트비트 세션을 유지하는 플레이어 엔진 구축
+**Depends on**: Phase 8
+**Requirements**: PLAY-01, PLAY-02, PLAY-03
+**Success Criteria** (what must be TRUE):
+
+  1. `/mod/vod/view.php`의 Video.js `<video>` 요소를 감지하고 음소거(`muted=True`) 상태에서 안정적으로 자동 재생을 개시한다.
+  2. 브라우저의 "이어보기" 또는 "새로시작" confirm/alert 모달을 자동 감지하고 승인(`dialog.accept()`)한다.
+  3. 재생 중 영상의 전체 길이(`duration`)와 현재 재생 시간(`currentTime`)을 추적하며, 정지 없이 Coursemos 출석 인정 하트비트 주기를 유지한다.
+  4. 재생 완료(`ended` 이벤트 또는 `currentTime >= duration - 1`)를 정확히 감지하고 브라우저 자원을 정상 반환한다.
+
+**Plans**: 1/1 plans executed
+
+- [x] 09-01-PLAN.md — Video.js 플레이어 자동 재생, 음소거, 이어보기 모달 처리, 진도 하트비트 세션 유지 엔진 구축
+
+---
+
+### Phase 10: Watch Pipeline, CLI Runner & Notion Completion Mode
+
+**Goal**: 지정된 과목 및 주차의 미완료 VOD를 선별하여 순차 재생하고, 시청 완료 시 선택적으로 Notion Scheduler의 해당 작업 상태를 '완료'로 변경하는 CLI 파이프라인 구축
+**Depends on**: Phase 9
+**Requirements**: WATCH-01, WATCH-02, WATCH-03
+**Success Criteria** (what must be TRUE):
+
+  1. `--course` 및 `--week` 인자를 해석하여 미수강(`AttendanceStatus.INCOMPLETE`) VOD만 선별하고, 이미 완료된 강의는 자동 건너뛴다.
+  2. 선별된 미완료 VOD들을 순서대로 Phase 9 플레이어 엔진에 전달하여 순차 시청 작업을 수행하고 실시간 진행 상황을 콘솔에 출력한다.
+  3. `--update-notion` 플래그 활성화 시, 시청이 완료된 강의의 Notion Scheduler DB 상태(`상태`)를 `완료`로 업데이트한다 (기본값은 보호).
+  4. `kau-assistant watch` CLI 서브커맨드를 추가하고 에러 및 타임아웃 상황을 격리한다.
+
+**Plans**: 0/1 plans executed
+
+---
+
+### Phase 11: Background Sub-agent Automation & Multi-Agent Skill Packaging
+
+**Goal**: AI 에이전트(Claude Code, Pi, Antigravity 등)가 백그라운드 태스크나 서브에이전트로 VOD 시청 작업을 독립 실행할 수 있도록 지원하고, 5개 에이전트에 통합 배포
+**Depends on**: Phase 10
+**Requirements**: SKIL-03, AGNT-01, AGNT-02
+**Success Criteria** (what must be TRUE):
+
+  1. `skills/kau-lxp/SKILL.md`에 VOD 시청 요청 자연어 트리거(예: "기초전자실험 이번주 영상 시청해줘") 및 백그라운드 실행 지침을 추가한다.
+  2. 에이전트가 영상 시청 요청을 받았을 때 백그라운드 프로세스로 `watch`를 구동하고, 메인 세션에서는 즉시 사용자에게 작업 시작을 알리며 다른 요청을 처리할 수 있는 패턴을 확립한다.
+  3. 5개 지원 AI 에이전트(Claude Code, Codex, Antigravity, Pi, Hermes)에 업데이트된 스킬을 일괄 재배포하고 E2E UAT를 완료한다.
+
+**Plans**: 0/1 plans executed
+
+---
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -254,4 +309,9 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 6. Quiz Submission Status Enrichment | 1/1 | Complete    | 2026-09-24 |
 | 7. VOD Activity & Attendance Completion Tracking | 1/1 | Complete    | 2026-09-24 |
 | 8. End-to-End Verification & Agent Re-deployment | 1/1 | Complete    | 2026-09-24 |
+| 9. VOD Playback Engine & Heartbeat Automation | 1/1 | Complete    | 2026-09-25 |
+| 10. Watch Pipeline, CLI Runner & Notion Completion Mode | 0/1 | Planned |  |
+| 11. Background Sub-agent Automation & Multi-Agent Skill Packaging | 0/1 | Planned |  |
+
+
 
