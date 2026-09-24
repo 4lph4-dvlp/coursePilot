@@ -16,7 +16,7 @@
 
 - [x] **Phase 6: Quiz Submission Status Enrichment** - 성적 비공개 퀴즈의 상세 페이지(view.php) 응시 내역(답안 검토, 응시 횟수 초과) 파싱 및 완료 상태 판정 (completed 2026-09-24)
 - [x] **Phase 7: VOD Activity & Attendance Completion Tracking** - LXP 실제 활동 현황(/report/ublogs/completion.php) 연동 및 개별 VOD 시청 완료/미완료 상태 및 미지정 마감일 보존 (completed 2026-09-24)
-- [ ] **Phase 8: End-to-End Verification & Agent Re-deployment** - 실사이트 LXP 대상 E2E 검증 및 5개 에이전트 스킬 일괄 재배포
+- [x] **Phase 8: End-to-End Verification & Agent Re-deployment** - 실사이트 LXP 대상 E2E 검증 및 5개 에이전트 스킬 일괄 재배포 (completed 2026-09-24)
 
 ## Phase Details
 
@@ -233,7 +233,9 @@ Plans:
   1. 실사이트 읽기 전용 검증에서 퀴즈와 VOD 모두 사용자 실제 학업 현황과 일치함을 확인한다.
   2. 5개 에이전트(Claude Code, Codex, Antigravity, Pi, Hermes)에 최신 스킬을 재배포하고 UAT를 통과한다.
 
-**Plans**: 0/1 plans executed
+**Plans**: 1/1 plans executed
+
+- [x] 08-01-PLAN.md — 실사이트 LXP 대상 E2E 검증 및 5개 에이전트 스킬 일괄 재배포
 
 ---
 
@@ -251,4 +253,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 5. CLI Reporting & Universal Agent Skill Packaging | 11/11 | Complete| 2026-09-24 |
 | 6. Quiz Submission Status Enrichment | 1/1 | Complete    | 2026-09-24 |
 | 7. VOD Activity & Attendance Completion Tracking | 1/1 | Complete    | 2026-09-24 |
-| 8. End-to-End Verification & Agent Re-deployment | 0/1 | Planned |  |
+| 8. End-to-End Verification & Agent Re-deployment | 1/1 | Complete    | 2026-09-24 |
+

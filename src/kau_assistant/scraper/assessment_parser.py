@@ -78,7 +78,12 @@ def parse_assessment_list(
             if a_el:
                 raw_title = a_el.get_text(strip=True)
                 href = a_el.get("href", "")
-                link = urljoin(base_url, href) if href else ""
+                if href:
+                    if not href.startswith("http") and not href.startswith("/"):
+                        mod_segment = "quiz" if item_type == AssessmentType.QUIZ else "assign"
+                        if href.startswith("view.php"):
+                            href = f"/mod/{mod_segment}/{href}"
+                    link = urljoin(base_url, href)
                 m_id = re.search(r"[?&]id=(\d+)", href)
                 if m_id:
                     item_id = m_id.group(1)
@@ -261,25 +266,29 @@ def scrape_course_assessments(
     """Navigates to assignment and quiz summary pages and deep-scrapes details."""
     all_assessments: list[AssessmentItem] = []
 
+    base_lms_url = navigator.settings.lms_url.rstrip("/")
+
     # 1. Scrape assignments
     assign_html = navigator.navigate_assessment_page(page, course, item_type="assign")
     if assign_html:
+        assign_index_url = f"{base_lms_url}/mod/assign/index.php?id={course.course_id}"
         assign_items = parse_assessment_list(
             assign_html,
             course_id=course.course_id,
             item_type=AssessmentType.ASSIGNMENT,
-            base_url=course.url,
+            base_url=assign_index_url,
         )
         all_assessments.extend(assign_items)
 
     # 2. Scrape quizzes
     quiz_html = navigator.navigate_assessment_page(page, course, item_type="quiz")
     if quiz_html:
+        quiz_index_url = f"{base_lms_url}/mod/quiz/index.php?id={course.course_id}"
         quiz_items = parse_assessment_list(
             quiz_html,
             course_id=course.course_id,
             item_type=AssessmentType.QUIZ,
-            base_url=course.url,
+            base_url=quiz_index_url,
         )
         all_assessments.extend(quiz_items)
 
