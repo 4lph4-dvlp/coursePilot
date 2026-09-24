@@ -15,6 +15,7 @@ import kau_assistant.pipeline as pipeline
 from kau_assistant.cli import cli
 from kau_assistant.exceptions import AuthenticationError, ConfigError, CourseAccessDeniedError
 from kau_assistant.pipeline import collect_tasks, scrape_course
+from kau_assistant.domain.transformer import transform_to_sync_tasks
 from kau_assistant.scraper.date_parser import KST
 from kau_assistant.scraper.models import AttendanceStatus, CourseItem, LectureItem
 from kau_assistant.scraper.navigator import CourseNavigator
@@ -25,6 +26,8 @@ FIXTURES_DIR = Path(__file__).parent / "fixtures"
 PROGRESS_REPORT_HTML = (FIXTURES_DIR / "progress_report.html").read_text(encoding="utf-8")
 ASSIGNMENT_LIST_HTML = (FIXTURES_DIR / "assignment_list.html").read_text(encoding="utf-8")
 ASSIGNMENT_DETAIL_HTML = (FIXTURES_DIR / "assignment_detail.html").read_text(encoding="utf-8")
+LXP_COURSE_HOME_HTML = (FIXTURES_DIR / "lxp_course_home.html").read_text(encoding="utf-8")
+LXP_UBCOMPLETION_PROGRESS_HTML = (FIXTURES_DIR / "lxp_ubcompletion_progress.html").read_text(encoding="utf-8")
 
 EMPTY_QUIZ_HTML = "<html><body><div id='region-main'>등록된 퀴즈가 없습니다.</div></body></html>"
 PLAIN_COURSE_HOME_HTML = "<html><body><div id='region-main'>강의실 홈</div></body></html>"
@@ -339,7 +342,7 @@ def _make_mock_page(*, progress_html: str, course_home_html: str) -> MagicMock:
 
     def _content():
         url = state["last_url"]
-        if "/report/progress/" in url:
+        if "/report/progress/" in url or "/report/ubcompletion/" in url:
             return progress_html
         if "/mod/assign/index.php" in url:
             return ASSIGNMENT_LIST_HTML
@@ -411,3 +414,71 @@ def test_scrape_course_is_read_only(sample_settings):
     all_calls = calls_a | calls_b
     assert all_calls.isdisjoint(mutating_methods)
     assert all_calls <= allowed_methods
+
+
+def test_scrape_course_lxp_home_lectures_reach_tasks(sample_settings):
+    """LXP course home VODs yield deduplicated tasks with deadlines reaching check/sync (SKIL-01)."""
+    course = _assessment_course()
+    page = _make_mock_page(
+        progress_html=NO_PROGRESS_MARKERS_HTML,
+        course_home_html=LXP_COURSE_HOME_HTML,
+    )
+    navigator = CourseNavigator(sample_settings, min_delay=0, max_delay=0)
+
+    lectures, _ = scrape_course(page, course, navigator)
+    tasks = transform_to_sync_tasks(
+        [course],
+        {course.course_id: lectures},
+        {course.course_id: []},
+        mappings={},
+        now=NOW,
+    )
+
+    # 6 VODs in home fixture: OT has no due_date (dropped), leaving 5 lecture tasks
+    assert len(tasks) == 5
+    task_ids = {t.id for t in tasks}
+    assert len(task_ids) == 5
+
+    overdue_tasks = [t for t in tasks if t.is_overdue]
+    non_overdue_tasks = [t for t in tasks if not t.is_overdue]
+    assert len(overdue_tasks) == 3  # weeks 1, 2, 3
+    assert len(non_overdue_tasks) == 2  # week 6 clips 1 & 2
+
+
+def test_scrape_course_lxp_home_and_progress_merge(sample_settings):
+    """Real run reading both LXP course home and ubcompletion progress report merges completion."""
+    course = _assessment_course()
+    page = _make_mock_page(
+        progress_html=LXP_UBCOMPLETION_PROGRESS_HTML,
+        course_home_html=LXP_COURSE_HOME_HTML,
+    )
+    navigator = CourseNavigator(sample_settings, min_delay=0, max_delay=0)
+
+    lectures, assessments = scrape_course(page, course, navigator)
+    assert len(lectures) == 6
+
+    tasks = transform_to_sync_tasks(
+        [course],
+        {course.course_id: lectures},
+        {course.course_id: []},
+        mappings={},
+        now=NOW,
+    )
+
+    # OT video is dropped (no due date).
+    # Weeks 1, 3, 6-2 are COMPLETED (dropped by transformer).
+    # Remaining: Week 2 (overdue) and Week 6-1 (not overdue).
+    assert len(tasks) == 2
+    task_ids = {t.id for t in tasks}
+    assert len(task_ids) == 2
+
+    raw_titles = [t.raw_title for t in tasks]
+    assert any("샘플 강의 2" in t for t in raw_titles)
+    assert any("샘플 강의 4-1" in t for t in raw_titles)
+
+    t_w2 = next(t for t in tasks if "샘플 강의 2" in t.raw_title)
+    assert t_w2.is_overdue is True
+
+    t_w6_1 = next(t for t in tasks if "샘플 강의 4-1" in t.raw_title)
+    assert t_w6_1.is_overdue is False
+

@@ -81,9 +81,20 @@ def test_navigate_progress_page_success(settings, course):
     assert html is not None
     assert "progress-report" in html
     mock_page.goto.assert_called_once_with(
-        "https://canvas.kau.ac.kr/report/progress/index.php?id=10101",
+        "https://canvas.kau.ac.kr/report/ubcompletion/progress.php?id=10101",
         wait_until="domcontentloaded",
     )
+
+
+def test_navigate_progress_page_accepts_user_progress_table(settings, course):
+    navigator = CourseNavigator(settings, min_delay=0, max_delay=0)
+    mock_page = MagicMock()
+    mock_page.content.return_value = "<table class='user_progress generaltable'><tr><td>출석인정 요구시간</td></tr></table>"
+    mock_page.wait_for_selector.return_value = True
+
+    html = navigator.navigate_progress_page(mock_page, course)
+    assert html is not None
+    assert "user_progress" in html
 
 
 def test_navigate_progress_page_fallback_to_none(settings, course):

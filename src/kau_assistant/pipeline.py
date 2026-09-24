@@ -19,8 +19,10 @@ from kau_assistant.report_models import ErrorItem
 from kau_assistant.scraper.assessment_parser import scrape_course_assessments
 from kau_assistant.scraper.course_list import extract_courses
 from kau_assistant.scraper.lecture_parser import (
+    merge_lecture_progress,
     parse_lectures_from_course_sections,
     parse_lectures_from_progress_table,
+    parse_ubcompletion_progress,
 )
 from kau_assistant.scraper.models import AssessmentItem, CourseItem, LectureItem
 from kau_assistant.scraper.navigator import CourseNavigator
@@ -65,14 +67,17 @@ def scrape_course(
     course: CourseItem,
     navigator: CourseNavigator,
 ) -> tuple[list[LectureItem], list[AssessmentItem]]:
-    """Scrapes one course's lectures (progress table, falling back to course sections) and assessments."""
+    """Scrapes one course's lectures (course home + ubcompletion merge, falling back to legacy progress table) and assessments."""
     home_html = navigator.navigate_to_course(page, course)
-    progress_html = navigator.navigate_progress_page(page, course)
+    lectures = parse_lectures_from_course_sections(home_html, course)
 
+    progress_html = navigator.navigate_progress_page(page, course)
     if progress_html:
-        lectures = parse_lectures_from_progress_table(progress_html, course)
-    else:
-        lectures = parse_lectures_from_course_sections(home_html, course)
+        ub_rows = parse_ubcompletion_progress(progress_html)
+        if lectures and ub_rows:
+            lectures = merge_lecture_progress(lectures, ub_rows)
+        elif not lectures and not ub_rows:
+            lectures = parse_lectures_from_progress_table(progress_html, course)
 
     assessments = scrape_course_assessments(page, course, navigator)
     return lectures, assessments

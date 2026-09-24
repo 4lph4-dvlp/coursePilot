@@ -76,18 +76,18 @@ class CourseNavigator:
         """Navigates to course progress report page. Returns HTML if found, or None to trigger fallback."""
         self.polite_delay()
         base_url = self.settings.lms_url.rstrip("/")
-        progress_url = f"{base_url}/report/progress/index.php?id={course.course_id}"
+        progress_url = f"{base_url}/report/ubcompletion/progress.php?id={course.course_id}"
         logger.info(f"Attempting navigation to progress report for course {course.course_id}")
 
         page.goto(progress_url, wait_until="domcontentloaded")
 
-        selectors = ".generaltable.progress-report, .user_progress, table.progress-report, #region-main table"
+        selectors = "table.user_progress, table.progress-report, .generaltable.progress-report"
         found = self.smart_wait(page, selectors, timeout_ms=5000)
         content = page.content()
 
         # Validate that actual progress content exists
         if not found or not any(
-            k in content for k in ("progress-report", "user_progress", "학습현황", "출석", "progress_report")
+            k in content for k in ("user_progress", "progress-report", "학습현황", "출석", "progress_report")
         ):
             logger.info(f"Progress report view not available for course {course.course_id}, falling back to course home")
             return None
