@@ -5,6 +5,9 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+DEFAULT_LMS_URL = "https://lxp.kau.ac.kr"
+
+
 class Settings(BaseSettings):
     """Application configuration loaded from environment variables and .env file."""
 
@@ -15,7 +18,10 @@ class Settings(BaseSettings):
     )
 
     # LMS Settings
-    lms_url: str = Field(default="https://lms.kau.ac.kr", description="KAU LMS URL")
+    lms_url: str = Field(
+        default=DEFAULT_LMS_URL,
+        description="학교 Coursemos LXP/LMS 주소 (기본값: 한국항공대 LXP)",
+    )
     lms_username: str = Field(default="", description="학번/아이디")
     lms_password: str = Field(default="", description="비밀번호")
 

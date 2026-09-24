@@ -76,3 +76,27 @@ def test_exit_code_for_mapping():
     assert exit_code_for([notion_error]) == EXIT_PARTIAL
     assert exit_code_for([fatal_error]) == EXIT_FATAL
     assert exit_code_for([course_error, fatal_error]) == EXIT_FATAL
+
+
+def test_unsupported_lms_error_static_message():
+    from kau_assistant.config import DEFAULT_LMS_URL
+    from kau_assistant.exceptions import UnsupportedLmsError
+
+    err = UnsupportedLmsError(f"Leaked secret: {SECRET_PW}")
+    item = safe_cli_error(err, scope="fatal")
+
+    assert item.code == "UnsupportedLmsError"
+    assert "LMS_URL" in item.message
+    assert "Coursemos" in item.message
+    assert DEFAULT_LMS_URL in item.message
+    assert SECRET_PW not in item.message
+    assert str(err) not in item.message
+    assert exit_code_for([item]) == EXIT_FATAL
+
+
+def test_auth_message_mentions_lms_url():
+    auth_err = AuthenticationError("auth failed")
+    item = safe_cli_error(auth_err, scope="fatal")
+    assert item.message.startswith("LMS 로그인에 실패했습니다")
+    assert "LMS_URL" in item.message
+

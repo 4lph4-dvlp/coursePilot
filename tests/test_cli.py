@@ -135,6 +135,7 @@ def test_json_contract_check_envelope(fake_pipeline):
         "summary",
         "items",
         "errors",
+        "notices",
     }
     assert payload["schema_version"] == 1
     assert payload["command"] == "check"
@@ -447,6 +448,7 @@ def test_sync_dry_run_default_never_writes(monkeypatch, sample_settings):
         "summary",
         "sync",
         "errors",
+        "notices",
     }
     assert payload["schema_version"] == 1
     assert payload["command"] == "sync"
@@ -616,3 +618,74 @@ def test_redaction_sync_outputs(monkeypatch, sample_settings):
         for secret in secrets:
             assert secret not in result.stdout
             assert secret not in result.stderr
+
+
+def test_zero_courses_check_json_has_notice(monkeypatch, sample_settings):
+    monkeypatch.setattr("kau_assistant.cli.get_settings", lambda: sample_settings)
+    monkeypatch.setattr(
+        "kau_assistant.cli.collect_tasks",
+        lambda *args, **kwargs: PipelineResult(course_count=0, tasks=[], errors=[]),
+    )
+
+    runner = CliRunner()
+    result = runner.invoke(cli, ["check", "--json"])
+
+    assert result.exit_code == 0, result.output
+    payload = json.loads(result.stdout)
+    assert len(payload["notices"]) == 1
+    notice = payload["notices"][0]
+    assert notice["code"] == "no_courses_found"
+    assert "LMS_URL" in notice["message"]
+    assert "https://lxp.kau.ac.kr" in notice["message"]
+    assert sample_settings.lms_username not in result.stdout
+    assert sample_settings.lms_password not in result.stdout
+    assert sample_settings.lms_username not in result.stderr
+    assert sample_settings.lms_password not in result.stderr
+
+
+def test_zero_courses_sync_json_has_notice(monkeypatch, sample_settings):
+    monkeypatch.setattr("kau_assistant.cli.get_settings", lambda: sample_settings)
+    monkeypatch.setattr(
+        "kau_assistant.cli.collect_tasks",
+        lambda *args, **kwargs: PipelineResult(course_count=0, tasks=[], errors=[]),
+    )
+
+    fake_client = _fake_notion_client()
+    monkeypatch.setattr(
+        "kau_assistant.cli.NotionSyncEngine",
+        lambda settings=None, client=None: NotionSyncEngine(settings=settings, client=fake_client),
+    )
+
+    runner = CliRunner()
+    result = runner.invoke(cli, ["sync", "--json"])
+
+    assert result.exit_code == 0, result.output
+    payload = json.loads(result.stdout)
+    assert len(payload["notices"]) == 1
+    assert payload["notices"][0]["code"] == "no_courses_found"
+
+
+def test_notices_empty_when_courses_found(fake_pipeline):
+    runner = CliRunner()
+    result = runner.invoke(cli, ["check", "--json"])
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert payload["notices"] == []
+
+
+def test_fatal_run_has_no_notice(monkeypatch, sample_settings):
+    monkeypatch.setattr("kau_assistant.cli.get_settings", lambda: sample_settings)
+
+    def _raise(*args, **kwargs):
+        raise ConfigError("LMS_URL 누락")
+
+    monkeypatch.setattr("kau_assistant.cli.collect_tasks", _raise)
+
+    runner = CliRunner()
+    result = runner.invoke(cli, ["check", "--json"])
+    assert result.exit_code == 2
+    payload = json.loads(result.stdout)
+    assert payload["notices"] == []
+    assert len(payload["errors"]) == 1
+    assert payload["errors"][0]["scope"] == "fatal"
+

@@ -10,6 +10,7 @@ from typing import Literal
 
 from pydantic import ValidationError
 
+from kau_assistant.config import DEFAULT_LMS_URL
 from kau_assistant.exceptions import (
     AuthenticationError,
     ConfigError,
@@ -17,6 +18,7 @@ from kau_assistant.exceptions import (
     KauAssistantError,
     NavigationTimeoutError,
     NotionIntegrationError,
+    UnsupportedLmsError,
 )
 from kau_assistant.report_models import ErrorItem
 
@@ -26,7 +28,13 @@ EXIT_FATAL = 2
 
 _AUTH_MESSAGE = (
     "LMS 로그인에 실패했습니다. .env의 LMS 계정 정보를 직접 확인하거나 "
-    "--relogin 또는 --headed로 다시 시도하세요."
+    "--relogin 또는 --headed로 다시 시도하세요. "
+    f"로그인 화면을 찾지 못한 경우 저장소 .env의 LMS_URL이 학교의 Coursemos LXP/LMS 주소인지(기본값: {DEFAULT_LMS_URL}) 확인하세요."
+)
+_UNSUPPORTED_LMS_MESSAGE = (
+    "LMS_URL에 설정된 사이트에서 Coursemos(Moodle) 강의 목록 구조를 찾지 못했습니다. "
+    f"저장소 .env의 LMS_URL이 학교의 Coursemos LXP/LMS 주소인지 확인하세요(한국항공대 기본값: {DEFAULT_LMS_URL}). "
+    "Canvas, Blackboard 등 다른 LMS 플랫폼은 지원하지 않습니다."
 )
 _NAV_TIMEOUT_MESSAGE = "LMS 페이지 응답이 지연되어 불러오지 못했습니다. 잠시 후 다시 시도하세요."
 _COURSE_ACCESS_MESSAGE = "이 과목 페이지에 접근할 수 없습니다(권한 없음 또는 비공개 과목)."
@@ -73,6 +81,9 @@ def safe_cli_error(
     elif isinstance(error, CourseAccessDeniedError):
         code = type(error).__name__
         message = _COURSE_ACCESS_MESSAGE
+    elif isinstance(error, UnsupportedLmsError):
+        code = type(error).__name__
+        message = _UNSUPPORTED_LMS_MESSAGE
     elif isinstance(error, KauAssistantError):
         code = type(error).__name__
         message = _GENERIC_KNOWN_MESSAGE

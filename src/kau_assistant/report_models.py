@@ -3,9 +3,18 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 SCHEMA_VERSION = 1
+
+
+class ReportNotice(BaseModel):
+    """A user-facing, non-error notice agents must relay before the briefing (for example no courses found)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    code: str
+    message: str
 
 
 class ReportSummary(BaseModel):
@@ -84,6 +93,7 @@ class CheckReport(BaseModel):
     summary: ReportSummary
     items: BriefingSections
     errors: list[ErrorItem]
+    notices: list[ReportNotice] = Field(default_factory=list)
 
 
 class SyncChange(BaseModel):
@@ -170,3 +180,4 @@ class SyncReport(BaseModel):
     summary: ReportSummary
     sync: SyncSection | None
     errors: list[ErrorItem]
+    notices: list[ReportNotice] = Field(default_factory=list)

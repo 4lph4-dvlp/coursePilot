@@ -394,3 +394,46 @@ def test_detail_sync_no_truncation():
 
     narrow_output = _render_sync(report, width=40)
     assert "…" not in narrow_output
+
+
+def test_render_check_report_shows_notice_before_sections():
+    report = build_check_report([], course_count=0, now=NOW)
+    assert len(report.notices) == 1
+    assert report.notices[0].code == "no_courses_found"
+
+    output = _render(report)
+    assert "안내" in output
+    assert " ".join(report.notices[0].message.split()) in " ".join(output.split())
+    notice_idx = output.find("안내")
+    overdue_section_idx = output.rfind("기한 초과")
+    assert notice_idx < overdue_section_idx
+
+
+def test_render_sync_report_shows_notice():
+    report = build_sync_report([], None, course_count=0, now=NOW)
+    assert len(report.notices) == 1
+    assert report.notices[0].code == "no_courses_found"
+
+    output = _render_sync(report)
+    assert "안내" in output
+    assert " ".join(report.notices[0].message.split()) in " ".join(output.split())
+
+
+def test_render_without_notices_has_no_notice_heading():
+    tasks = [_task(task_id="t1", due_date=NOW + timedelta(days=1))]
+    check_report = build_check_report(tasks, course_count=1, now=NOW)
+    assert check_report.notices == []
+    check_output = _render(check_report)
+    assert "안내" not in check_output
+
+    sync_report = build_sync_report(tasks, None, course_count=1, now=NOW)
+    assert sync_report.notices == []
+    sync_output = _render_sync(sync_report)
+    assert "안내" not in sync_output
+
+
+def test_no_courses_notice_names_default_lms_url():
+    from kau_assistant.config import DEFAULT_LMS_URL
+    from kau_assistant.reporter import NO_COURSES_NOTICE_MESSAGE
+
+    assert DEFAULT_LMS_URL in NO_COURSES_NOTICE_MESSAGE

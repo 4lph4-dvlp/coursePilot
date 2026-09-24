@@ -9,6 +9,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
+from kau_assistant.config import DEFAULT_LMS_URL
 from kau_assistant.domain.models import SyncTask
 from kau_assistant.notion.models import SyncResult
 from kau_assistant.report_models import (
@@ -17,6 +18,7 @@ from kau_assistant.report_models import (
     CourseGroup,
     ErrorItem,
     ReportItem,
+    ReportNotice,
     ReportSummary,
     SyncChange,
     SyncCounts,
@@ -30,6 +32,19 @@ from kau_assistant.scraper.date_parser import get_current_kst_time
 
 MINUTES_PER_HOUR = 60
 MINUTES_PER_DAY = 24 * MINUTES_PER_HOUR
+
+NO_COURSES_NOTICE_CODE = "no_courses_found"
+NO_COURSES_NOTICE_MESSAGE = (
+    "수강 중인 과목을 찾지 못했습니다. 저장소 .env의 LMS_URL이 이번 학기 강의가 열리는 학교의 Coursemos LXP/LMS 주소인지"
+    f"(설정하지 않으면 기본값 {DEFAULT_LMS_URL} 사용), 그리고 현재 학기에 등록된 과목이 있는지 확인하세요."
+)
+
+
+def _build_notices(course_count: int, errors: Sequence[ErrorItem]) -> list[ReportNotice]:
+    if course_count == 0 and not any(e.scope == "fatal" for e in errors):
+        return [ReportNotice(code=NO_COURSES_NOTICE_CODE, message=NO_COURSES_NOTICE_MESSAGE)]
+    return []
+
 
 SECTION_TITLES: dict[str, str] = {
     "overdue": "기한 초과",
@@ -159,6 +174,7 @@ def build_check_report(
         summary=summary,
         items=sections,
         errors=list(errors),
+        notices=_build_notices(course_count, errors),
     )
 
 
@@ -293,6 +309,7 @@ def build_sync_report(
         summary=summary,
         sync=sync_section,
         errors=all_errors,
+        notices=_build_notices(course_count, errors),
     )
 
 
@@ -377,9 +394,18 @@ def _summary_header(report: CheckReport | SyncReport) -> str:
     return header
 
 
+def _render_notices(notices: list[ReportNotice], console: Console) -> None:
+    if not notices:
+        return
+    console.print("\n[bold]안내[/bold]")
+    for notice in notices:
+        console.print(Text(notice.message))
+
+
 def render_check_report(report: CheckReport, console: Console) -> None:
     """Renders the full urgency-grouped Rich briefing (D-01..D-04, D-09)."""
     console.print(Panel(_summary_header(report), title="check 결과"))
+    _render_notices(report.notices, console)
 
     _render_section_table(SECTION_TITLES["overdue"], report.items.overdue, console)
     _render_detail_blocks(report.items.overdue, console)
@@ -459,6 +485,7 @@ def _render_sync_skip_table(items: list[SyncSkipItem], console: Console) -> None
 def render_sync_report(report: SyncReport, console: Console) -> None:
     """Renders the Rich `sync` report: header, mode banner, plan tables, errors (D-03, D-14, D-16)."""
     console.print(Panel(_summary_header(report), title="sync 결과"))
+    _render_notices(report.notices, console)
     console.print(f"\n{_sync_mode_banner(report.sync)}")
 
     if report.sync is not None:

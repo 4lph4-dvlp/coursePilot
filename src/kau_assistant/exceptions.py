@@ -25,6 +25,11 @@ class CourseAccessDeniedError(KauAssistantError):
     pass
 
 
+class UnsupportedLmsError(KauAssistantError):
+    """Raised when LMS_URL does not serve a Coursemos/Moodle course list (unsupported platform or wrong address)."""
+    pass
+
+
 class NotionIntegrationError(KauAssistantError):
     """Base class for safe Notion integration failures."""
 

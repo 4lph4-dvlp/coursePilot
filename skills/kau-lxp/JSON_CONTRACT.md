@@ -5,7 +5,7 @@
 ## 버전 규칙 (Versioning)
 
 - 현재 스키마 버전은 `schema_version: 1`입니다.
-- **선택적(optional) 필드를 추가하는 것**은 `schema_version`을 그대로 `1`로 유지합니다.
+- **선택적(optional) 필드를 추가하는 것**은 `schema_version`을 그대로 `1`로 유지합니다 (`notices` 필드는 v1 하에서 선택적 필드로 추가되었습니다).
 - **필드 이름 변경, 필드 제거, 필드 타입 변경**은 반드시 `schema_version`을 올립니다 (breaking change).
 - 이 스키마를 파싱하는 모든 에이전트는 `schema_version`을 먼저 확인하고, 알지 못하는 값이면 파싱을 중단하고 사람에게 알려야 합니다.
 
@@ -92,11 +92,26 @@
 | 필드 | 타입 | Nullable | 의미 |
 |------|------|----------|------|
 | `scope` | `Literal["fatal", "course", "notion"]` | 아니오 | 오류 범위. 열거값: `fatal`(실행 전체 중단), `course`(한 과목만 실패, 나머지는 계속), `notion`(Notion 동기화 중 한 항목 실패) |
-| `code` | `str` | 아니오 | 오류 코드. 일반적인 값: `ConfigError`(설정 누락), `AuthenticationError`(LMS 로그인 실패), `NavigationTimeoutError`(페이지 응답 지연), `CourseAccessDeniedError`(과목 접근 권한 없음), 그 외 예기치 않은 예외는 해당 예외 클래스 이름이 그대로 코드로 사용됨(RuntimeError 등). Notion 관련 코드: `duplicate_incoming_title`, `duplicate_existing_title`, `malformed_existing_page`(중복/손상 감지), 또는 `NotionAuthenticationError`/`NotionPermissionError`/`NotionTargetError`/`NotionSchemaError`/`NotionTransportError`(Notion API 오류 클래스 이름) |
+| `code` | `str` | 아니오 | 오류 코드. 일반적인 값: `ConfigError`(설정 누락), `AuthenticationError`(LMS 로그인 실패), `UnsupportedLmsError`(Coursemos/Moodle 강의 목록 구조 미발견), `NavigationTimeoutError`(페이지 응답 지연), `CourseAccessDeniedError`(과목 접근 권한 없음), 그 외 예기치 않은 예외는 해당 예외 클래스 이름이 그대로 코드로 사용됨(RuntimeError 등). Notion 관련 코드: `duplicate_incoming_title`, `duplicate_existing_title`, `malformed_existing_page`(중복/손상 감지), 또는 `NotionAuthenticationError`/`NotionPermissionError`/`NotionTargetError`/`NotionSchemaError`/`NotionTransportError`(Notion API 오류 클래스 이름) |
 | `message` | `str` | 아니오 | 사람이 읽는 오류 메시지. 절대 비밀값이나 원본 예외 텍스트를 그대로 포함하지 않음(허용목록을 거친 고정 문구) |
 | `course_id` | `str \| None` | 예 | 관련 과목 ID (있는 경우) |
 | `course_name` | `str \| None` | 예 | 관련 과목 이름 (있는 경우) |
 | `task_title` | `str \| None` | 예 | 관련 작업 제목 (있는 경우) |
+
+### `ReportNotice`
+
+에이전트가 브리핑 전에 사용자에게 반드시 먼저 전달해야 하는 안내(비오류) 공지 (예: 수강 과목 미발견).
+
+| 필드 | 타입 | Nullable | 의미 |
+|------|------|----------|------|
+| `code` | `str` | 아니오 | 안내 코드 (예: `no_courses_found`) |
+| `message` | `str` | 아니오 | 사용자에게 표시할 안내 메시지 |
+
+#### 안내 코드 (Notice Codes)
+
+| 코드 | 의미 |
+|------|------|
+| `no_courses_found` | 로그인에는 성공했으나 수강 과목을 찾지 못함 (잘못된 `LMS_URL`이거나 해당 학기 수강 과목 없음). 종료 코드는 `0`을 유지하며, 에이전트는 요약(summary) 전에 이 안내 메시지를 반드시 사용자에게 표시해야 합니다. |
 
 ### `CheckReport`
 
@@ -110,6 +125,7 @@
 | `summary` | `ReportSummary` | 아니오 | 요약 카운트 |
 | `items` | `BriefingSections` | 아니오 | 긴급도별 섹션 |
 | `errors` | `list[ErrorItem]` | 아니오 (빈 배열 가능) | 수집 중 발생한 오류 목록 |
+| `notices` | `list[ReportNotice]` | 아니오 (기본 빈 배열) | 사용자에게 브리핑 전에 먼저 안내해야 할 비오류 공지 목록 (예: `no_courses_found`) |
 
 ### `SyncChange`
 
@@ -196,6 +212,7 @@ JSON 계약 v1의 sync 절반 — 생성/수정/건너뜀 계획 (D-13, D-16).
 | `summary` | `ReportSummary` | 아니오 | 요약 카운트 (LMS 수집 결과 기준) |
 | `sync` | `SyncSection \| None` | 예 | 동기화 계획. LMS 수집 단계에서 치명적 오류가 발생해 Notion 단계에 도달하지 못한 경우 `null` |
 | `errors` | `list[ErrorItem]` | 아니오 (빈 배열 가능) | 수집 및 동기화 중 발생한 오류 목록 |
+| `notices` | `list[ReportNotice]` | 아니오 (기본 빈 배열) | 사용자에게 브리핑 전에 먼저 안내해야 할 비오류 공지 목록 (예: `no_courses_found`) |
 
 ---
 
@@ -265,7 +282,8 @@ JSON 계약 v1의 sync 절반 — 생성/수정/건너뜀 계획 (D-13, D-16).
     ],
     "later": []
   },
-  "errors": []
+  "errors": [],
+  "notices": []
 }
 ```
 
@@ -322,6 +340,7 @@ JSON 계약 v1의 sync 절반 — 생성/수정/건너뜀 계획 (D-13, D-16).
       "error": 0
     }
   },
-  "errors": []
+  "errors": [],
+  "notices": []
 }
 ```
