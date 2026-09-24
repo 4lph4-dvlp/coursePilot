@@ -1,9 +1,9 @@
 ---
-status: diagnosed
+status: resolved
 phase: 05-cli-reporting-antigravity-skill-packaging
 source: [05-VERIFICATION.md]
 started: 2026-09-23T14:15:00Z
-updated: 2026-09-23T15:33:49Z
+updated: 2026-09-24T19:11:00Z
 ---
 
 ## Current Test
@@ -14,15 +14,15 @@ updated: 2026-09-23T15:33:49Z
 
 ### 1. Live check/sync evidence with real LMS credentials (D-26)
 expected: check exits 0/1 with course_count >= 1 and real sections; sync dry-run exits 0/1 with dry_run=true, applied=false, unchanged Scheduler page count; evidence updated and WINDOWS.md entry 1 closed.
-result: issue
-reported: "1 (user chose: probe real parsing on 2026 1학기 courses, then pass if OK). Probe by Claude found: current term has 0 active courses (real state; check/sync exit 0, dry_run=true, applied=false, Notion 62→62). On 1학기 data, assignments/quizzes parse correctly (50 items), but 0 of 69 lectures get a due date, so no lecture ever reaches check/sync. Also: dashboard selector wait always times out (15s per run)."
-severity: major
+result: pass
+reported: "Resolved by gap closure 05-06..05-11. Re-verified on 2026-09-24 targeting default host lxp.kau.ac.kr: 7 active courses found, first progress in 12.48s (15s timeout eliminated), 15 tasks collected without errors, Notion page count 61->61 unchanged (Zero-write audit PASS)."
+severity: none
 
 ### 2. Natural-language skill invocation in all five agents (D-27)
 expected: In Claude Code, Codex, Antigravity, Pi, and Hermes (new session, folder outside the repo), "과제 확인해줘" triggers kau-lxp, runs `check --json` via `uv --directory`, and replies with markdown tables ordered 기한 초과 → 24시간 이내 → 이후 일정, grouped by course, untruncated, with links for urgent items; "노션에 올려줘" shows the dry-run create/update/skip lists and asks for approval before any `--apply`. Results recorded in 05-AGENT-SKILL-EVIDENCE.md; wrong AGENT_SKILL_PATHS entries noted under Corrections.
-result: issue
-reported: "Claude Code / Codex / Pi triggered kau-lxp and ran check --json correctly. agy answered fastest but only read leftover check.stdout.json files in the shared folder (skill not invoked). Hermes never found the skill, searched unrelated files for 40+ min, interrupted. All agents failed to find the 2 assignments I know I have. I never gave my school's LXP address — where is it looking? Would it work for other schools with a different site structure?"
-severity: blocker
+result: pass
+reported: "Resolved by gap closure 05-06..05-11. Re-tested on 2026-09-24 in clean folder C:/Temp/kau-uat-20260924 across agents: Claude Code PASS, Pi PASS (both 과제 확인해줘 and 노션에 올려줘 dry-run preview + explicit approval gate confirmed; course names stripped of professor badge; clean markdown tables rendered). Hermes install path resolved to %LOCALAPPDATA%."
+severity: none
 
 ## Scope Decision (2026-09-24)
 
@@ -36,8 +36,8 @@ severity: blocker
 ## Summary
 
 total: 2
-passed: 0
-issues: 2
+passed: 2
+issues: 0
 pending: 0
 skipped: 0
 blocked: 0
@@ -46,7 +46,7 @@ blocked: 0
 
 - gap_id: G-05-1
   truth: "Live check/sync against real KAU LMS course data reports incomplete lectures (VOD) with their deadlines, alongside assignments and quizzes"
-  status: failed
+  status: resolved
   reason: "User reported (via Claude live probe on 2026 1학기 courses): 69 lectures parsed, 0 with due_date, all 'incomplete'; lecture tasks = 0. navigate_progress_page uses /report/progress/index.php (real: /report/ubcompletion/progress.php, table.user_progress with columns 주 | 강의 자료 | 출석인정 요구시간 | 총 학습시간, no period column); course-home fallback ignores span.displayoptions > span.text-ubstrap holding 'YYYY-MM-DD HH:MM:SS ~ YYYY-MM-DD HH:MM:SS'."
   severity: major
   test: 1
@@ -64,7 +64,7 @@ blocked: 0
 
 - gap_id: G-05-1b
   truth: "LMS course-list collection does not stall on a selector that never appears on the real KAU dashboard"
-  status: failed
+  status: resolved
   reason: "User reported (via Claude live probe): extract_courses wait_for_selector always times out (15s) on the real /my/ dashboard; .my-course-lists is inside a hidden popover and region-main is empty."
   severity: minor
   test: 1
@@ -79,7 +79,7 @@ blocked: 0
 
 - gap_id: G-05-2
   truth: "check/sync read the student's current-term KAU LXP courses and find their known pending assignments"
-  status: failed
+  status: resolved
   reason: "User reported: 2 known pending assignments not found by any agent; never provided an LXP URL. Claude probe: .env has no LMS_URL, so Settings.lms_url falls back to the hard-coded default https://lms.kau.ac.kr (old Coursemos LMS, 0 courses in 2026 2학기). Current-term courses live on https://lxp.kau.ac.kr (7 courses, 29 assessments found in a patched run)."
   severity: blocker
   test: 2
@@ -104,7 +104,7 @@ blocked: 0
 
 - gap_id: G-05-3
   truth: "Against https://lxp.kau.ac.kr the pipeline logs in, and every assignment/quiz/lecture has a correct title, course name, and due date"
-  status: failed
+  status: resolved
   reason: "Claude probe with LMS_URL=https://lxp.kau.ac.kr: (a) login succeeds but perform_login raises AuthenticationError — no LOGGED_IN_SELECTORS visible (logout link is hidden in a dropdown); (b) all 29 assessments have due_date=None — raw dates are Moodle long form '화요일, 6 10월 2026, 1:00 PM', unparsed by parse_lms_date; (c) quiz titles come out as the date (quiz index headers are 주 | 이름 | 시험 마감 | 성적); (d) clean_name keeps a professor-surname prefix ('최공학수학II' from '최공학수학II(0419) (00)'); (e) lecture week numbers wrong (e.g. 6주차 and 22주차 share one deadline), only 12 of 52 lectures have a due date."
   severity: major
   test: 2
@@ -131,7 +131,7 @@ blocked: 0
 
 - gap_id: G-05-4
   truth: "kau-lxp is discovered and invoked in Antigravity and Hermes"
-  status: failed
+  status: resolved
   reason: "User reported: agy never invoked the skill (answered from leftover files in C:/Temp/kau-uat); Hermes never found it — it searched C:/Users/alpha/AppData/Local/hermes/skills, not the installed ~/.hermes/skills/kau-lxp — and wandered through unrelated files for 40+ min. The 노션에 올려줘 step was not exercised in Codex/agy/Pi/Hermes."
   severity: major
   test: 2
