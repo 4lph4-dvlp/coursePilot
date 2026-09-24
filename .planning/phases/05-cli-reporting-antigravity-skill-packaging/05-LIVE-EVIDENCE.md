@@ -114,3 +114,61 @@ The real `collect_tasks` pipeline ran with only the course source swapped to the
 ### Verdict (UAT Test 1)
 
 **ISSUE (major).** The D-26 mechanics are verified live: foreign cwd, exit codes, JSON contract, dry-run with no Notion write. Assignment/quiz parsing works on real data. The lecture half of "real course data" fails (G-05-1). WINDOWS entry 1 (empty credentials) is closed; entry 2 tracks G-05-1.
+
+---
+
+## Gap-closure re-verification (LXP default) — 2026-09-24
+
+### Scope and Safeguards
+
+- **Timestamp (KST):** 2026-09-24 14:48 (UTC 05:48)
+- **Invocation mode:** Run from an OS temporary directory outside the repository using `uv --directory "D:/dev/kau-lxp-assistant" run python ...`
+- **Secret handling:** No `.env` content was opened, printed, or copied.
+- **Write guard:** Zero `--apply` invocations; read-only probes and dry-run sync only.
+- **Capture cleanup:** Scratch captures cleaned up immediately; working directory clean.
+
+### Live Markers
+
+- **LMS host:** lxp.kau.ac.kr
+- **LMS_URL set in .env:** false
+- **check exit code:** 0
+- **check schema_version:** 1
+- **check course_count:** 7
+- **Seconds to first progress line:** 12.48
+- **sync exit code:** 0
+- **sync dry_run:** true
+- **sync applied:** false
+- **Scheduler page count (before/after):** 61 / 61
+- **Write audit:** PASS
+- **Foreign-cwd invocation:** PASS
+- **Lectures with due date (parse probe):** 0
+- **Duplicate lecture (week, clip) pairs:** 0
+- **Assessments with due date / total:** 27 / 29
+- **Assessment titles that parse as dates:** 0
+
+### Summary of Probe Results
+
+- **Courses extracted:** 7 active courses found on `https://lxp.kau.ac.kr`.
+- **First progress line:** 12.48s (15s timeout successfully eliminated; courses processed immediately).
+- **check items summary:**
+  - Overdue: 3 items (1 course group)
+  - Due within 24h: 1 item (1 course group)
+  - Later: 11 items (4 course groups)
+  - Total tasks: 15 (11 assignments, 4 quizzes)
+  - Date-like titles: 0 (all titles are real assignment/quiz names)
+  - Null due dates in check items: 0
+  - First title SHA-256 prefixes:
+    - overdue: `2be194c285ad24f2`
+    - due_within_24h: `f98844d2fb9954e9`
+    - later: `315368047e441c93`
+- **sync dry-run summary:**
+  - Counts: total 15, create 15, update 0, skip 0, error 0
+  - Notion write audit: 61 pages before, 61 pages after (PASS, zero writes)
+- **Parse probe details:**
+  - Total assessments: 29 (21 assignments, 8 quizzes)
+  - Assessments with due date: 27 of 29
+  - Assessment status breakdown: 4 graded, 10 submitted, 15 not_attempted
+  - Total lectures: 15 VODs detected across the 7 courses
+  - Duplicate (week, clip) lecture pairs: 0 (section nesting bug resolved)
+  - Lectures with due date: 0 (the 15 VOD activities in the current semester's courses on LXP have no attendance window configured in Coursemos; fixture-tested in 05-09).
+

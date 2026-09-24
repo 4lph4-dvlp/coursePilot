@@ -39,8 +39,29 @@ All five installs were run in **copy mode** (never `--link`), from the repositor
 
 ## Corrections
 
-None recorded yet. If the human check above finds an installed path is wrong for an agent, record here: **Agent**, **Observed working location**, then fix `AGENT_SKILL_PATHS` in `src/kau_assistant/installer.py` as a one-line data-only change through `/gsd-plan-phase 5 --gaps` (per A-10 in the plan's flagged assumptions).
-
 | Agent | Observed working location | Status |
 |-------|----------------------------|--------|
-| — | — | No corrections reported yet |
+| Hermes | `%LOCALAPPDATA%\hermes\skills` on Windows (`$HERMES_HOME/skills` when set, `~/.hermes/skills` elsewhere) | fixed in installer by 05-10, re-test pending |
+| Antigravity | `~/.gemini/antigravity/skills` (unchanged) | path kept, earlier UAT contaminated, re-test pending |
+
+> **Note:** The old test folder `C:/Temp/kau-uat` still holds capture files from earlier agent runs that may contain coursework titles. The user may safely delete that folder.
+
+## Gap-closure re-install and re-test (2026-09-24)
+
+- **Clean test folder:** `C:/Temp/kau-uat-20260924` (verified empty, 0 entries)
+
+| Agent | Installed path | install exit | smoke | "과제 확인해줘" | "노션에 올려줘" preview + approval gate | Notes |
+|-------|----------------|:------------:|:-----:|:----------------:|:---------------------------------------:|-------|
+| Claude Code | `C:\Users\alpha\.claude\skills\kau-lxp` | 0 | PASS | PASS | PASS | Re-tested on 2026-09-23; dry-run preview and no `--apply` confirmed |
+| Codex | `C:\Users\alpha\.codex\skills\kau-lxp` | 0 | PASS | PASS | pending (human) | "과제 확인해줘" passed in earlier UAT; Notion approval flow pending |
+| Antigravity | `C:\Users\alpha\.gemini\antigravity\skills\kau-lxp` | 0 | PASS | pending (human) | pending (human) | Earlier run read leftover files in old folder; re-test in clean folder pending |
+| Pi | `C:\Users\alpha\.pi\agent\skills\kau-lxp` | 0 | PASS | PASS | pending (human) | "과제 확인해줘" passed in earlier UAT; Notion approval flow pending |
+| Hermes | `C:\Users\alpha\AppData\Local\hermes\skills\kau-lxp` | 0 | PASS | pending (human) | pending (human) | Corrected path (`%LOCALAPPDATA%`) applied; stale `~/.hermes` copy deleted; re-test pending |
+
+### How to verify (gap-closure re-test)
+
+Use the new empty folder `C:/Temp/kau-uat-20260924` as the working folder for each session:
+1. **Antigravity (agy):** Start a new session in `C:/Temp/kau-uat-20260924`, ask "과제 확인해줘", then "노션에 올려줘" and decline when asked to apply.
+2. **Hermes:** Restart Hermes, start a new session in `C:/Temp/kau-uat-20260924`, ask the same two questions, decline apply.
+3. **Codex & Pi:** Start a new session in `C:/Temp/kau-uat-20260924`, ask "노션에 올려줘" and decline.
+
