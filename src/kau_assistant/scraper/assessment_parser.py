@@ -136,13 +136,60 @@ def parse_assessment_list(
     return items
 
 
+def is_quiz_attempt_completed(html: str) -> bool:
+    """Checks whether a quiz view page shows evidence that the student completed an attempt."""
+    soup = BeautifulSoup(html, "lxml")
+
+    # 1. Review buttons or links (e.g. "답안 검토", "Review attempt")
+    for el in soup.find_all(["a", "button", "input"], class_=re.compile(r"btn|singlebutton", re.I)):
+        text = el.get_text(strip=True) if el.name != "input" else el.get("value", "")
+        if any(k in text for k in ("답안 검토", "검토", "Review attempt", "Review")):
+            if "답안 검토" in text or "Review attempt" in text or text == "검토":
+                return True
+
+    # 2. Status banners, feedback, or info boxes
+    info_boxes = soup.find_all(class_=re.compile(r"quizinfo|feedback|alert|box|notifyproblem", re.I))
+    for box in info_boxes:
+        txt = box.get_text(strip=True)
+        if any(
+            phrase in txt
+            for phrase in (
+                "응시 가능 횟수를 초과하여 더 이상 응시할 수 없습니다",
+                "응시 가능 횟수를 초과",
+                "더 이상 응시할 수 없습니다",
+                "최고 점수:",
+                "최고 점수 :",
+                "Highest grade:",
+            )
+        ):
+            return True
+
+    # 3. Moodle quiz attempt summary table
+    for table in soup.find_all("table", class_=re.compile(r"generaltable|quizattemptsummary", re.I)):
+        for tr in table.find_all("tr"):
+            row_text = tr.get_text(separator=" ", strip=True)
+            if any(k in row_text for k in ("완료됨", "Finished", "Submitted", "답안 검토")):
+                return True
+
+    return False
+
+
 def enrich_assessment_detail(
     item: AssessmentItem,
     detail_html: str,
     base_url: str = "",
 ) -> AssessmentItem:
-    """Enriches AssessmentItem with instructor instructions, attachments, and cut-off date."""
+    """Enriches AssessmentItem with instructor instructions, attachments, cut-off date, and quiz attempt status."""
     soup = BeautifulSoup(detail_html, "lxml")
+
+    # For quizzes with hidden grades, detect completed attempts from view page
+    if item.item_type == AssessmentType.QUIZ and item.status in (
+        SubmissionStatus.NOT_ATTEMPTED,
+        SubmissionStatus.DRAFT,
+    ):
+        if is_quiz_attempt_completed(detail_html):
+            item.status = SubmissionStatus.SUBMITTED
+            item.is_overdue = False
 
     # Extract instructor description
     intro_box = soup.find(class_=re.compile(r"box\s*generalbox|generalbox\s*#intro|intro", re.I)) or soup.find(

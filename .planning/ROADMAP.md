@@ -4,13 +4,19 @@
 
 본 로드맵은 대학 온라인 학습 사이트(한국항공대 LXP / 표준 Canvas·Moodle)에서 학생 계정으로 자동 로그인하여 강의 수강 현황 및 과제 마감일을 수집하고, 이를 사용자의 기존 Notion Scheduler 데이터베이스(`21d53280-64be-80ec-af4e-000b679f03bb`)에 중복 없이 정규화된 네이밍으로 동기화하는 범용 AI Agent Skill(Claude Code, Codex, Antigravity, Pi, Hermes 등 SKILL.md 지원 에이전트 공통)을 단계별로 구축합니다.
 
-## Phases
+## Milestone 1: Core Foundation & Sync Skill (v1.0 - Completed)
 
 - [x] **Phase 1: Foundation & Session Management** - 환경 설정 로더, 과목명 매핑 정의, Playwright 브라우저 셋업 및 LMS 자동 로그인/세션 캐시 구축 (completed 2026-09-21)
 - [x] **Phase 2: LMS Scraper Core** - 수강 강좌 목록, 주차별 온라인 강의 진도율 및 마감일, 과제 목록 및 제출 여부 파싱 모듈 구현 (completed 2026-09-21)
 - [x] **Phase 3: Domain Modeling & Naming Rules** - 데이터 모델 구조화, 노션 기존 관례를 반영한 과목명 약칭 및 통일 네이밍 엔진, 24시간 마감 임박 감지 로직 구현 (completed 2026-09-21)
 - [x] **Phase 4: Notion Scheduler Integration & Deduplication** - Notion Scheduler DB 연동, 기존 등록 항목 조회 기반 중복 등록 방지, 스키마 속성 매핑 및 드라이런 모드 구현 (completed 2026-09-22)
 - [x] **Phase 5: CLI Reporting & Universal Agent Skill Packaging** - Rich 콘솔 브리핑 리포트 출력, CLI 인터페이스(`check`, `sync`, `install-skill`), 범용 Agent Skill(`SKILL.md`) 패키징 및 엔드투엔드 검증 (completed 2026-09-24)
+
+## Milestone 2: LXP Quiz Submission Verification & VOD Completion Enhancement (v1.1)
+
+- [x] **Phase 6: Quiz Submission Status Enrichment** - 성적 비공개 퀴즈의 상세 페이지(view.php) 응시 내역(답안 검토, 응시 횟수 초과) 파싱 및 완료 상태 판정 (completed 2026-09-24)
+- [ ] **Phase 7: VOD Activity & Attendance Completion Tracking** - LXP 실제 활동 현황(/report/ublogs/completion.php) 연동 및 개별 VOD 시청 완료/미완료 상태 및 마감일 파싱
+- [ ] **Phase 8: End-to-End Verification & Agent Re-deployment** - 실사이트 LXP 대상 E2E 검증 및 5개 에이전트 스킬 일괄 재배포
 
 ## Phase Details
 
@@ -183,10 +189,56 @@ Plans:
 
 ---
 
+### Phase 6: Quiz Submission Status Enrichment
+
+**Goal**: 성적이 비공개된 퀴즈에 대해 상세 페이지(`/mod/quiz/view.php`)를 확인하여 이미 응시한 퀴즈를 `SUBMITTED`로 정확히 판정함으로써 기한 초과 오분류 방지
+**Depends on**: Phase 5
+**Requirements**: QUIZ-01, QUIZ-02
+**Success Criteria** (what must be TRUE):
+
+  1. 퀴즈 목록 테이블에서 성적 열이 비어있는(`''`) 퀴즈에 대해 상세 페이지(`/mod/quiz/view.php?id=...`)를 조회한다.
+  2. 상세 페이지에 `답안 검토` 버튼 또는 `"응시 가능 횟수를 초과하여 더 이상 응시할 수 없습니다."` 등의 완료 지표가 존재할 경우 `SUBMITTED`로 판정한다.
+  3. 기초전자실험 W01~W03 퀴즈가 완료 처리되어 `check` 및 `sync`의 기한 초과(Overdue) 목록에서 올바르게 제외된다.
+
+**Plans**: 1/1 plans executed
+
+- [x] 06-01-PLAN.md — 퀴즈 상세 페이지(view.php) 응시 내역(답안 검토, 응시 횟수 초과) 파싱 및 완료 상태 판정
+
+---
+
+### Phase 7: VOD Activity & Attendance Completion Tracking
+
+**Goal**: KAU LXP의 활동 현황 페이지(`/report/ublogs/completion.php`)를 연동하여 주차별 개별 VOD 강의의 수강 완료/미완료 상태를 정확히 추출하고, 마감일 처리 규칙 정립
+**Depends on**: Phase 6
+**Requirements**: VOD-01, VOD-02, VOD-03
+**Success Criteria** (what must be TRUE):
+
+  1. 각 과목의 `/report/ublogs/completion.php?id={course_id}` 활동 현황 테이블에서 학습활동별 `완료`/`미완료` 상태를 파싱한다.
+  2. 코스 홈의 VOD 활동과 활동 현황의 완료 여부를 매핑하여 `LectureItem.status`에 반영한다.
+  3. VOD 마감일(출석 인정 기간 또는 과목 기본 일정)을 적절히 산출하여 미완료 강의가 `check` 및 `sync`에 정상적으로 포함되도록 한다.
+
+**Plans**: 0/1 plans executed
+
+---
+
+### Phase 8: End-to-End Verification & Agent Re-deployment
+
+**Goal**: 실사이트(LXP) 대상 E2E 검증 수행 및 5개 에이전트에 최신 스킬 배포
+**Depends on**: Phase 7
+**Requirements**: VERIF-01, VERIF-02
+**Success Criteria** (what must be TRUE):
+
+  1. 실사이트 읽기 전용 검증에서 퀴즈와 VOD 모두 사용자 실제 학업 현황과 일치함을 확인한다.
+  2. 5개 에이전트(Claude Code, Codex, Antigravity, Pi, Hermes)에 최신 스킬을 재배포하고 UAT를 통과한다.
+
+**Plans**: 0/1 plans executed
+
+---
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -195,3 +247,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 3. Domain Modeling & Naming Rules | 1/1 | Complete    | 2026-09-21 |
 | 4. Notion Scheduler Integration & Deduplication | 2/2 | Complete    | 2026-09-22 |
 | 5. CLI Reporting & Universal Agent Skill Packaging | 11/11 | Complete| 2026-09-24 |
+| 6. Quiz Submission Status Enrichment | 1/1 | Complete    | 2026-09-24 |
+| 7. VOD Activity & Attendance Completion Tracking | 0/1 | Planned |  |
+| 8. End-to-End Verification & Agent Re-deployment | 0/1 | Planned |  |

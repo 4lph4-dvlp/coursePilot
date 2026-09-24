@@ -207,3 +207,48 @@ def test_lxp_quiz_index_reaches_check_report(course):
     for item in later_items:
         assert item.due_date is not None
         assert not any(day in item.title for day in ("화요일", "월요일", "수요일", "PM", "AM"))
+
+
+def test_is_quiz_attempt_completed():
+    from kau_assistant.scraper.assessment_parser import is_quiz_attempt_completed
+
+    # 1. Review button
+    html_review = '<div class="singlebutton"><a href="review.php?attempt=123" class="btn btn-secondary">답안 검토</a></div>'
+    assert is_quiz_attempt_completed(html_review) is True
+
+    # 2. Exceeded attempts notice
+    html_exceeded = '<div class="box alert alert-info">응시 가능 횟수를 초과하여 더 이상 응시할 수 없습니다.</div>'
+    assert is_quiz_attempt_completed(html_exceeded) is True
+
+    # 3. Attempt summary table with 완료됨
+    html_table = '<table class="generaltable quizattemptsummary"><tr><th>응시</th><th>상태</th></tr><tr><td>1</td><td>완료됨</td></tr></table>'
+    assert is_quiz_attempt_completed(html_table) is True
+
+    # 4. Genuinely unattempted quiz
+    html_unattempted = '<div class="box quizinfo"><p>응시 가능 횟수: 1</p></div><div class="singlebutton"><button class="btn btn-primary">지금 퀴즈 응시</button></div>'
+    assert is_quiz_attempt_completed(html_unattempted) is False
+
+
+def test_enrich_assessment_detail_marks_hidden_grade_quiz_as_submitted():
+    item = AssessmentItem(
+        course_id="1103",
+        item_id="2910",
+        item_type=AssessmentType.QUIZ,
+        title="W01-퀴즈",
+        status=SubmissionStatus.NOT_ATTEMPTED,
+        due_date=datetime(2026, 9, 11, 9, 0, 0, tzinfo=KST),
+        url="https://lxp.kau.ac.kr/mod/quiz/view.php?id=2910",
+        is_overdue=True,
+    )
+
+    detail_html = """
+    <div id="page">
+      <div class="box alert alert-info">응시 가능 횟수를 초과하여 더 이상 응시할 수 없습니다.</div>
+      <div class="singlebutton"><a href="review.php" class="btn btn-secondary">답안 검토</a></div>
+    </div>
+    """
+
+    enriched = enrich_assessment_detail(item, detail_html, base_url="https://lxp.kau.ac.kr")
+    assert enriched.status == SubmissionStatus.SUBMITTED
+    assert enriched.is_overdue is False
+
