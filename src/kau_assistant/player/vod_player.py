@@ -69,6 +69,7 @@ class VodPlayer:
         options: PlaybackOptions | None = None,
         session_manager: SessionManager | None = None,
         on_progress: Callable[[PlaybackProgress], None] | None = None,
+        on_stream_detected: Callable[[str], None] | None = None,
     ) -> PlaybackProgress:
         """Navigates to a VOD page, starts playback, maintains session heartbeat, and monitors until completion."""
         opts = options or self.default_options
@@ -90,6 +91,12 @@ class VodPlayer:
                 logger.debug(f"Failed to accept dialog: {e}")
 
         page.on("dialog", _on_dialog)
+
+        sniffer = None
+        if on_stream_detected:
+            from kau_assistant.stream.sniffer import StreamSniffer
+            sniffer = StreamSniffer(on_stream_detected=on_stream_detected)
+            sniffer.attach(page)
 
         try:
             logger.info(f"Navigating to VOD: {vod_url}")
@@ -246,6 +253,11 @@ class VodPlayer:
             logger.error(f"VOD playback failed for {vod_url}: {e}")
             progress.error_message = str(e)
         finally:
+            if sniffer:
+                try:
+                    sniffer.detach(page)
+                except Exception:
+                    pass
             try:
                 page.remove_listener("dialog", _on_dialog)
             except Exception:

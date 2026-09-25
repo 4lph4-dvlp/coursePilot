@@ -8,6 +8,7 @@ from kau_assistant.stream.downloader import (
     SegmentDownloader,
     assemble_ts_segments_atomic,
 )
+from kau_assistant.stream.sniffer import StreamSniffer
 from kau_assistant.stream.parser import (
     parse_media_playlist,
     parse_stream_manifest,
@@ -27,6 +28,7 @@ from kau_assistant.stream.models import (
 
 __all__ = [
     "SegmentDownloader",
+    "StreamSniffer",
     "assemble_ts_segments_atomic",
     "derive_implicit_iv",
     "decrypt_aes_128_segment",
