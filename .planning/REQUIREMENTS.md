@@ -53,6 +53,11 @@
 - [x] **VDL-01**: 시스템에 `ffmpeg` 설치가 없어도 동작하는 순수 파이썬 HLS/m3u8 세그먼트 파서 및 다운로더/병합기를 구현하고 AES-128 복호화 및 원자적 저장을 지원한다.
 - [x] **VDL-02**: VOD 시청(`watch`) 시 네트워크 감시를 통해 미디어 스트림을 감지하여 다운로드를 병행하고, 단독 서브커맨드 `kau-assistant download-vod`를 제공한다.
 
+### Course Announcements & Q&A Board Briefing (BRD)
+
+- [ ] **BRD-01**: 과목별 공지사항 게시판(`ubboard`)의 최근 공지글 목록(번호, 제목, 작성자, 작성일) 및 본문/첨부파일 메타데이터를 추출하고, 터미널 브리핑 및 단독 뷰어(`--view <id>`)를 제공한다.
+- [ ] **BRD-02**: 과목별 Q&A 게시판의 질문 목록, 답변 상태(답변완료/대기), 공식 답변 본문을 추출하고, 통합 CLI `board` 및 단독 편의 서브커맨드 `notices`, `qna`, 필터(`--unread-only`, `--unanswered`, `--my`), 로컬 읽음 상태 관리(`board_read_state.json`)를 지원한다.
+
 ### Advanced Automation & Notifications
 
 - **NOTF-01**: 마감 임박 항목에 대해 웹훅(Slack, Discord 등) 또는 OS 알림 전송
@@ -94,18 +99,20 @@
 | RES-02 | Phase 13 | Complete |
 | VDL-01 | Phase 14 | Complete |
 | VDL-02 | Phase 14 | Complete |
+| BRD-01 | Phase 15 | Planned |
+| BRD-02 | Phase 15 | Planned |
 | NOTF-01 | Future | Backlog |
 | CAL-01 | Future | Backlog |
 | MOBI-01 | Future | Backlog |
 
 **Coverage:**
 
-- Requirements tracked: 27 total
-- Mapped to phases: 24
+- Requirements tracked: 29 total
+- Mapped to phases: 26
 - Backlog / Future: 3
 
 ---
 *Requirements defined: 2026-09-21*
-*Last updated: 2026-09-25 for Milestone 4 (Phase 14)*
+*Last updated: 2026-09-26 for Milestone 4 (Phase 15)*
 
 
