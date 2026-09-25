@@ -337,7 +337,9 @@ Plans:
   2. 첨부 파일(PDF, PPT, ZIP 등)을 `.env` 또는 요청된 기본 경로 하위 `<과목명>/W{주차}/` 폴더에 자동으로 다운로드 및 정리한다.
   3. 파일 다운로드 및 열람 결과를 브리핑 리포트 및 JSON으로 제공한다.
 
-**Plans**: 0/1 plans executed
+**Plans**: 1/1 plans executed
+
+- [x] 13-01-PLAN.md
 
 ---
 
@@ -420,7 +422,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 10. Watch Pipeline, CLI Runner & Notion Completion Mode | 1/1 | Complete    | 2026-09-25 |
 | 11. Background Sub-agent Automation & Multi-Agent Skill Packaging | 1/1 | Complete | 2026-09-25 |
 | 12. VOD Player Advanced Control & Retroactive Notion Sync | 1/1 | Complete | 2026-09-25 |
-| 13. Learning Materials (ubfile) Auto-Completion & File Downloader | 0/1 | Planned |  |
+| 13. Learning Materials (ubfile) Auto-Completion & File Downloader | 1/1 | Complete    | 2026-09-25 |
 | 14. Pure-Python VOD Stream Downloader Integration | 0/1 | Planned |  |
 | 15. Course Announcements & Q&A Board Briefing | 0/1 | Planned |  |
 | 16. Comprehensive Activity Progress Dashboard | 0/1 | Planned |  |

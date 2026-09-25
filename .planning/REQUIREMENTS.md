@@ -45,8 +45,8 @@
 
 ### Learning Materials Auto-Completion & Downloader (RES)
 
-- [ ] **RES-01**: 미열람 상태의 `ubfile` 학습자료 페이지를 방문(열람)하여 LXP 진도율을 100% 완료 상태로 갱신한다.
-- [ ] **RES-02**: 첨부 파일(PDF, PPT, ZIP 등)을 `.env` 또는 요청된 기본 경로 하위 `<과목명>/W{주차}/` 폴더에 자동으로 다운로드 및 정리하고 CLI 및 JSON 인터페이스를 제공한다.
+- [x] **RES-01**: 미열람 상태의 `ubfile` 학습자료 페이지를 방문(열람)하여 LXP 진도율을 100% 완료 상태로 갱신한다.
+- [x] **RES-02**: 첨부 파일(PDF, PPT, ZIP 등)을 `.env` 또는 요청된 기본 경로 하위 `<과목명>/W{주차}/` 폴더에 자동으로 다운로드 및 정리하고 CLI 및 JSON 인터페이스를 제공한다.
 
 ### Advanced Automation & Notifications
 
@@ -85,8 +85,8 @@
 | WATCH-04 | Phase 12 | Complete |
 | WATCH-05 | Phase 12 | Complete |
 | WATCH-06 | Phase 12 | Complete |
-| RES-01 | Phase 13 | Planned |
-| RES-02 | Phase 13 | Planned |
+| RES-01 | Phase 13 | Complete |
+| RES-02 | Phase 13 | Complete |
 
 **Coverage:**
 
