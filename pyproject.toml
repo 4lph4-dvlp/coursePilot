@@ -16,6 +16,9 @@ dependencies = [
     "pytz>=2024.1",
     "beautifulsoup4>=4.12.0",
     "lxml>=5.2.0",
+    "m3u8>=6.0.0",
+    "cryptography>=50.0.0",
+    "httpx>=0.28.0",
 ]
 
 [project.optional-dependencies]
