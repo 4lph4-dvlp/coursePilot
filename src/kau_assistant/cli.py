@@ -717,6 +717,129 @@ def download_vod_command(
     ctx.exit(0)
 
 
+def _handle_board_command(
+    ctx: click.Context,
+    command_scope: str,
+    course_query: str | None,
+    limit: int | None,
+    fetch_all: bool,
+    detail: bool,
+    view_id: str | None,
+    unread_only: bool,
+    unanswered: bool,
+    my_only: bool,
+    board_name: str | None,
+    mark_read: bool,
+    download_attachments: bool,
+    as_json: bool,
+    relogin: bool,
+    headed: bool,
+) -> None:
+    from kau_assistant.board.reporter import render_article_viewer, render_board_report
+    from kau_assistant.board.runner import run_board_pipeline, view_board_article
+
+    _configure_streams()
+    err = Console(stderr=True)
+    out = Console()
+
+    def _on_progress(msg: str) -> None:
+        err.print(msg, markup=False, highlight=False)
+
+    if view_id:
+        try:
+            post = view_board_article(
+                post_id_or_bwid=view_id,
+                course_query=course_query,
+                download_attachments=download_attachments,
+                relogin=relogin,
+                headful=headed,
+                progress_callback=_on_progress,
+            )
+        except Exception as e:
+            err.print(f"[오류] 게시글 조회 실패: {e}", markup=False, highlight=False)
+            ctx.exit(2)
+
+        if as_json:
+            click.echo(post.model_dump_json(indent=2))
+        else:
+            render_article_viewer(post, out)
+        ctx.exit(0)
+
+    try:
+        report = run_board_pipeline(
+            course_query=course_query,
+            command_scope=command_scope,  # type: ignore[arg-type]
+            limit=limit,
+            fetch_all=fetch_all,
+            detail=detail,
+            unread_only=unread_only,
+            unanswered=unanswered,
+            my_only=my_only,
+            board_name=board_name,
+            mark_read=mark_read,
+            relogin=relogin,
+            headful=headed,
+            progress_callback=_on_progress,
+        )
+    except Exception as e:
+        err.print(f"[오류] 게시판 조회 실패: {e}", markup=False, highlight=False)
+        ctx.exit(2)
+
+    if as_json:
+        click.echo(report.model_dump_json(indent=2))
+    else:
+        render_board_report(report, out, detail=detail)
+
+    if report.errors:
+        ctx.exit(1)
+    ctx.exit(0)
+
+
+def _board_options(func):
+    """Decorator sharing options across board, notices, and qna commands."""
+    options = [
+        click.option("--course", "course_query", type=str, default=None, help="과목 이름, 약칭, 또는 과목 ID (생략 시 전체 수강 과목)"),
+        click.option("--limit", "limit", type=int, default=3, show_default=True, help="과목당 조회할 최근 게시글 개수"),
+        click.option("--all", "fetch_all", is_flag=True, help="게시판의 모든 게시글을 조회합니다."),
+        click.option("--detail", "detail", is_flag=True, help="본문 요약 및 상세 내용을 함께 조회합니다."),
+        click.option("--view", "view_id", type=str, default=None, help="특정 게시글 ID(또는 번호)의 본문 전문과 답변을 단독 뷰어로 조회합니다."),
+        click.option("--unread-only", "unread_only", is_flag=True, help="아직 확인하지 않은 신규[NEW] 공지만 필터링합니다."),
+        click.option("--unanswered", "unanswered", is_flag=True, help="답변 대기 중인 질문만 필터링합니다."),
+        click.option("--my", "my_only", is_flag=True, help="내가 작성한 질문만 필터링합니다."),
+        click.option("--board-name", "board_name", type=str, default=None, help="조회할 특정 게시판 이름 (비표준 게시판용)"),
+        click.option("--mark-read", "mark_read", is_flag=True, help="조회한 게시글을 모두 읽음 처리합니다."),
+        click.option("--download-attachments", "download_attachments", is_flag=True, help="게시글에 포함된 첨부파일을 로컬에 다운로드합니다."),
+        click.option("--json", "as_json", is_flag=True, help="표준 JSON 계약(schema_version: 1) 형식으로 출력합니다."),
+        click.option("--relogin", "relogin", is_flag=True, help="캐시된 세션을 무시하고 새로 로그인합니다."),
+        click.option("--headed", "headed", is_flag=True, help="브라우저 창을 화면에 표시합니다."),
+        click.pass_context,
+    ]
+    for opt in reversed(options):
+        func = opt(func)
+    return func
+
+
+@cli.command("board")
+@_board_options
+def board_command(ctx: click.Context, **kwargs) -> None:
+    """과목별 공지사항과 Q&A 게시판을 통합 브리핑합니다."""
+    _handle_board_command(ctx, command_scope="board", **kwargs)
+
+
+@cli.command("notices")
+@_board_options
+def notices_command(ctx: click.Context, **kwargs) -> None:
+    """과목별 공지사항 게시판을 브리핑합니다."""
+    _handle_board_command(ctx, command_scope="notices", **kwargs)
+
+
+@cli.command("qna")
+@_board_options
+def qna_command(ctx: click.Context, **kwargs) -> None:
+    """과목별 Q&A(질의응답) 게시판 및 답변 현황을 브리핑합니다."""
+    _handle_board_command(ctx, command_scope="qna", **kwargs)
+
+
 def _configure_streams() -> None:
     """Reconfigures stdout/stderr to UTF-8 so Korean text survives a cp949 parent pipe (D-11)."""
     for stream in (sys.stdout, sys.stderr):
