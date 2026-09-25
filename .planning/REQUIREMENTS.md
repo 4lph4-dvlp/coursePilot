@@ -58,6 +58,11 @@
 - [x] **BRD-01**: 과목별 공지사항 게시판(`ubboard`)의 최근 공지글 목록(번호, 제목, 작성자, 작성일) 및 본문/첨부파일 메타데이터를 추출하고, 터미널 브리핑 및 단독 뷰어(`--view <id>`)를 제공한다.
 - [x] **BRD-02**: 과목별 Q&A 게시판의 질문 목록, 답변 상태(답변완료/대기), 공식 답변 본문을 추출하고, 통합 CLI `board` 및 단독 편의 서브커맨드 `notices`, `qna`, 필터(`--unread-only`, `--unanswered`, `--my`), 로컬 읽음 상태 관리(`board_read_state.json`)를 지원한다.
 
+### Comprehensive Activity Progress Dashboard (PROG)
+
+- [ ] **PROG-01**: 각 과목별로 전체 학습활동(동영상, 과제, 퀴즈, 자료)의 종합 이수율을 계산하고, 오픈 기준 메인 지표/학기 전체 보조 지표 및 지난 주차 누적 이수율/결석 누락 지표를 산출한다.
+- [ ] **PROG-02**: "전체 진도율", "지나온 주차 누적 이수율", "이번 주차 현황(완료/미완료 목록)"을 한눈에 볼 수 있는 3단 분할 `progress` 대시보드 및 표준 JSON 계약(`schema_version: 1`) 브리핑을 제공한다.
+
 ### Advanced Automation & Notifications
 
 - **NOTF-01**: 마감 임박 항목에 대해 웹훅(Slack, Discord 등) 또는 OS 알림 전송
@@ -101,14 +106,16 @@
 | VDL-02 | Phase 14 | Complete |
 | BRD-01 | Phase 15 | Complete |
 | BRD-02 | Phase 15 | Complete |
+| PROG-01 | Phase 16 | Pending |
+| PROG-02 | Phase 16 | Pending |
 | NOTF-01 | Future | Backlog |
 | CAL-01 | Future | Backlog |
 | MOBI-01 | Future | Backlog |
 
 **Coverage:**
 
-- Requirements tracked: 29 total
-- Mapped to phases: 26
+- Requirements tracked: 31 total
+- Mapped to phases: 28
 - Backlog / Future: 3
 
 ---
