@@ -43,6 +43,11 @@
 - [x] **WATCH-05**: 백그라운드 재생 중 5초 간격으로 `watch_state.json`에 상태를 기록하고, `watch status`로 진행률 조회 및 `watch stop`으로 안전한 중단을 제공한다.
 - [x] **WATCH-06**: 시청 완료된 내역을 `watch_history.json`에 보관하여, 사후 요청 시 `watch sync-notion`으로 Notion Scheduler 완료 상태를 소급 동기화한다.
 
+### Learning Materials Auto-Completion & Downloader (RES)
+
+- [ ] **RES-01**: 미열람 상태의 `ubfile` 학습자료 페이지를 방문(열람)하여 LXP 진도율을 100% 완료 상태로 갱신한다.
+- [ ] **RES-02**: 첨부 파일(PDF, PPT, ZIP 등)을 `.env` 또는 요청된 기본 경로 하위 `<과목명>/W{주차}/` 폴더에 자동으로 다운로드 및 정리하고 CLI 및 JSON 인터페이스를 제공한다.
+
 ### Advanced Automation & Notifications
 
 - **NOTF-01**: 마감 임박 항목에 대해 웹훅(Slack, Discord 등) 또는 OS 알림 전송
@@ -80,14 +85,17 @@
 | WATCH-04 | Phase 12 | Complete |
 | WATCH-05 | Phase 12 | Complete |
 | WATCH-06 | Phase 12 | Complete |
+| RES-01 | Phase 13 | Planned |
+| RES-02 | Phase 13 | Planned |
 
 **Coverage:**
 
-- v1 & v2 requirements tracked: 20 total
-- Mapped to phases: 20
+- Requirements tracked: 22 total
+- Mapped to phases: 22
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-09-21*
-*Last updated: 2026-09-25 for Milestone 4 (Phase 12)*
+*Last updated: 2026-09-25 for Milestone 4 (Phase 13)*
+
 
