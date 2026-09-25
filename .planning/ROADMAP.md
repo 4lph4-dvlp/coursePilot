@@ -386,16 +386,16 @@ Wave 2 (blocked on Wave 1 completion):
   2. Q&A 게시판의 질문글 및 답변 상태(답변 완료 여부)를 파싱하여 요약 브리핑을 생성한다.
   3. 기본값 최근 3개 및 사용자 지정 개수/범위(`--limit`, `--all`)를 지원한다.
 
-**Plans**: 1/2 plans executed
+**Plans**: 2/2 plans executed
 
 Plans:
 
 - [x] 15-01-PLAN.md — Domain Models, Coursemos Scraper, HTML-to-Markdown Text Converter & Atomic Read State Manager
-- [ ] 15-02-PLAN.md — Board Runner Pipeline, Rich Console Presentation, CLI Commands & JSON Contract
+- [x] 15-02-PLAN.md — Board Runner Pipeline, Rich Console Presentation, CLI Commands & JSON Contract
 
 **Wave 1**
 
-- [ ] 15-01: Domain Models (`models.py`), Coursemos HTML Scraper (`board_parser.py`), Text Converter (`text_converter.py`), and Atomic Local Read State (`read_state.py`)
+- [x] 15-01: Domain Models (`models.py`), Coursemos HTML Scraper (`board_parser.py`), Text Converter (`text_converter.py`), and Atomic Local Read State (`read_state.py`)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -454,6 +454,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 12. VOD Player Advanced Control & Retroactive Notion Sync | 1/1 | Complete | 2026-09-25 |
 | 13. Learning Materials (ubfile) Auto-Completion & File Downloader | 1/1 | Complete    | 2026-09-25 |
 | 14. Pure-Python VOD Stream Downloader Integration | 2/2 | Complete    | 2026-09-25 |
-| 15. Course Announcements & Q&A Board Briefing | 1/2 | In Progress|  |
+| 15. Course Announcements & Q&A Board Briefing | 2/2 | In Progress|  |
 | 16. Comprehensive Activity Progress Dashboard | 0/1 | Planned |  |
 | 17. Universal Skill Packaging, Multi-Agent Deployment & End-to-End Verification | 0/1 | Planned |  |

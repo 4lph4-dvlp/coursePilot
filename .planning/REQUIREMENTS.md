@@ -55,8 +55,8 @@
 
 ### Course Announcements & Q&A Board Briefing (BRD)
 
-- [ ] **BRD-01**: 과목별 공지사항 게시판(`ubboard`)의 최근 공지글 목록(번호, 제목, 작성자, 작성일) 및 본문/첨부파일 메타데이터를 추출하고, 터미널 브리핑 및 단독 뷰어(`--view <id>`)를 제공한다.
-- [ ] **BRD-02**: 과목별 Q&A 게시판의 질문 목록, 답변 상태(답변완료/대기), 공식 답변 본문을 추출하고, 통합 CLI `board` 및 단독 편의 서브커맨드 `notices`, `qna`, 필터(`--unread-only`, `--unanswered`, `--my`), 로컬 읽음 상태 관리(`board_read_state.json`)를 지원한다.
+- [x] **BRD-01**: 과목별 공지사항 게시판(`ubboard`)의 최근 공지글 목록(번호, 제목, 작성자, 작성일) 및 본문/첨부파일 메타데이터를 추출하고, 터미널 브리핑 및 단독 뷰어(`--view <id>`)를 제공한다.
+- [x] **BRD-02**: 과목별 Q&A 게시판의 질문 목록, 답변 상태(답변완료/대기), 공식 답변 본문을 추출하고, 통합 CLI `board` 및 단독 편의 서브커맨드 `notices`, `qna`, 필터(`--unread-only`, `--unanswered`, `--my`), 로컬 읽음 상태 관리(`board_read_state.json`)를 지원한다.
 
 ### Advanced Automation & Notifications
 
@@ -99,8 +99,8 @@
 | RES-02 | Phase 13 | Complete |
 | VDL-01 | Phase 14 | Complete |
 | VDL-02 | Phase 14 | Complete |
-| BRD-01 | Phase 15 | Planned |
-| BRD-02 | Phase 15 | Planned |
+| BRD-01 | Phase 15 | Complete |
+| BRD-02 | Phase 15 | Complete |
 | NOTF-01 | Future | Backlog |
 | CAL-01 | Future | Backlog |
 | MOBI-01 | Future | Backlog |
