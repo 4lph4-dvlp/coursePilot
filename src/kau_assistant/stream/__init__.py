@@ -4,6 +4,11 @@ from kau_assistant.stream.crypto import (
     decrypt_aes_128_segment,
     derive_implicit_iv,
 )
+from kau_assistant.stream.parser import (
+    parse_media_playlist,
+    parse_stream_manifest,
+    resolve_media_playlist_url,
+)
 from kau_assistant.stream.models import (
     CourseVodDownloadResult,
     DownloadProgress,
@@ -19,6 +24,9 @@ from kau_assistant.stream.models import (
 __all__ = [
     "derive_implicit_iv",
     "decrypt_aes_128_segment",
+    "resolve_media_playlist_url",
+    "parse_media_playlist",
+    "parse_stream_manifest",
     "StreamVariant",
     "StreamKeyInfo",
     "StreamSegment",
