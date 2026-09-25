@@ -4,6 +4,10 @@ from kau_assistant.stream.crypto import (
     decrypt_aes_128_segment,
     derive_implicit_iv,
 )
+from kau_assistant.stream.downloader import (
+    SegmentDownloader,
+    assemble_ts_segments_atomic,
+)
 from kau_assistant.stream.parser import (
     parse_media_playlist,
     parse_stream_manifest,
@@ -22,6 +26,8 @@ from kau_assistant.stream.models import (
 )
 
 __all__ = [
+    "SegmentDownloader",
+    "assemble_ts_segments_atomic",
     "derive_implicit_iv",
     "decrypt_aes_128_segment",
     "resolve_media_playlist_url",

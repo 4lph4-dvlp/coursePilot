@@ -52,3 +52,8 @@ class NotionSchemaError(NotionIntegrationError):
 
 class NotionTransportError(NotionIntegrationError):
     """Raised for bounded, safely reported Notion transport failures."""
+
+
+class VodDownloadError(KauAssistantError):
+    """Raised when VOD stream download, decryption, or assembly fails."""
+
