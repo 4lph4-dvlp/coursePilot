@@ -48,6 +48,11 @@
 - [x] **RES-01**: 미열람 상태의 `ubfile` 학습자료 페이지를 방문(열람)하여 LXP 진도율을 100% 완료 상태로 갱신한다.
 - [x] **RES-02**: 첨부 파일(PDF, PPT, ZIP 등)을 `.env` 또는 요청된 기본 경로 하위 `<과목명>/W{주차}/` 폴더에 자동으로 다운로드 및 정리하고 CLI 및 JSON 인터페이스를 제공한다.
 
+### Pure-Python VOD Stream Downloader Integration (VDL)
+
+- [ ] **VDL-01**: 시스템에 `ffmpeg` 설치가 없어도 동작하는 순수 파이썬 HLS/m3u8 세그먼트 파서 및 다운로더/병합기를 구현하고 AES-128 복호화 및 원자적 저장을 지원한다.
+- [ ] **VDL-02**: VOD 시청(`watch`) 시 네트워크 감시를 통해 미디어 스트림을 감지하여 다운로드를 병행하고, 단독 서브커맨드 `kau-assistant download-vod`를 제공한다.
+
 ### Advanced Automation & Notifications
 
 - **NOTF-01**: 마감 임박 항목에 대해 웹훅(Slack, Discord 등) 또는 OS 알림 전송
@@ -87,15 +92,17 @@
 | WATCH-06 | Phase 12 | Complete |
 | RES-01 | Phase 13 | Complete |
 | RES-02 | Phase 13 | Complete |
+| VDL-01 | Phase 14 | Planned |
+| VDL-02 | Phase 14 | Planned |
 
 **Coverage:**
 
-- Requirements tracked: 22 total
-- Mapped to phases: 22
+- Requirements tracked: 24 total
+- Mapped to phases: 24
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-09-21*
-*Last updated: 2026-09-25 for Milestone 4 (Phase 13)*
+*Last updated: 2026-09-25 for Milestone 4 (Phase 14)*
 
 
