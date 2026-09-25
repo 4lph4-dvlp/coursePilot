@@ -5,6 +5,8 @@ from __future__ import annotations
 import logging
 import os
 import re
+import threading
+from pathlib import Path
 from typing import Callable
 
 from pydantic import BaseModel, Field
@@ -166,6 +168,10 @@ def watch_course_vods(
     *,
     dry_run: bool = False,
     update_notion: bool = False,
+    download: bool = False,
+    preferred_quality: str = "best",
+    overwrite: bool = False,
+    output_dir: Path | str | None = None,
     player: VodPlayer | None = None,
     playback_options: PlaybackOptions | None = None,
     session_manager: SessionManager | None = None,
@@ -252,6 +258,8 @@ def watch_course_vods(
             except Exception as e:
                 logger.warning(f"Failed to query Notion for status update: {e}")
 
+        output_root = Path(output_dir) if output_dir else settings.download_dir
+
         # 5. Sequentially play unwatched VODs (D-12-01)
         for idx, vod in enumerate(candidate_vods, start=1):
             # Check if execution was stopped via watch stop (D-12-06)
@@ -289,6 +297,56 @@ def watch_course_vods(
                 if on_vod_progress:
                     on_vod_progress(p)
 
+            bg_thread: threading.Thread | None = None
+            _on_stream_detected = None
+
+            if download:
+                from kau_assistant.materials.filename_utils import sanitize_filename
+                from kau_assistant.stream.downloader import SegmentDownloader
+                from kau_assistant.stream.parser import parse_stream_manifest
+
+                safe_title = sanitize_filename(vod.title)
+                target_dir = output_root / target_course.clean_name / f"W{vod.week_number:02d}"
+                target_file = target_dir / f"W{vod.week_number:02d}-{vod.clip_number:02d}_{safe_title}.mp4"
+
+                def _create_stream_callback(t_file: Path, v_title: str):
+                    def _on_detected(stream_url: str) -> None:
+                        nonlocal bg_thread
+
+                        def _bg_download() -> None:
+                            try:
+                                dl = SegmentDownloader(settings=settings)
+                                resp = dl.client.get(stream_url, timeout=15.0)
+                                resp.raise_for_status()
+                                media_url, stream_info = parse_stream_manifest(
+                                    resp.text, stream_url, preferred_quality=preferred_quality
+                                )
+                                if not stream_info.segments and not stream_info.is_direct_mp4:
+                                    resp_media = dl.client.get(media_url, timeout=15.0)
+                                    resp_media.raise_for_status()
+                                    _, stream_info = parse_stream_manifest(
+                                        resp_media.text, media_url, preferred_quality=preferred_quality
+                                    )
+                                dl.download_stream(stream_info, t_file, overwrite=overwrite)
+                                logger.info("Background download completed: %s", t_file.name)
+                            except Exception as exc:
+                                logger.warning(
+                                    "Background download failed for '%s': %s. Attendance playback continues unaffected (D-14-04).",
+                                    v_title,
+                                    exc,
+                                )
+
+                        bg_thread = threading.Thread(
+                            target=_bg_download,
+                            name=f"bg_dl_w{vod.week_number}_{vod.clip_number}",
+                            daemon=True,
+                        )
+                        bg_thread.start()
+
+                    return _on_detected
+
+                _on_stream_detected = _create_stream_callback(target_file, vod.title)
+
             playback_res = vod_player.play_vod(
                 page=page,
                 vod_url=vod_url,
@@ -296,7 +354,17 @@ def watch_course_vods(
                 options=playback_options,
                 session_manager=mgr,
                 on_progress=_wrapped_progress,
+                on_stream_detected=_on_stream_detected,
             )
+
+            if bg_thread and bg_thread.is_alive():
+                logger.info("Waiting for background download thread for '%s'...", vod.title)
+                bg_thread.join(timeout=60.0)
+                if bg_thread.is_alive():
+                    logger.warning(
+                        "Background download for '%s' still running after join timeout.",
+                        vod.title,
+                    )
             result.playback_results.append(playback_res)
 
             # Check if stopped mid-playback
