@@ -29,7 +29,7 @@
 - [x] **Phase 12: VOD Player Advanced Control & Retroactive Notion Sync** - 특정 영상 지목(`--video-index`), 퍼지 과목 매칭, 실시간 진행 상태 조회(`watch status`), 중단(`watch stop`), 사후 노션 완료 처리(`watch sync-notion`) (completed 2026-09-25)
 - [x] **Phase 13: Learning Materials (ubfile) Auto-Completion & File Downloader** - 미열람 학습자료(`ubfile`) 자동 열람을 통한 진도율 100% 이수 및 과목/주차 계층 구조 로컬 다운로더 구현 (completed 2026-09-25)
 - [x] **Phase 14: Pure-Python VOD Stream Downloader Integration** - 최소 설치 환경 유지를 위한 순수 파이썬 HLS/m3u8 스트림 캡처 및 백그라운드 영상 로컬 다운로더 구현 (completed 2026-09-25)
-- [ ] **Phase 15: Course Announcements & Q&A Board Briefing** - 과목별 `ubboard`(공지사항 및 질문과 답변) 파싱, 최근 3개 기본 및 사용자 맞춤 스코프 브리핑 CLI 구현
+- [x] **Phase 15: Course Announcements & Q&A Board Briefing** - 과목별 `ubboard`(공지사항 및 질문과 답변) 파싱, 최근 3개 기본 및 사용자 맞춤 스코프 브리핑 CLI 구현 (completed 2026-09-26)
 - [ ] **Phase 16: Comprehensive Activity Progress Dashboard** - 전체 학습활동(동영상+과제+퀴즈+자료) 종합 진척도 계산, 전체/지나온 주차/이번 주차 진척도 대시보드(`progress`) 구현
 - [ ] **Phase 17: Universal Skill Packaging, Multi-Agent Deployment & End-to-End Verification** - 전체 신규 기능을 `SKILL.md` 및 `JSON_CONTRACT.md`에 반영, 5개 에이전트 일괄 재배포 및 E2E 실사이트 검증
 
@@ -399,7 +399,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 15-02: Board Pipeline Runner (`runner.py`), Rich Terminal Presentation (`reporter.py`), Click CLI Commands (`board`, `notices`, `qna`), and schema_version 1 JSON Contract
+- [x] 15-02: Board Pipeline Runner (`runner.py`), Rich Terminal Presentation (`reporter.py`), Click CLI Commands (`board`, `notices`, `qna`), and schema_version 1 JSON Contract
 
 ---
 
@@ -454,6 +454,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 12. VOD Player Advanced Control & Retroactive Notion Sync | 1/1 | Complete | 2026-09-25 |
 | 13. Learning Materials (ubfile) Auto-Completion & File Downloader | 1/1 | Complete    | 2026-09-25 |
 | 14. Pure-Python VOD Stream Downloader Integration | 2/2 | Complete    | 2026-09-25 |
-| 15. Course Announcements & Q&A Board Briefing | 2/2 | In Progress|  |
+| 15. Course Announcements & Q&A Board Briefing | 2/2 | Complete    | 2026-09-26 |
 | 16. Comprehensive Activity Progress Dashboard | 0/1 | Planned |  |
 | 17. Universal Skill Packaging, Multi-Agent Deployment & End-to-End Verification | 0/1 | Planned |  |
