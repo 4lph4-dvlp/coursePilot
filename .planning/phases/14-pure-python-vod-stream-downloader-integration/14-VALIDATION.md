@@ -1,8 +1,8 @@
 ---
 phase: "14"
 slug: "pure-python-vod-stream-downloader-integration"
-status: draft
-nyquist_compliant: false
+status: ready
+nyquist_compliant: true
 wave_0_complete: false
 created: "2026-09-25"
 ---
@@ -38,12 +38,12 @@ created: "2026-09-25"
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 14-01-01 | 01 | 1 | VDL-01 | — | N/A | unit | `uv run pytest tests/test_stream_parser.py` | ❌ W0 | ⬜ pending |
-| 14-01-02 | 01 | 1 | VDL-01 | T-14-02 | In-memory key usage & PKCS7 unpad | unit | `uv run pytest tests/test_stream_crypto.py` | ❌ W0 | ⬜ pending |
-| 14-01-03 | 01 | 2 | VDL-01 | T-14-01, T-14-03 | Safe index filenames & atomic replace | unit/integration | `uv run pytest tests/test_stream_downloader.py` | ❌ W0 | ⬜ pending |
-| 14-01-04 | 01 | 2 | VDL-02 | — | Hybrid network & DOM sniffing | unit/integration | `uv run pytest tests/test_stream_sniffer.py` | ❌ W0 | ⬜ pending |
-| 14-01-05 | 01 | 3 | VDL-02 | — | Attendance isolation on failure | integration | `uv run pytest tests/test_watch_download.py` | ❌ W0 | ⬜ pending |
-| 14-01-06 | 01 | 3 | VDL-02 | — | Rich stderr and clean stdout | integration | `uv run pytest tests/test_cli_download_vod.py` | ❌ W0 | ⬜ pending |
+| 14-01-01 | 01 | 1 | VDL-01 | T-14-02 | In-memory key usage & PKCS7 unpad | unit | `uv run pytest tests/test_stream_crypto.py` | ❌ W0 | ⬜ pending |
+| 14-01-02 | 01 | 1 | VDL-01 | — | N/A | unit | `uv run pytest tests/test_stream_parser.py` | ❌ W0 | ⬜ pending |
+| 14-01-03 | 01 | 1 | VDL-01 | T-14-01, T-14-03 | Safe index filenames & atomic replace | unit/integration | `uv run pytest tests/test_stream_downloader.py` | ❌ W0 | ⬜ pending |
+| 14-02-01 | 02 | 2 | VDL-02 | — | Hybrid network & DOM sniffing | unit/integration | `uv run pytest tests/test_stream_sniffer.py` | ❌ W0 | ⬜ pending |
+| 14-02-02 | 02 | 2 | VDL-02 | — | Attendance isolation on failure | integration | `uv run pytest tests/test_watch_download.py` | ❌ W0 | ⬜ pending |
+| 14-02-03 | 02 | 2 | VDL-02 | — | Rich stderr and clean stdout | integration | `uv run pytest tests/test_cli_download_vod.py` | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
