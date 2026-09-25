@@ -8,6 +8,10 @@ from kau_assistant.stream.downloader import (
     SegmentDownloader,
     assemble_ts_segments_atomic,
 )
+from kau_assistant.stream.runner import (
+    resolve_candidate_vods_for_download,
+    run_vod_download_pipeline,
+)
 from kau_assistant.stream.sniffer import StreamSniffer
 from kau_assistant.stream.parser import (
     parse_media_playlist,
@@ -30,6 +34,8 @@ __all__ = [
     "SegmentDownloader",
     "StreamSniffer",
     "assemble_ts_segments_atomic",
+    "resolve_candidate_vods_for_download",
+    "run_vod_download_pipeline",
     "derive_implicit_iv",
     "decrypt_aes_128_segment",
     "resolve_media_playlist_url",

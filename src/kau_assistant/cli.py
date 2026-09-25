@@ -223,6 +223,33 @@ def install_skill_command(ctx: click.Context, agent: str, link: bool) -> None:
     help="실제 영상을 재생하지 않고 시청 대상 영상 목록만 미리 확인합니다.",
 )
 @click.option(
+    "--download",
+    "download",
+    is_flag=True,
+    help="출석 시청과 함께 고속 백그라운드 영상 다운로드를 병행합니다.",
+)
+@click.option(
+    "--quality",
+    "quality",
+    type=str,
+    default="best",
+    show_default=True,
+    help="다운로드 영상 화질 ('best', '1080p', '720p', 'worst')",
+)
+@click.option(
+    "--output-dir",
+    "output_dir",
+    type=click.Path(),
+    default=None,
+    help="다운로드 저장 디렉터리 경로",
+)
+@click.option(
+    "--overwrite",
+    "overwrite",
+    is_flag=True,
+    help="이미 존재하는 영상 파일도 덮어쓰기하여 새로 다운로드합니다.",
+)
+@click.option(
     "--json",
     "as_json",
     is_flag=True,
@@ -247,6 +274,10 @@ def watch_group(
     week_query: str,
     video_index: int | None,
     update_notion: bool,
+    download: bool,
+    quality: str,
+    output_dir: str | None,
+    overwrite: bool,
     dry_run: bool,
     as_json: bool,
     relogin: bool,
@@ -287,6 +318,10 @@ def watch_group(
         video_index=video_index,
         dry_run=dry_run,
         update_notion=update_notion,
+        download=download,
+        preferred_quality=quality,
+        overwrite=overwrite,
+        output_dir=output_dir,
         on_vod_start=on_vod_start,
         on_vod_complete=on_vod_complete,
     )
@@ -569,6 +604,117 @@ def materials_command(
 
 # Register alias `files` for `materials`
 cli.add_command(materials_command, name="files")
+
+
+def render_vod_download_report(result, console: Console) -> None:
+    """Render Rich table report for VOD stream downloads."""
+    from rich.table import Table
+    from rich.text import Text
+    from kau_assistant.stream.models import VodDownloadStatus
+
+    if result.dry_run:
+        console.print("[bold yellow]VOD 다운로드 계획 미리보기 (--dry-run)[/bold yellow]")
+    else:
+        console.print("[bold green]VOD 다운로드 작업 결과[/bold green]")
+
+    for course in result.courses:
+        table = Table(
+            title=f"{course.course_name} ({course.target_week})",
+            show_header=True,
+            header_style="bold cyan",
+        )
+        table.add_column("주차", justify="center", width=6)
+        table.add_column("차시", justify="center", width=6)
+        table.add_column("강의명", justify="left")
+        table.add_column("상태", justify="center", width=12)
+        table.add_column("크기", justify="right", width=10)
+        table.add_column("저장 경로", justify="left")
+
+        for item in course.items:
+            sz_str = f"{item.filesize / (1024 * 1024):.1f} MB" if item.filesize > 0 else "-"
+            if item.status == VodDownloadStatus.DOWNLOADED:
+                st = Text("다운로드", style="bold green")
+            elif item.status == VodDownloadStatus.SKIPPED:
+                st = Text("건너뜀", style="dim yellow")
+            else:
+                st = Text("실패", style="bold red")
+
+            table.add_row(
+                f"W{item.week_number}",
+                f"{item.clip_number}차시",
+                item.title,
+                st,
+                sz_str,
+                item.saved_path or (item.error_message or "-"),
+            )
+        console.print(table)
+
+    summary_str = (
+        f"총 {result.total_vods}개 영상 중: "
+        f"성공 {result.downloaded_count}개 | 건너뜀 {result.skipped_count}개 | 실패 {result.failed_count}개"
+    )
+    console.print(f"[bold]{summary_str}[/bold]")
+
+
+@cli.command("download-vod")
+@click.option("--course", "course_query", type=str, default=None, help="다운로드할 과목 이름 또는 약칭")
+@click.option("--week", "week_query", type=str, default="current", show_default=True, help="다운로드할 주차 ('current', 'all', 또는 주차 번호)")
+@click.option("--video-index", "video_index", type=int, default=None, help="특정 영상 순번 (1-based)")
+@click.option("--quality", "quality", type=str, default="best", show_default=True, help="다운로드 영상 화질 ('best', '1080p', '720p', 'worst')")
+@click.option("--output-dir", "output_dir", type=click.Path(), default=None, help="다운로드 저장 디렉터리 경로")
+@click.option("--overwrite", "overwrite", is_flag=True, help="이미 존재하는 파일도 덮어쓰기하여 재다운로드")
+@click.option("--dry-run", "dry_run", is_flag=True, help="실제 다운로드 없이 대상 영상 및 저장 경로 미리 확인")
+@click.option("--json", "as_json", is_flag=True, help="결과를 JSON 형식으로 출력합니다.")
+@click.option("--relogin", "relogin", is_flag=True, help="캐시된 세션을 무시하고 새로 로그인합니다.")
+@click.option("--headed", "headed", is_flag=True, help="브라우저 창을 화면에 표시합니다.")
+@click.pass_context
+def download_vod_command(
+    ctx: click.Context,
+    course_query: str | None,
+    week_query: str,
+    video_index: int | None,
+    quality: str,
+    output_dir: str | None,
+    overwrite: bool,
+    dry_run: bool,
+    as_json: bool,
+    relogin: bool,
+    headed: bool,
+) -> None:
+    """고속 병렬 스트림 다운로드로 VOD 영상을 로컬에 저장합니다 (출석 시청 대기 없음)."""
+    from kau_assistant.stream.runner import run_vod_download_pipeline
+
+    err = Console(stderr=True)
+    out = Console()
+
+    def _on_progress(msg: str) -> None:
+        err.print(msg, markup=False, highlight=False)
+
+    try:
+        result = run_vod_download_pipeline(
+            course_query=course_query,
+            week_query=week_query,
+            video_index=video_index,
+            preferred_quality=quality,
+            output_dir=output_dir,
+            overwrite=overwrite,
+            dry_run=dry_run,
+            relogin=relogin,
+            headful=headed,
+            progress_callback=_on_progress,
+        )
+    except Exception as e:
+        err.print(f"[오류] VOD 다운로드 처리 실패: {e}", markup=False, highlight=False)
+        ctx.exit(2)
+
+    if as_json:
+        click.echo(result.model_dump_json(indent=2))
+    else:
+        render_vod_download_report(result, out)
+
+    if result.failed_count > 0 and not dry_run:
+        ctx.exit(1)
+    ctx.exit(0)
 
 
 def _configure_streams() -> None:
