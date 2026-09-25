@@ -39,9 +39,9 @@
 
 ### VOD Player Advanced Control (WATCH)
 
-- [ ] **WATCH-04**: 특정 주차의 N번째 영상만 핀포인트 지정하여 시청할 수 있는 `--video-index` 및 과목명 퍼지/유사어 매칭 기능을 지원한다.
-- [ ] **WATCH-05**: 백그라운드 재생 중 5초 간격으로 `watch_state.json`에 상태를 기록하고, `watch status`로 진행률 조회 및 `watch stop`으로 안전한 중단을 제공한다.
-- [ ] **WATCH-06**: 시청 완료된 내역을 `watch_history.json`에 보관하여, 사후 요청 시 `watch sync-notion`으로 Notion Scheduler 완료 상태를 소급 동기화한다.
+- [x] **WATCH-04**: 특정 주차의 N번째 영상만 핀포인트 지정하여 시청할 수 있는 `--video-index` 및 과목명 퍼지/유사어 매칭 기능을 지원한다.
+- [x] **WATCH-05**: 백그라운드 재생 중 5초 간격으로 `watch_state.json`에 상태를 기록하고, `watch status`로 진행률 조회 및 `watch stop`으로 안전한 중단을 제공한다.
+- [x] **WATCH-06**: 시청 완료된 내역을 `watch_history.json`에 보관하여, 사후 요청 시 `watch sync-notion`으로 Notion Scheduler 완료 상태를 소급 동기화한다.
 
 ### Advanced Automation & Notifications
 
@@ -77,9 +77,9 @@
 | SKIL-01 | Phase 5 | Complete |
 | SKIL-02 | Phase 5 | Complete |
 | SKIL-03 | Phase 5 | Complete |
-| WATCH-04 | Phase 12 | Planned |
-| WATCH-05 | Phase 12 | Planned |
-| WATCH-06 | Phase 12 | Planned |
+| WATCH-04 | Phase 12 | Complete |
+| WATCH-05 | Phase 12 | Complete |
+| WATCH-06 | Phase 12 | Complete |
 
 **Coverage:**
 

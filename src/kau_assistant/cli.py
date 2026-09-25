@@ -11,6 +11,7 @@ from kau_assistant.config import DEFAULT_LMS_URL, Settings, get_settings
 from kau_assistant.errors import exit_code_for, safe_cli_error
 from kau_assistant.installer import AGENT_SKILL_PATHS, InstallError, install_skill
 from kau_assistant.notion import NotionSyncEngine
+from kau_assistant.notion.client import NotionClient
 from kau_assistant.pipeline import PipelineResult, collect_tasks
 from kau_assistant.reporter import (
     build_check_report,
@@ -186,12 +187,12 @@ def install_skill_command(ctx: click.Context, agent: str, link: bool) -> None:
         )
 
 
-@cli.command("watch")
+@cli.group("watch", invoke_without_command=True)
 @click.option(
     "--course",
     "course_query",
     type=str,
-    required=True,
+    default=None,
     help="시청할 과목 이름, 약칭, 또는 과목 ID (예: '기초전자실험', '디시설')",
 )
 @click.option(
@@ -201,6 +202,13 @@ def install_skill_command(ctx: click.Context, agent: str, link: bool) -> None:
     default="current",
     show_default=True,
     help="시청할 주차 ('current', 'all', 또는 주차 번호 예: '4')",
+)
+@click.option(
+    "--video-index",
+    "video_index",
+    type=int,
+    default=None,
+    help="시청할 주차 내 특정 영상 번호 (1-based, 예: 2)",
 )
 @click.option(
     "--update-notion",
@@ -233,10 +241,11 @@ def install_skill_command(ctx: click.Context, agent: str, link: bool) -> None:
     help="브라우저 창을 화면에 표시합니다 (기본값: 헤드리스).",
 )
 @click.pass_context
-def watch_command(
+def watch_group(
     ctx: click.Context,
-    course_query: str,
+    course_query: str | None,
     week_query: str,
+    video_index: int | None,
     update_notion: bool,
     dry_run: bool,
     as_json: bool,
@@ -244,10 +253,17 @@ def watch_command(
     headed: bool,
 ) -> None:
     """지정된 과목의 미시청 VOD를 백그라운드에서 자동 재생합니다."""
-    from kau_assistant.player.runner import watch_course_vods
+    if ctx.invoked_subcommand is not None:
+        return
 
     err = Console(stderr=True)
     out = Console()
+
+    if not course_query:
+        err.print("[오류] --course 옵션이 필요합니다. (예: kau-assistant watch --course 기초전자실험)", markup=False, highlight=False)
+        ctx.exit(2)
+
+    from kau_assistant.player.runner import watch_course_vods
 
     settings = get_settings().model_copy(
         update={
@@ -268,6 +284,7 @@ def watch_command(
         settings=settings,
         course_query=course_query,
         week_query=week_query,
+        video_index=video_index,
         dry_run=dry_run,
         update_notion=update_notion,
         on_vod_start=on_vod_start,
@@ -300,6 +317,154 @@ def watch_command(
 
     exit_code = 1 if result.error_message or (result.total_vods > 0 and result.completed_vods < result.total_vods and not dry_run) else 0
     ctx.exit(exit_code)
+
+
+@watch_group.command("status")
+@click.option(
+    "--json",
+    "as_json",
+    is_flag=True,
+    help="상태를 JSON 형식으로 출력합니다.",
+)
+@click.pass_context
+def watch_status_command(ctx: click.Context, as_json: bool) -> None:
+    """현재 실행 중인 VOD 시청 상태 및 진행률을 조회합니다 (D-12-05)."""
+    from kau_assistant.player.state import WatchStateManager
+
+    sm = WatchStateManager()
+    state = sm.read_state()
+    out = Console()
+
+    if not state or state.status == "idle":
+        if as_json:
+            click.echo('{"status": "idle"}')
+        else:
+            out.print("진행 중인 VOD 시청 작업이 없습니다.", markup=False, highlight=False)
+        return
+
+    if as_json:
+        click.echo(state.model_dump_json(indent=2))
+        return
+
+    if state.status == "running":
+        mins, secs = divmod(int(state.remaining_seconds), 60)
+        rem_str = f"{mins}분 {secs}초" if mins > 0 else f"{secs}초"
+        out.print(f"[진행 중] 과목: {state.course_name} ({state.target_week})", markup=False, highlight=False)
+        out.print(f"현재 영상 ({state.video_index}/{state.total_videos}): {state.current_video_title}", markup=False, highlight=False)
+        cur_m, cur_s = divmod(int(state.current_time), 60)
+        dur_m, dur_s = divmod(int(state.duration), 60)
+        out.print(f"진행 시간: {cur_m:02d}:{cur_s:02d} / {dur_m:02d}:{dur_s:02d} ({state.progress_percent:.1f}%)", markup=False, highlight=False)
+        out.print(f"남은 시간: {rem_str} | PID: {state.pid}", markup=False, highlight=False)
+    elif state.status == "completed":
+        out.print(f"[완료] 과목: {state.course_name} ({state.target_week}) - 총 {state.total_videos}개 영상 시청 완료", markup=False, highlight=False)
+    elif state.status == "stopped":
+        out.print(f"[중단됨] 과목: {state.course_name} - 시청이 중단되었습니다.", markup=False, highlight=False)
+    elif state.status == "error":
+        out.print(f"[오류] 과목: {state.course_name} - {state.error_message or '오류가 발생했습니다.'}", markup=False, highlight=False)
+
+
+@watch_group.command("stop")
+@click.option(
+    "--json",
+    "as_json",
+    is_flag=True,
+    help="결과를 JSON 형식으로 출력합니다.",
+)
+@click.pass_context
+def watch_stop_command(ctx: click.Context, as_json: bool) -> None:
+    """실행 중인 VOD 시청 프로세스를 안전하게 중단합니다 (D-12-06)."""
+    import json
+    from kau_assistant.player.state import WatchStateManager
+
+    sm = WatchStateManager()
+    state = sm.read_state()
+    pid = state.pid if state else 0
+    stopped = sm.stop_running_process()
+
+    out = Console()
+    if as_json:
+        if stopped:
+            click.echo(json.dumps({"stopped": True, "pid": pid}, indent=2))
+        else:
+            click.echo(json.dumps({"stopped": False, "reason": "not_running"}, indent=2))
+    else:
+        if stopped:
+            out.print(f"✓ VOD 시청 프로세스(PID: {pid})를 성공적으로 중단했습니다.", markup=False, highlight=False)
+        else:
+            out.print("실행 중인 시청 프로세스를 찾을 수 없습니다.", markup=False, highlight=False)
+
+
+@watch_group.command("sync-notion")
+@click.option(
+    "--course",
+    "course_query",
+    type=str,
+    default=None,
+    help="동기화할 특정 과목명 필터",
+)
+@click.option(
+    "--json",
+    "as_json",
+    is_flag=True,
+    help="결과를 JSON 형식으로 출력합니다.",
+)
+@click.pass_context
+def watch_sync_notion_command(ctx: click.Context, course_query: str | None, as_json: bool) -> None:
+    """최근 시청 완료된 영상을 Notion Scheduler에 '완료'로 동기화합니다 (D-12-08)."""
+    import json
+    from kau_assistant.player.state import WatchStateManager
+
+    out = Console()
+    err = Console(stderr=True)
+    settings = get_settings()
+
+    if not settings.is_notion_configured:
+        msg = "Notion 설정이 되어 있지 않습니다. .env의 NOTION_TOKEN 및 NOTION_DATABASE_ID를 확인하세요."
+        if as_json:
+            click.echo(json.dumps({"synced_count": 0, "error": msg}, ensure_ascii=False, indent=2))
+        else:
+            err.print(f"[오류] {msg}", markup=False, highlight=False)
+        ctx.exit(1)
+
+    sm = WatchStateManager()
+    records = sm.get_recent_history(course_query=course_query, uncompleted_only=True)
+
+    if not records:
+        if as_json:
+            click.echo(json.dumps({"synced_count": 0, "synced_tasks": []}, ensure_ascii=False, indent=2))
+        else:
+            out.print("동기화할 최근 미완료 시청 기록이 없습니다.", markup=False, highlight=False)
+        return
+
+    try:
+        notion_client = NotionClient(settings=settings)
+        target = notion_client.resolve_target()
+        existing_pages = notion_client.query_existing_pages(target.data_source_id)
+    except Exception as e:
+        err.print(f"[오류] Notion 데이터베이스 연결 실패: {e}", markup=False, highlight=False)
+        if as_json:
+            click.echo(json.dumps({"synced_count": 0, "error": str(e)}, ensure_ascii=False, indent=2))
+        ctx.exit(1)
+
+    synced_titles: list[str] = []
+    for rec in records:
+        page = existing_pages.get(rec.task_title)
+        if page:
+            try:
+                notion_client.mark_task_completed(page.page_id)
+                synced_titles.append(rec.task_title)
+            except Exception as e:
+                err.print(f"[경고] 작업 '{rec.task_title}' Notion 완료 갱신 실패: {e}", markup=False, highlight=False)
+
+    if synced_titles:
+        sm.mark_history_notion_synced(synced_titles)
+
+    if as_json:
+        click.echo(json.dumps({"synced_count": len(synced_titles), "synced_tasks": synced_titles}, ensure_ascii=False, indent=2))
+    else:
+        out.print(f"Notion Scheduler 동기화 완료: 총 {len(synced_titles)}개 작업 '완료' 처리됨.", markup=False, highlight=False)
+        for title in synced_titles:
+            out.print(f"  ✓ {title}", markup=False, highlight=False)
 
 
 

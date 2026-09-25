@@ -1,8 +1,9 @@
-"""VOD watch pipeline and execution orchestrator."""
+"""VOD watch pipeline and execution orchestrator with precision targeting and state tracking."""
 
 from __future__ import annotations
 
 import logging
+import os
 import re
 from typing import Callable
 
@@ -14,7 +15,8 @@ from kau_assistant.domain.models import TaskType
 from kau_assistant.domain.naming import format_task_title
 from kau_assistant.notion.client import NotionClient
 from kau_assistant.pipeline import scrape_course
-from kau_assistant.player.models import PlaybackOptions, PlaybackProgress
+from kau_assistant.player.models import PlaybackOptions, PlaybackProgress, WatchState
+from kau_assistant.player.state import WatchStateManager
 from kau_assistant.player.vod_player import VodPlayer
 from kau_assistant.scraper.course_list import extract_courses
 from kau_assistant.scraper.models import AttendanceStatus, CourseItem, LectureItem
@@ -44,7 +46,7 @@ def find_target_course(
     query: str,
     mappings: dict[str, str] | None = None,
 ) -> CourseItem | None:
-    """Finds a CourseItem matching a natural language course query."""
+    """Finds a CourseItem matching a natural language course query with fuzzy tolerance (D-12-03)."""
     q = query.strip().lower()
     maps = mappings or {}
 
@@ -64,14 +66,45 @@ def find_target_course(
         if abbr and (q in abbr or abbr in q):
             return c
 
+    # 3. Substring in reverse (course name in query)
+    for c in courses:
+        if c.clean_name.lower() in q or c.raw_name.lower() in q:
+            return c
+
+    # 4. Fuzzy & Token Overlap matching (D-12-03)
+    def normalize_term(text: str) -> str:
+        cleaned = re.sub(r"[\s\-_/()]+", "", text.lower())
+        for generic in ("정보", "실험", "실습", "강의", "교과", "이론", "개론", "입문"):
+            cleaned = cleaned.replace(generic, "")
+        return cleaned
+
+    norm_q = normalize_term(q)
+    if len(norm_q) >= 2:
+        for c in courses:
+            norm_c = normalize_term(c.clean_name)
+            if norm_c and (norm_q in norm_c or norm_c in norm_q):
+                return c
+
+    # Subsequence check: all characters of course appear in query in order
+    def is_subseq(sub: str, full: str) -> bool:
+        it = iter(full)
+        return all(char in it for char in sub)
+
+    for c in courses:
+        clean_c = re.sub(r"[\s\-_/()]+", "", c.clean_name.lower())
+        clean_q = re.sub(r"[\s\-_/()]+", "", q)
+        if len(clean_c) >= 3 and is_subseq(clean_c, clean_q):
+            return c
+
     return None
 
 
 def resolve_candidate_vods(
     lectures: list[LectureItem],
     week_query: str | int | None = "current",
+    video_index: int | None = None,
 ) -> tuple[str, list[LectureItem], int]:
-    """Filters lectures into target week's unwatched VODs, returning (week_label, candidate_vods, skipped_count)."""
+    """Filters lectures into target week's unwatched VODs with optional video index filtering (D-12-02)."""
     # 1. Keep only VOD lectures, excluding OT/orientation lectures
     vods: list[LectureItem] = []
     for lec in lectures:
@@ -112,6 +145,16 @@ def resolve_candidate_vods(
     unwatched = [v for v in selected if v.status != AttendanceStatus.COMPLETED]
     skipped_count = len(selected) - len(unwatched)
 
+    # 3. Precision video index selection (D-12-02)
+    if video_index is not None:
+        if 1 <= video_index <= len(unwatched):
+            selected_video = unwatched[video_index - 1]
+            skipped_count += len(unwatched) - 1
+            unwatched = [selected_video]
+        else:
+            skipped_count += len(unwatched)
+            unwatched = []
+
     return (week_label, unwatched, skipped_count)
 
 
@@ -119,23 +162,29 @@ def watch_course_vods(
     settings: Settings,
     course_query: str,
     week_query: str | int | None = "current",
+    video_index: int | None = None,
     *,
     dry_run: bool = False,
     update_notion: bool = False,
     player: VodPlayer | None = None,
     playback_options: PlaybackOptions | None = None,
     session_manager: SessionManager | None = None,
+    state_manager: WatchStateManager | None = None,
     on_vod_start: Callable[[LectureItem, int, int], None] | None = None,
     on_vod_progress: Callable[[PlaybackProgress], None] | None = None,
     on_vod_complete: Callable[[PlaybackProgress], None] | None = None,
 ) -> WatchResult:
-    """Orchestrates discovering, filtering, and watching incomplete VODs for a course."""
+    """Orchestrates discovering, filtering, and watching incomplete VODs with state tracking (D-12-01..D-12-07)."""
     mappings = load_course_mappings(settings.course_mappings_path)
     vod_player = player or VodPlayer(default_options=playback_options)
+    sm = state_manager or WatchStateManager(settings=settings)
 
     mgr = session_manager or SessionManager(settings=settings, headful=not settings.headless)
     page = mgr.get_authenticated_page()
     navigator = CourseNavigator(settings=settings)
+    target_course: CourseItem | None = None
+    candidate_vods: list[LectureItem] = []
+    week_label: str = ""
 
     try:
         # 1. Discover courses and resolve target
@@ -144,16 +193,27 @@ def watch_course_vods(
 
         if not target_course:
             available = ", ".join(c.clean_name for c in all_courses)
+            err_msg = f"과목을 찾을 수 없습니다: '{course_query}' (수강 과목: {available})"
+            sm.write_state(
+                WatchState(
+                    status="error",
+                    course_name=course_query,
+                    pid=os.getpid(),
+                    error_message=err_msg,
+                )
+            )
             return WatchResult(
                 course_id="",
                 course_name=course_query,
                 target_week=str(week_query),
-                error_message=f"과목을 찾을 수 없습니다: '{course_query}' (수강 과목: {available})",
+                error_message=err_msg,
             )
 
         # 2. Scrape course lectures and activity completion
         lectures, _ = scrape_course(page, target_course, navigator)
-        week_label, candidate_vods, skipped_count = resolve_candidate_vods(lectures, week_query)
+        week_label, candidate_vods, skipped_count = resolve_candidate_vods(
+            lectures, week_query, video_index=video_index
+        )
 
         result = WatchResult(
             course_id=target_course.course_id,
@@ -167,7 +227,21 @@ def watch_course_vods(
         if dry_run or not candidate_vods:
             return result
 
-        # 3. Initialize Notion client if requested
+        # 3. Initialize initial state in watch_state.json (D-12-04)
+        sm.write_state(
+            WatchState(
+                status="running",
+                pid=os.getpid(),
+                course_name=target_course.clean_name,
+                course_id=target_course.course_id,
+                target_week=week_label,
+                video_index=video_index or 1,
+                total_videos=len(candidate_vods),
+                current_video_title=candidate_vods[0].title if candidate_vods else "",
+            )
+        )
+
+        # 4. Initialize Notion client if requested
         notion_client = None
         existing_notion_pages = {}
         if update_notion and settings.is_notion_configured:
@@ -178,8 +252,15 @@ def watch_course_vods(
             except Exception as e:
                 logger.warning(f"Failed to query Notion for status update: {e}")
 
-        # 4. Sequentially play unwatched VODs
+        # 5. Sequentially play unwatched VODs (D-12-01)
         for idx, vod in enumerate(candidate_vods, start=1):
+            # Check if execution was stopped via watch stop (D-12-06)
+            current_state = sm.read_state()
+            if current_state and current_state.status == "stopped":
+                logger.info("Watch state marked as stopped; aborting playback.")
+                result.error_message = "사용자에 의해 시청이 중단되었습니다."
+                break
+
             if on_vod_start:
                 on_vod_start(vod, idx, len(candidate_vods))
 
@@ -187,41 +268,120 @@ def watch_course_vods(
             if not vod_url.startswith("http"):
                 vod_url = f"{settings.lms_url.rstrip('/')}/{vod_url.lstrip('/')}"
 
+            def _wrapped_progress(p: PlaybackProgress) -> None:
+                rem_secs = max(0.0, p.duration - p.current_time) if p.duration > 0 else 0.0
+                sm.write_state(
+                    WatchState(
+                        status="running",
+                        pid=os.getpid(),
+                        course_name=target_course.clean_name,
+                        course_id=target_course.course_id,
+                        target_week=week_label,
+                        video_index=idx,
+                        total_videos=len(candidate_vods),
+                        current_video_title=vod.title,
+                        duration=p.duration,
+                        current_time=p.current_time,
+                        progress_percent=p.progress_percent,
+                        remaining_seconds=rem_secs,
+                    )
+                )
+                if on_vod_progress:
+                    on_vod_progress(p)
+
             playback_res = vod_player.play_vod(
                 page=page,
                 vod_url=vod_url,
                 title=vod.full_title or vod.title,
                 options=playback_options,
-                on_progress=on_vod_progress,
+                session_manager=mgr,
+                on_progress=_wrapped_progress,
             )
             result.playback_results.append(playback_res)
+
+            # Check if stopped mid-playback
+            current_state = sm.read_state()
+            if current_state and current_state.status == "stopped":
+                result.error_message = "사용자에 의해 시청이 중단되었습니다."
+                break
 
             if playback_res.is_completed:
                 result.completed_vods += 1
                 if on_vod_complete:
                     on_vod_complete(playback_res)
 
-                # 5. Optionally update Notion status
+                # Format task title
+                task_title = format_task_title(
+                    course_name=target_course.clean_name,
+                    raw_title=vod.title,
+                    task_type=TaskType.LECTURE,
+                    week_number=vod.week_number,
+                    clip_number=vod.clip_number,
+                    course_mappings=mappings,
+                )
+
+                # 6. Optionally update Notion status
+                notion_completed = False
                 if notion_client:
-                    task_title = format_task_title(
-                        course_name=target_course.clean_name,
-                        raw_title=vod.title,
-                        task_type=TaskType.LECTURE,
-                        week_number=vod.week_number,
-                        clip_number=vod.clip_number,
-                        course_mappings=mappings,
-                    )
                     notion_page = existing_notion_pages.get(task_title)
                     if notion_page:
                         try:
                             notion_client.mark_task_completed(notion_page.page_id)
                             result.notion_updated_count += 1
+                            notion_completed = True
                             logger.info(f"Updated Notion task '{task_title}' to '완료'")
                         except Exception as e:
                             logger.warning(f"Failed to update Notion task '{task_title}': {e}")
 
+                # 7. Record completed video to history (D-12-07)
+                sm.record_completed_video(
+                    course_id=target_course.course_id,
+                    course_name=target_course.clean_name,
+                    target_week=week_label,
+                    video_title=vod.title,
+                    task_title=task_title,
+                    notion_completed=notion_completed,
+                )
+
+        return result
+
+    except Exception as e:
+        logger.error(f"VOD execution failed: {e}")
+        result = WatchResult(
+            course_id=target_course.course_id if target_course else "",
+            course_name=target_course.clean_name if target_course else course_query,
+            target_week=week_label or str(week_query),
+            error_message=str(e),
+        )
         return result
 
     finally:
+        # Finalize watch state
+        final_state = sm.read_state()
+        if final_state and final_state.status != "stopped":
+            if result.error_message:
+                sm.write_state(
+                    WatchState(
+                        status="error",
+                        course_name=target_course.clean_name if target_course else course_query,
+                        pid=os.getpid(),
+                        error_message=result.error_message,
+                    )
+                )
+            elif not dry_run and candidate_vods:
+                sm.write_state(
+                    WatchState(
+                        status="completed",
+                        course_name=target_course.clean_name if target_course else course_query,
+                        course_id=target_course.course_id if target_course else "",
+                        target_week=week_label,
+                        total_videos=len(candidate_vods),
+                        video_index=len(candidate_vods),
+                        current_video_title=candidate_vods[-1].title if candidate_vods else "",
+                        progress_percent=100.0,
+                        pid=os.getpid(),
+                    )
+                )
+
         if session_manager is None:
             mgr.close()

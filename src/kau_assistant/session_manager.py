@@ -144,3 +144,28 @@ class SessionManager:
             logger.info("기존 캐시된 세션이 유효합니다. 로그인을 건너뜁니다.")
 
         return page
+
+    def ensure_authenticated(self, page: Page) -> None:
+        """Ensure the page has an active session; re-login if expired (D-12-11)."""
+        is_authenticated = self._check_authenticated(page)
+        if not is_authenticated:
+            logger.info("세션 만료 감지, 재로그인을 진행합니다.")
+            cache_path = self.settings.session_cache_path
+            if cache_path.exists():
+                try:
+                    cache_path.unlink(missing_ok=True)
+                except Exception:
+                    pass
+
+            perform_login(
+                page=page,
+                username=self.settings.lms_username,
+                password=self.settings.lms_password,
+                lms_url=self.settings.lms_url,
+                timeout_ms=self.settings.timeout_ms,
+            )
+
+            if self._context:
+                cache_path.parent.mkdir(parents=True, exist_ok=True)
+                self._context.storage_state(path=str(cache_path))
+                logger.info(f"갱신된 세션이 {cache_path}에 저장되었습니다.")
