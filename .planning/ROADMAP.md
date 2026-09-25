@@ -357,13 +357,20 @@ Plans:
 **Plans**: 0/2 plans executed
 
 Plans:
+**Wave 1**
+
 - [ ] 14-01-PLAN.md — 순수 파이썬 HLS 매니페스트 파서, RFC 8216 AES-128 복호화 및 원자적 TS 세그먼트 다운로더 엔진
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 14-02-PLAN.md — Playwright 하이브리드 스트림 스니퍼, watch --download 백그라운드 다운로드 연동 및 download-vod CLI 구현
 
 Wave 1:
+
 - [ ] 14-01: HLS 파서, AES-128 복호화, 원자적 TS 세그먼트 다운로더
 
 Wave 2 (blocked on Wave 1 completion):
+
 - [ ] 14-02: 스트림 스니퍼, watch 백그라운드 다운로드 연동, 단독 download-vod CLI
 
 ---
