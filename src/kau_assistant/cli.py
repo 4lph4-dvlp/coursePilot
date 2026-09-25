@@ -467,6 +467,109 @@ def watch_sync_notion_command(ctx: click.Context, course_query: str | None, as_j
             out.print(f"  ✓ {title}", markup=False, highlight=False)
 
 
+@cli.command("materials")
+@click.option(
+    "--course",
+    "course_query",
+    type=str,
+    default=None,
+    help="과목 이름, 약칭, 또는 과목 ID (생략 시 전체 과목)",
+)
+@click.option(
+    "--week",
+    "week_query",
+    type=str,
+    default="current",
+    show_default=True,
+    help="주차 ('current', 'all', 또는 주차 번호)",
+)
+@click.option(
+    "--output-dir",
+    "output_dir",
+    type=click.Path(),
+    default=None,
+    help="다운로드 저장 기본 디렉터리 경로",
+)
+@click.option(
+    "--no-download",
+    "no_download",
+    is_flag=True,
+    help="파일 다운로드 없이 미열람 자료의 진도율(100%) 이수만 수행",
+)
+@click.option(
+    "--dry-run",
+    "dry_run",
+    is_flag=True,
+    help="실제 다운로드/열람 없이 대상 자료 목록 및 저장 경로 미리 확인",
+)
+@click.option(
+    "--json",
+    "as_json",
+    is_flag=True,
+    help="결과를 JSON 형식으로 출력합니다.",
+)
+@click.option(
+    "--relogin",
+    "relogin",
+    is_flag=True,
+    help="캐시된 세션을 무시하고 새로 로그인합니다.",
+)
+@click.option(
+    "--headed",
+    "headed",
+    is_flag=True,
+    help="브라우저 창을 화면에 표시합니다.",
+)
+@click.pass_context
+def materials_command(
+    ctx: click.Context,
+    course_query: str | None,
+    week_query: str,
+    output_dir: str | None,
+    no_download: bool,
+    dry_run: bool,
+    as_json: bool,
+    relogin: bool,
+    headed: bool,
+) -> None:
+    """학습자료(ubfile/resource) 자동 열람 및 로컬 다운로드를 수행합니다."""
+    from kau_assistant.materials.reporter import render_materials_report
+    from kau_assistant.materials.runner import run_materials_pipeline
+
+    err = Console(stderr=True)
+    out = Console()
+
+    def _on_progress(msg: str) -> None:
+        err.print(msg, markup=False, highlight=False)
+
+    try:
+        result = run_materials_pipeline(
+            course_query=course_query,
+            week_query=week_query,
+            output_dir=output_dir,
+            no_download=no_download,
+            dry_run=dry_run,
+            relogin=relogin,
+            headful=headed,
+            progress_callback=_on_progress,
+        )
+    except Exception as e:
+        err.print(f"[오류] 학습자료 처리 실패: {e}", markup=False, highlight=False)
+        ctx.exit(2)
+
+    if as_json:
+        click.echo(result.model_dump_json(indent=2))
+    else:
+        render_materials_report(result, out)
+
+    if result.failed_count > 0:
+        ctx.exit(1)
+    ctx.exit(0)
+
+
+# Register alias `files` for `materials`
+cli.add_command(materials_command, name="files")
+
 
 def _configure_streams() -> None:
     """Reconfigures stdout/stderr to UTF-8 so Korean text survives a cp949 parent pipe (D-11)."""
