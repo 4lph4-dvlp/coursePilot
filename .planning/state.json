@@ -61,7 +61,7 @@
     {
       "number": "12",
       "name": "VOD Player Advanced Control & Retroactive Notion Sync",
-      "status": "in_progress"
+      "status": "complete"
     },
     {
       "number": "13",
@@ -94,5 +94,5 @@
     "label": "Show progress",
     "reason": "Unsure of state — showing progress"
   },
-  "updated_at": "2026-09-25T02:53:10.046Z"
+  "updated_at": "2026-09-25T04:20:02.357Z"
 }
