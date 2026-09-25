@@ -372,3 +372,174 @@ def test_view_board_article_downloads_attachments(dummy_settings, mock_courses):
         assert mock_download.called
         assert article.attachments[0].saved_path == "downloads\\알고리즘\\notices\\syllabus.pdf" or "downloads/알고리즘/notices/syllabus.pdf" in article.attachments[0].saved_path
         assert article.attachments[0].filesize == 2048
+
+
+def test_render_board_report():
+    """Verify Rich console rendering for board summary, inactive courses, badges, and errors."""
+    import io
+    from datetime import datetime
+    from rich.console import Console
+    from kau_assistant.board.models import (
+        BoardAttachmentItem,
+        BoardPostItem,
+        BoardReport,
+        BoardSummary,
+        BoardType,
+        CourseBoardGroup,
+    )
+    from kau_assistant.reporter import render_board_report
+
+    active_group = CourseBoardGroup(
+        course_id="101",
+        course_name="알고리즘",
+        course_abbr="Algo",
+        notices=[
+            BoardPostItem(
+                post_id="1",
+                board_id="501",
+                board_type=BoardType.NOTICE,
+                title="시험 안내",
+                author="이교수",
+                created_at="2026-09-20",
+                url="https://canvas.kau.ac.kr/mod/ubboard/article.php?id=501&bwid=1",
+                is_read=False,
+                summary_preview="중간고사 시험 범위 안내입니다.",
+                attachments=[
+                    BoardAttachmentItem(filename="guide.pdf", download_url="https://example.com/guide.pdf")
+                ],
+            )
+        ],
+        qna=[
+            BoardPostItem(
+                post_id="2",
+                board_id="502",
+                board_type=BoardType.QNA,
+                title="과제 질문",
+                author="홍길동",
+                created_at="2026-09-21",
+                url="https://canvas.kau.ac.kr/mod/ubboard/article.php?id=502&bwid=2",
+                is_read=True,
+                is_my_question=True,
+                is_answered=True,
+            ),
+            BoardPostItem(
+                post_id="3",
+                board_id="502",
+                board_type=BoardType.QNA,
+                title="강의 오타 문의",
+                author="이학생",
+                created_at="2026-09-22",
+                url="https://canvas.kau.ac.kr/mod/ubboard/article.php?id=502&bwid=3",
+                is_read=False,
+                is_my_question=False,
+                is_answered=False,
+            ),
+        ],
+    )
+    inactive_group = CourseBoardGroup(
+        course_id="102",
+        course_name="운영체제",
+        course_abbr="OS",
+    )
+    summary = BoardSummary(
+        total_courses=2,
+        total_notices=1,
+        unread_notices=1,
+        total_questions=2,
+        unanswered_questions=1,
+        my_questions=1,
+    )
+    report = BoardReport(
+        generated_at=datetime(2026, 9, 26, 12, 0, 0),
+        summary=summary,
+        courses=[active_group, inactive_group],
+        errors=[{"course_name": "실패과목", "error": "Connection Timeout"}],
+    )
+
+    buf = io.StringIO()
+    console = Console(file=buf, no_color=True, highlight=False, width=120)
+    render_board_report(report, console, detail=True)
+    output = buf.getvalue()
+
+    # 1. Summary Header
+    assert "게시판 브리핑 요약" in output
+    assert "총 과목: 2개" in output
+    assert "공지사항: 1개 (신규 1개)" in output
+    assert "Q&A: 2개 (답변대기 1개, 내 질문 1개)" in output
+
+    # 2. Inactive course compact 1-line muted text (D-15-02)
+    assert "• 운영체제: 최근 공지 및 질문 없음" in output
+
+    # 3. Active table and badges
+    assert "알고리즘 (Algo)" in output
+    assert "[NEW]" in output
+    assert "시험 안내" in output
+    assert "중간고사 시험 범위 안내입니다." in output
+    assert "첨부 1개" in output
+    assert "[내 질문]" in output
+    assert "[답변완료]" in output
+    assert "[답변대기]" in output
+
+    # 4. Errors
+    assert "수집 오류" in output
+    assert "실패과목" in output
+    assert "Connection Timeout" in output
+
+
+def test_render_article_viewer():
+    """Verify Rich console rendering for single article viewer."""
+    import io
+    from rich.console import Console
+    from kau_assistant.board.models import (
+        BoardAttachmentItem,
+        BoardPostItem,
+        BoardReplyItem,
+        BoardType,
+    )
+    from kau_assistant.reporter import render_article_viewer
+
+    post = BoardPostItem(
+        post_id="5001",
+        board_id="10",
+        board_type=BoardType.NOTICE,
+        title="2026학기 중간고사 안내",
+        author="김교수",
+        created_at="2026-09-25",
+        hit_count=145,
+        url="https://canvas.kau.ac.kr/mod/ubboard/article.php?id=10&bwid=5001",
+        content="중간고사는 **10월 20일** 진행됩니다.",
+        attachments=[
+            BoardAttachmentItem(
+                filename="exam_guide.pdf",
+                download_url="https://example.com/guide.pdf",
+                filesize=1024 * 500,
+                saved_path="downloads/Algo/notices/exam_guide.pdf",
+            )
+        ],
+        replies=[
+            BoardReplyItem(
+                author="조교",
+                created_at="2026-09-25 15:00",
+                content="강의실은 101호입니다.",
+            )
+        ],
+    )
+
+    buf = io.StringIO()
+    console = Console(file=buf, no_color=True, highlight=False, width=120)
+    render_article_viewer(post, console)
+    output = buf.getvalue()
+
+    assert "게시글 상세 (#5001)" in output
+    assert "2026학기 중간고사 안내" in output
+    assert "작성자: 김교수" in output
+    assert "조회수: 145" in output
+    assert "exam_guide.pdf" in output
+    assert "500.0 KB" in output
+    assert "exam_guide.pdf" in output
+    assert "중간고사는" in output
+    assert "10월 20일" in output
+    assert "진행됩니다." in output
+    assert "답변: 조교" in output
+    assert "강의실은 101호입니다." in output
+

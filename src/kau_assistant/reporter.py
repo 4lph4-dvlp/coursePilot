@@ -28,6 +28,7 @@ from kau_assistant.report_models import (
     SyncSkipItem,
     SyncUpdateItem,
 )
+from kau_assistant.board.reporter import render_article_viewer, render_board_report
 from kau_assistant.scraper.date_parser import get_current_kst_time
 
 MINUTES_PER_HOUR = 60
