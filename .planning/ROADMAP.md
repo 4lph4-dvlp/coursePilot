@@ -26,9 +26,9 @@
 
 ## Milestone 4: Comprehensive Academic Automation & Dashboard (v2.0)
 
-- [ ] **Phase 12: VOD Player Advanced Control & Retroactive Notion Sync** - 특정 영상 지목(`--video-index`), 퍼지 과목 매칭, 실시간 진행 상태 조회(`watch status`), 중단(`watch stop`), 사후 노션 완료 처리(`watch sync-notion`)
-- [ ] **Phase 13: Learning Materials (ubfile) Auto-Completion & File Downloader** - 미열람 학습자료(`ubfile`) 자동 열람을 통한 진도율 100% 이수 및 과목/주차 계층 구조 로컬 다운로더 구현
-- [ ] **Phase 14: Pure-Python VOD Stream Downloader Integration** - 최소 설치 환경 유지를 위한 순수 파이썬 HLS/m3u8 스트림 캡처 및 백그라운드 영상 로컬 다운로더 구현
+- [x] **Phase 12: VOD Player Advanced Control & Retroactive Notion Sync** - 특정 영상 지목(`--video-index`), 퍼지 과목 매칭, 실시간 진행 상태 조회(`watch status`), 중단(`watch stop`), 사후 노션 완료 처리(`watch sync-notion`) (completed 2026-09-25)
+- [x] **Phase 13: Learning Materials (ubfile) Auto-Completion & File Downloader** - 미열람 학습자료(`ubfile`) 자동 열람을 통한 진도율 100% 이수 및 과목/주차 계층 구조 로컬 다운로더 구현 (completed 2026-09-25)
+- [x] **Phase 14: Pure-Python VOD Stream Downloader Integration** - 최소 설치 환경 유지를 위한 순수 파이썬 HLS/m3u8 스트림 캡처 및 백그라운드 영상 로컬 다운로더 구현 (completed 2026-09-25)
 - [ ] **Phase 15: Course Announcements & Q&A Board Briefing** - 과목별 `ubboard`(공지사항 및 질문과 답변) 파싱, 최근 3개 기본 및 사용자 맞춤 스코프 브리핑 CLI 구현
 - [ ] **Phase 16: Comprehensive Activity Progress Dashboard** - 전체 학습활동(동영상+과제+퀴즈+자료) 종합 진척도 계산, 전체/지나온 주차/이번 주차 진척도 대시보드(`progress`) 구현
 - [ ] **Phase 17: Universal Skill Packaging, Multi-Agent Deployment & End-to-End Verification** - 전체 신규 기능을 `SKILL.md` 및 `JSON_CONTRACT.md`에 반영, 5개 에이전트 일괄 재배포 및 E2E 실사이트 검증
@@ -354,24 +354,24 @@ Plans:
   2. VOD 시청(`watch`) 실행 시 네트워크 요청을 감시하여 미디어 스트림 URL을 감지하고 로컬 파일(`W{주차}-{영상번호}.mp4`)로 다운로드한다.
   3. 출석 인정(1.0배속 하트비트 재생)과 영상 로컬 소장을 동시에 완수한다.
 
-**Plans**: 0/2 plans executed
+**Plans**: 2/2 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 14-01-PLAN.md — 순수 파이썬 HLS 매니페스트 파서, RFC 8216 AES-128 복호화 및 원자적 TS 세그먼트 다운로더 엔진
+- [x] 14-01-PLAN.md — 순수 파이썬 HLS 매니페스트 파서, RFC 8216 AES-128 복호화 및 원자적 TS 세그먼트 다운로더 엔진
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 14-02-PLAN.md — Playwright 하이브리드 스트림 스니퍼, watch --download 백그라운드 다운로드 연동 및 download-vod CLI 구현
+- [x] 14-02-PLAN.md — Playwright 하이브리드 스트림 스니퍼, watch --download 백그라운드 다운로드 연동 및 download-vod CLI 구현
 
 Wave 1:
 
-- [ ] 14-01: HLS 파서, AES-128 복호화, 원자적 TS 세그먼트 다운로더
+- [x] 14-01: HLS 파서, AES-128 복호화, 원자적 TS 세그먼트 다운로더
 
 Wave 2 (blocked on Wave 1 completion):
 
-- [ ] 14-02: 스트림 스니퍼, watch 백그라운드 다운로드 연동, 단독 download-vod CLI
+- [x] 14-02: 스트림 스니퍼, watch 백그라운드 다운로드 연동, 단독 download-vod CLI
 
 ---
 
@@ -440,7 +440,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 11. Background Sub-agent Automation & Multi-Agent Skill Packaging | 1/1 | Complete | 2026-09-25 |
 | 12. VOD Player Advanced Control & Retroactive Notion Sync | 1/1 | Complete | 2026-09-25 |
 | 13. Learning Materials (ubfile) Auto-Completion & File Downloader | 1/1 | Complete    | 2026-09-25 |
-| 14. Pure-Python VOD Stream Downloader Integration | 0/2 | Planned |  |
+| 14. Pure-Python VOD Stream Downloader Integration | 2/2 | Complete    | 2026-09-25 |
 | 15. Course Announcements & Q&A Board Briefing | 0/1 | Planned |  |
 | 16. Comprehensive Activity Progress Dashboard | 0/1 | Planned |  |
 | 17. Universal Skill Packaging, Multi-Agent Deployment & End-to-End Verification | 0/1 | Planned |  |
