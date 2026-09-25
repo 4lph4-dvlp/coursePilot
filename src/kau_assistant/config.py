@@ -62,6 +62,10 @@ class Settings(BaseSettings):
         default=Path("config/course_mappings.json"),
         description="과목명 약칭 매핑 파일 경로",
     )
+    download_dir: Path = Field(
+        default=Path("downloads"),
+        description="강의 자료 기본 다운로드 저장 디렉터리 경로",
+    )
 
     def __repr__(self) -> str:
         masked_pw = "***" if self.lms_password else ""
@@ -73,7 +77,8 @@ class Settings(BaseSettings):
             f"notion_token='{masked_token}', notion_api_key='{masked_key}', "
             f"notion_database_id='{self.notion_database_id}', "
             f"notion_database_name='{self.notion_database_name}', "
-            f"session_cache_path={self.session_cache_path!r}, course_mappings_path={self.course_mappings_path!r})"
+            f"session_cache_path={self.session_cache_path!r}, course_mappings_path={self.course_mappings_path!r}, "
+            f"download_dir={self.download_dir!r})"
         )
 
     def __str__(self) -> str:
