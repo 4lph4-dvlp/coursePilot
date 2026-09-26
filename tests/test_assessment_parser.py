@@ -42,6 +42,7 @@ def test_parse_assessment_list():
     assert i1.status == SubmissionStatus.SUBMITTED
     assert i1.is_overdue is False
     assert i1.due_date == datetime(2026, 9, 15, 23, 59, 0, tzinfo=KST)
+    assert i1.week_number == 1
 
     # Item 2: Draft (Incomplete)
     i2 = items[1]
@@ -49,6 +50,7 @@ def test_parse_assessment_list():
     assert i2.title == "과제 2: 연립방정식 구현"
     assert i2.status == SubmissionStatus.DRAFT
     assert i2.is_overdue is False
+    assert i2.week_number == 2
 
     # Item 3: Not Attempted & Overdue (Due 2026-09-10)
     i3 = items[2]

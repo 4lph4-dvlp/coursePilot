@@ -47,6 +47,8 @@ def parse_assessment_list(
                 col_map["submission"] = idx
             elif "grade" not in col_map and any(k in txt for k in ("채점", "성적", "Grade")):
                 col_map["grade"] = idx
+            elif "week" not in col_map and any(k in txt for k in ("주차", "주", "Week")):
+                col_map["week"] = idx
             elif "title" not in col_map and any(k in txt for k in ("이름", "과제", "퀴즈", "토론", "시험", "제목", "활동", "Name")):
                 col_map["title"] = idx
 
@@ -55,11 +57,13 @@ def parse_assessment_list(
         col_due = col_map.get("due")
         col_submission = col_map.get("submission")
         col_grade = col_map.get("grade")
+        col_week = col_map.get("week")
     else:
         col_title = 1
         col_due = 2
         col_submission = 3
         col_grade = 4
+        col_week = None
 
     rows = table.find("tbody").find_all("tr") if table.find("tbody") else table.find_all("tr")[1:]
 
@@ -125,6 +129,13 @@ def parse_assessment_list(
         if status in (SubmissionStatus.NOT_ATTEMPTED, SubmissionStatus.DRAFT) and is_past_deadline(due_date):
             is_overdue = True
 
+        week_number: int | None = None
+        if col_week is not None and col_week < len(cells):
+            cell_week = cells[col_week].get_text(strip=True)
+            m_week = re.search(r"(\d+)", cell_week)
+            if m_week:
+                week_number = int(m_week.group(1))
+
         item = AssessmentItem(
             course_id=course_id,
             item_id=item_id,
@@ -135,6 +146,7 @@ def parse_assessment_list(
             raw_due_date=raw_due_date,
             url=link,
             is_overdue=is_overdue,
+            week_number=week_number,
         )
         items.append(item)
 

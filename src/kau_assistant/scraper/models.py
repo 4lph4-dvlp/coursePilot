@@ -81,3 +81,4 @@ class AssessmentItem(BaseModel):
     raw_due_date: str = ""
     url: str = ""
     is_overdue: bool = False
+    week_number: int | None = None
