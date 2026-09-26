@@ -11,6 +11,26 @@
 
 ## 호출 방식과 스트림 (Invocation & Streams)
 
+### 활동 범위와 준비일 (선택적 v1 확장)
+
+`check`/`sync` 공통 옵션: `--week N` 및 `--course-week "과목명:N"`는 반복할 수 있습니다. 과목명은 전체 이름·고유한 일부 이름·설정된 약칭·과목 ID로 식별합니다. `--due-before YYYY-MM-DD`는 KST 종일 마감 기준이며 모든 범위 선택 조건은 OR입니다. `--prepare-by YYYY-MM-DD`는 공식 마감과 별도입니다. `--include-completed` 사용 시 `summary.total_count`는 완료 항목을 포함하는 점검표의 총수입니다.
+
+`ReportItem`에 다음 선택 필드가 추가되었습니다. 누락된 경우 기본값을 적용하는 v1 호환 확장입니다.
+
+| 필드 | 타입 | 의미 |
+|---|---|---|
+| `week_number` | `int \| None` | 제목 숫자가 아닌 실제 LMS 섹션 주차 |
+| `is_completed` | `bool` | LMS 완료 여부, 기본 false |
+| `start_date` | `datetime \| None` | 공식 공개/시작 일시 |
+| `is_available` | `bool` | 실제 활동 링크 공개 여부, 기본 true |
+| `preparation_date` | `datetime \| None` | 개인 수업 준비 목표, 공식 `due_date`를 변경하지 않음 |
+
+`task_type`은 기존 유형에 `material`(강의자료 확인 및 다운로드)을 추가 지원합니다. 자료 이름은 `[과목] N주차 자료제목 확인 및 다운로드`이며 모듈 ID와 원본 URL로 식별합니다. Notion은 메모의 LMS URL로 동일 활동을 우선 식별하고, 이전 데이터는 정규화 제목으로 대조합니다. 동일한 원본 활동이나 제목이 모호하면 오류를 반환합니다. 완료 활동은 `sync.skip[].reason: lms_completed`로 건너뜁니다. 공식 마감 `DueDate`, 메모의 준비 목표, 보호되는 사용자 `Plan`은 서로 다른 값입니다.
+
+`MaterialItem`도 `start_date`, `due_date`, `raw_due_date`, `is_overdue`, `is_available`를 제공합니다. 아직 공개되지 않은 자료는 `materials` 실행에서 `skipped`로 표시하고 방문/다운로드하지 않습니다. `ProgressReport.courses[].all_items`의 각 활동은 실제 섹션 주차와 `module_id`를 사용하며 `start_date`와 `is_available`도 선택적 v1 확장 필드입니다.
+
+`progress`만은 수집에 성공해도 `summary.missed_past_count > 0`이면 기존 동작에 따라 종료 코드 `1`을 반환합니다. 이 경우 `status: success`, 빈 `errors`, 각 과목 `status: ok`를 확인하고 수집 실패와 구분하세요.
+
 - `--json` 플래그와 함께 실행하면 표준출력(stdout)에는 **정확히 하나의 JSON 객체**만 출력됩니다. 그 외의 텍스트는 출력되지 않습니다.
 - 표준에러(stderr)에는 진행 상황(`[i/N] 과목명 수집 중` 형태)과 로그 메시지만 출력됩니다. stderr는 절대 JSON으로 파싱하지 마세요.
 - click(CLI 프레임워크)이 자체적으로 발생시키는 사용 오류(알 수 없는 옵션 등)는 종료 코드 `2`로 종료하며 JSON을 전혀 출력하지 않습니다. 이 경우 stderr의 사용법(usage) 메시지를 그대로 사용자에게 보여주세요.
@@ -40,7 +60,7 @@
 | 필드 | 타입 | Nullable | 의미 |
 |------|------|----------|------|
 | `course_count` | `int` | 아니오 | 수집을 시도한 과목 수 |
-| `total_count` | `int` | 아니오 | 전체 미완료 항목 수 |
+| `total_count` | `int` | 아니오 | 기본은 미완료 항목 수, `--include-completed`는 완료 포함 점검 항목 수 |
 | `overdue_count` | `int` | 아니오 | 기한 초과 항목 수 |
 | `due_within_24h_count` | `int` | 아니오 | 24시간 이내 마감 항목 수 |
 | `later_count` | `int` | 아니오 | 그 이후 일정 항목 수 |
@@ -170,7 +190,7 @@
 | `title` | `str` | 아니오 | 작업 제목 |
 | `page_id` | `str \| None` | 예 | 대응하는 기존 페이지 ID (있는 경우) |
 | `notion_url` | `str \| None` | 예 | 대응하는 기존 페이지 URL (있는 경우) |
-| `reason` | `str` | 아니오 | 건너뛴 이유. 열거값: `unchanged`(변경 사항 없음), `notion_disabled`(Notion 미설정) |
+| `reason` | `str` | 아니오 | 건너뛴 이유: `unchanged`(변경 사항 없음), `notion_disabled`(Notion 미설정), `lms_completed`(LMS 완료 항목) |
 
 ### `SyncCounts`
 
