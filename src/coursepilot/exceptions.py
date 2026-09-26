@@ -5,10 +5,6 @@ class CoursePilotError(Exception):
     pass
 
 
-# Transitional import alias for third-party code using the former public name.
-KauAssistantError = CoursePilotError
-
-
 class ConfigError(CoursePilotError):
     """Raised when configuration is invalid or missing required values."""
     pass

@@ -87,7 +87,7 @@ class CourseNavigator:
         self.polite_delay()
         base_url = self.settings.lms_url.rstrip("/")
 
-        # 1. Try ublogs completion first (KAU LXP primary activity status page)
+        # 1. Try ublogs completion first (Coursemos activity status page)
         ublogs_url = f"{base_url}/report/ublogs/completion.php?id={course.course_id}"
         logger.info(f"Attempting navigation to activity completion for course {course.course_id}")
         try:

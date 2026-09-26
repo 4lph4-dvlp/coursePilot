@@ -1,10 +1,11 @@
-"""Behavioral regressions for CoursePilot naming and compatibility boundaries."""
+"""Behavioral regressions for the single CoursePilot product identity."""
 
 import importlib.metadata
 import os
 from pathlib import Path
 import subprocess
 import sys
+import tomllib
 
 import pytest
 
@@ -21,41 +22,44 @@ def child_python(tmp_path, *args):
     return subprocess.run([sys.executable, *args], cwd=tmp_path, env=env, capture_output=True, text=True, encoding="utf-8", timeout=30)
 
 
-@pytest.mark.parametrize("first,second", [("kau_assistant", "coursepilot"), ("coursepilot", "kau_assistant")])
-def test_legacy_imports_share_models_enums_exceptions_and_singleton(tmp_path, first, second):
-    script = f'''
+def test_canonical_imports_preserve_module_identity(tmp_path):
+    script = '''
 import importlib
 for suffix in ("config", "domain.models", "scraper.models", "exceptions", "cli", "notion.engine"):
-    a = importlib.import_module("{first}." + suffix)
-    b = importlib.import_module("{second}." + suffix)
+    a = importlib.import_module("coursepilot." + suffix)
+    b = importlib.import_module("coursepilot." + suffix)
     assert a is b, suffix
     assert a.__name__.startswith("coursepilot."), a.__name__
     assert a.__spec__.name.startswith("coursepilot."), a.__spec__.name
-from kau_assistant.domain.models import SyncTask, TaskType
-from coursepilot.domain.models import SyncTask as CanonicalTask, TaskType as CanonicalType
-assert SyncTask is CanonicalTask and TaskType is CanonicalType
-from kau_assistant.exceptions import KauAssistantError
-from coursepilot.exceptions import CoursePilotError
-assert KauAssistantError is CoursePilotError
-from kau_assistant.config import get_settings
-from coursepilot.config import get_settings as current
-assert get_settings is current and get_settings() is current()
+from coursepilot.config import get_settings
+assert get_settings() is get_settings()
 '''
     result = child_python(tmp_path, "-c", script)
     assert result.returncode == 0, result.stderr
 
 
-@pytest.mark.parametrize("module", ["coursepilot", "kau_assistant"])
-def test_both_module_entry_points_work_outside_repository(tmp_path, module):
-    result = child_python(tmp_path, "-m", module, "--help")
+def test_module_entry_point_works_outside_repository(tmp_path):
+    result = child_python(tmp_path, "-m", "coursepilot", "--help")
     assert result.returncode == 0, result.stderr
     assert "CoursePilot" in result.stdout
     assert "check" in result.stdout and "install-skill" in result.stdout
 
 
 def test_distribution_console_entry_points():
-    entries = {entry.name: entry.value for entry in importlib.metadata.distribution("coursepilot").entry_points}
-    assert entries["coursepilot"] == entries["kau-assistant"] == "coursepilot.cli:main"
+    entries = {entry.name: entry.value for entry in importlib.metadata.distribution("coursepilot").entry_points if entry.group == "console_scripts"}
+    assert entries == {"coursepilot": "coursepilot.cli:main"}
+
+
+def test_manifest_exposes_only_canonical_package_and_command():
+    manifest = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    assert manifest["project"]["name"] == "coursepilot"
+    assert manifest["project"]["scripts"] == {"coursepilot": "coursepilot.cli:main"}
+    assert manifest["tool"]["hatch"]["build"]["targets"]["wheel"]["packages"] == ["src/coursepilot"]
+
+
+def test_repository_has_only_canonical_package_and_skill():
+    for directory in (ROOT / "src", ROOT / "skills"):
+        assert {path.name for path in directory.iterdir() if path.is_dir() and not path.name.startswith(".") and path.name != "__pycache__"} == {"coursepilot"}
 
 
 def test_school_selection_is_explicit_and_url_overrides_profile(clean_env):
@@ -83,9 +87,8 @@ def test_all_browser_workflows_require_a_school_before_launch(monkeypatch, clean
 
 def test_source_activity_identity_and_local_paths_are_unchanged(sample_settings):
     from coursepilot.domain.models import SyncTask, TaskPriority, TaskSelect, TaskType
-    from kau_assistant.domain.models import SyncTask as OldTask
     task = SyncTask(id="mat_1125_2847", course_id="1125", course_name="Example", course_abbr="Ex", title="Material", raw_title="Material", task_type=TaskType.MATERIAL, selection=TaskSelect.ROUTINE, priority=TaskPriority.P3, source_url="https://lxp.kau.ac.kr/mod/ubfile/view.php?id=2847")
-    restored = OldTask.model_validate_json(task.model_dump_json())
+    restored = SyncTask.model_validate_json(task.model_dump_json())
     assert restored.id == task.id and restored.source_url == task.source_url
     assert Settings(_env_file=None).session_cache_path == Path(".cache/session.json")
     assert Settings(_env_file=None).download_dir == Path("downloads")

@@ -143,7 +143,7 @@ def test_parse_lectures_from_course_sections_fallback(course):
 
 
 def test_lxp_course_home_dedupes_vods_and_uses_section_weeks(course):
-    fixture_path = Path(__file__).parent / "fixtures" / "lxp_course_home.html"
+    fixture_path = Path(__file__).parent / "fixtures" / "lms_course_home.html"
     html_content = fixture_path.read_text(encoding="utf-8")
 
     lectures = parse_lectures_from_course_sections(html_content, course)
@@ -178,7 +178,7 @@ def test_lxp_course_home_dedupes_vods_and_uses_section_weeks(course):
 
 
 def test_lxp_course_home_period_end_is_due_date(course):
-    fixture_path = Path(__file__).parent / "fixtures" / "lxp_course_home.html"
+    fixture_path = Path(__file__).parent / "fixtures" / "lms_course_home.html"
     html_content = fixture_path.read_text(encoding="utf-8")
 
     lectures = parse_lectures_from_course_sections(html_content, course)
@@ -195,7 +195,7 @@ def test_lxp_course_home_period_end_is_due_date(course):
 
 
 def test_lxp_course_home_titles_drop_accesshide_label(course):
-    fixture_path = Path(__file__).parent / "fixtures" / "lxp_course_home.html"
+    fixture_path = Path(__file__).parent / "fixtures" / "lms_course_home.html"
     html_content = fixture_path.read_text(encoding="utf-8")
 
     lectures = parse_lectures_from_course_sections(html_content, course)
@@ -205,7 +205,7 @@ def test_lxp_course_home_titles_drop_accesshide_label(course):
 
 
 def test_parse_ubcompletion_progress_rowspan_weeks_and_completion():
-    fixture_path = Path(__file__).parent / "fixtures" / "lxp_ubcompletion_progress.html"
+    fixture_path = Path(__file__).parent / "fixtures" / "lms_ubcompletion_progress.html"
     html_content = fixture_path.read_text(encoding="utf-8")
 
     rows = parse_ubcompletion_progress(html_content)
@@ -242,8 +242,8 @@ def test_parse_ubcompletion_progress_ignores_legacy_table():
 
 
 def test_merge_lecture_progress_by_module_id_or_title(course):
-    home_path = Path(__file__).parent / "fixtures" / "lxp_course_home.html"
-    progress_path = Path(__file__).parent / "fixtures" / "lxp_ubcompletion_progress.html"
+    home_path = Path(__file__).parent / "fixtures" / "lms_course_home.html"
+    progress_path = Path(__file__).parent / "fixtures" / "lms_ubcompletion_progress.html"
 
     lectures = parse_lectures_from_course_sections(home_path.read_text(encoding="utf-8"), course)
     rows = parse_ubcompletion_progress(progress_path.read_text(encoding="utf-8"))
@@ -292,7 +292,7 @@ def test_merge_lecture_progress_by_module_id_or_title(course):
 def test_merge_lecture_progress_order_fallback_and_unmatched(course):
     now = datetime(2026, 9, 23, 12, 0, tzinfo=KST)
 
-    home_path = Path(__file__).parent / "fixtures" / "lxp_course_home.html"
+    home_path = Path(__file__).parent / "fixtures" / "lms_course_home.html"
     lectures = parse_lectures_from_course_sections(home_path.read_text(encoding="utf-8"), course)
 
     # Create synthetic rows with NO module_id and different titles to test order-based fallback

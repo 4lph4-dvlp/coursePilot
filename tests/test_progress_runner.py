@@ -106,7 +106,7 @@ def test_progress_cache_corrupted_json(tmp_path: Path):
 
 
 def test_extract_course_sections_meta():
-    fixture_path = Path(__file__).parent / "fixtures" / "lxp_course_home.html"
+    fixture_path = Path(__file__).parent / "fixtures" / "lms_course_home.html"
     html_content = fixture_path.read_text(encoding="utf-8")
 
     sections = extract_course_sections_meta(html_content)

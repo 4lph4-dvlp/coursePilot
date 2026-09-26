@@ -9,7 +9,7 @@ from coursepilot.scraper.models import CourseItem
 
 
 def test_parse_materials_from_course_sections():
-    fixture_path = Path(__file__).parent / "fixtures" / "lxp_course_materials.html"
+    fixture_path = Path(__file__).parent / "fixtures" / "lms_course_materials.html"
     html = fixture_path.read_text(encoding="utf-8")
 
     course = CourseItem(

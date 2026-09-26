@@ -65,7 +65,7 @@ def test_extract_courses_from_html_fixture():
 
 
 def test_extract_courses_lxp_dashboard_clean_names():
-    fixture_path = Path(__file__).parent / "fixtures" / "lxp_dashboard.html"
+    fixture_path = Path(__file__).parent / "fixtures" / "lms_dashboard.html"
     html_content = fixture_path.read_text(encoding="utf-8")
 
     courses = extract_courses_from_html(html_content, base_url="https://lxp.kau.ac.kr")
@@ -104,7 +104,7 @@ def test_extract_courses_waits_for_attached_course_link():
 
 
 def test_looks_like_coursemos_markers():
-    fixture_path = Path(__file__).parent / "fixtures" / "lxp_dashboard.html"
+    fixture_path = Path(__file__).parent / "fixtures" / "lms_dashboard.html"
     assert looks_like_coursemos(fixture_path.read_text(encoding="utf-8")) is True
     assert looks_like_coursemos("<script>var M = {cfg: {}};</script>") is True
     assert looks_like_coursemos('<body id="page-my-index"></body>') is True

@@ -26,8 +26,8 @@ FIXTURES_DIR = Path(__file__).parent / "fixtures"
 PROGRESS_REPORT_HTML = (FIXTURES_DIR / "progress_report.html").read_text(encoding="utf-8")
 ASSIGNMENT_LIST_HTML = (FIXTURES_DIR / "assignment_list.html").read_text(encoding="utf-8")
 ASSIGNMENT_DETAIL_HTML = (FIXTURES_DIR / "assignment_detail.html").read_text(encoding="utf-8")
-LXP_COURSE_HOME_HTML = (FIXTURES_DIR / "lxp_course_home.html").read_text(encoding="utf-8")
-LXP_UBCOMPLETION_PROGRESS_HTML = (FIXTURES_DIR / "lxp_ubcompletion_progress.html").read_text(encoding="utf-8")
+LXP_COURSE_HOME_HTML = (FIXTURES_DIR / "lms_course_home.html").read_text(encoding="utf-8")
+LXP_UBCOMPLETION_PROGRESS_HTML = (FIXTURES_DIR / "lms_ubcompletion_progress.html").read_text(encoding="utf-8")
 
 EMPTY_QUIZ_HTML = "<html><body><div id='region-main'>등록된 퀴즈가 없습니다.</div></body></html>"
 PLAIN_COURSE_HOME_HTML = "<html><body><div id='region-main'>강의실 홈</div></body></html>"

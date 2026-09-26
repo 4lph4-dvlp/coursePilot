@@ -128,7 +128,7 @@ def test_scrape_course_assessments_flow(course):
 
 
 def test_parse_lxp_quiz_index_titles_and_due_dates():
-    fixture_path = Path(__file__).parent / "fixtures" / "lxp_quiz_index.html"
+    fixture_path = Path(__file__).parent / "fixtures" / "lms_quiz_index.html"
     html_content = fixture_path.read_text(encoding="utf-8")
 
     items = parse_assessment_list(html_content, course_id="10101", item_type=AssessmentType.QUIZ)
@@ -190,7 +190,7 @@ def test_lxp_quiz_index_reaches_check_report(course):
     from coursepilot.domain.transformer import transform_to_sync_tasks
     from coursepilot.reporter import build_check_report
 
-    fixture_path = Path(__file__).parent / "fixtures" / "lxp_quiz_index.html"
+    fixture_path = Path(__file__).parent / "fixtures" / "lms_quiz_index.html"
     html_content = fixture_path.read_text(encoding="utf-8")
     items = parse_assessment_list(html_content, course_id=course.course_id, item_type=AssessmentType.QUIZ)
 
