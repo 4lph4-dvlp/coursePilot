@@ -1,12 +1,22 @@
-# KAU LXP Assistant & Notion Scheduler Sync
+# CoursePilot
 
-한국항공대학교(KAU) LMS(코스모스/Coursemos) 자동 출결/과제 확인 및 개인 Notion 스케줄러 동기화 도구.
+대학 학업 일정·활동 관리 도우미. 영상·자료·과제·퀴즈의 상태와 마감일을 확인하고 개인 스케줄러에 연결합니다.
+
+학교와 플랫폼에 종속되지 않는 제품을 목표로 합니다. **현재 구현은 Coursemos 계열 LMS와 Notion Scheduler 연동**이며, 다른 LMS의 지원은 별도 구현·검증이 필요합니다. 한국항공대는 첫 실사이트 검증 환경입니다.
 
 ## 개요 (Overview)
 
 대학 LMS에 학생 로그인 정보를 통해 자동으로 로그인하여, 수강 중인 모든 강의의 주차별 온라인 강의 수강 여부, 과제 제출 여부, 마감 기한을 추출합니다. 결과는 AI 에이전트 채팅창에 브리핑 리포트로 표시되며, 사용자가 승인한 경우에만 개인 Notion `Scheduler` 데이터베이스에 중복 없이 동기화됩니다.
 
-이 프로젝트는 하나의 CLI(`python -m kau_assistant`)와, 그 CLI를 자연어로 호출하는 범용 Agent Skill(`skills/kau-lxp/`)로 구성됩니다. 이 스킬은 특정 에이전트에 종속되지 않고, `SKILL.md` 형식을 지원하는 모든 에이전트(Claude Code, Codex, Antigravity, Pi, Hermes 등)에서 동일하게 동작합니다.
+이 프로젝트는 하나의 CLI(`python -m coursepilot`)와, 그 CLI를 자연어로 호출하는 범용 Agent Skill(`skills/coursepilot/`)로 구성됩니다. 이 스킬은 특정 에이전트에 종속되지 않고, `SKILL.md` 형식을 지원하는 모든 에이전트(Claude Code, Codex, Antigravity, Pi, Hermes 등)에서 동일하게 동작합니다.
+
+## CoursePilot로 전환하기
+
+- 배포 패키지·Python 모듈·새 에이전트 스킬 이름은 `coursepilot`입니다. `uv sync` 후 `uv run coursepilot --help` 또는 `uv run python -m coursepilot --help`로 시작합니다.
+- 기존 `python -m kau_assistant`와 `kau-assistant` 명령 및 Python import는 같은 구현으로 연결되는 호환 진입점입니다.
+- 기존 `kau-lxp` 접합점은 저장소의 호환 스킬을 통해 새 지침을 읽습니다. 복사 설치는 업데이트가 자동 반영되지 않으므로 새 `install-skill` 명령으로 `coursepilot`를 설치하세요. 기존 스킬은 자동 삭제하지 않습니다.
+- `.env`의 키·직접 설정한 LMS 주소·세션/진척도 캐시·다운로드 경로·Notion 작업 ID는 그대로 유지됩니다. 예전 학교 기본값에 의존했다면 `LMS_URL` 또는 `LMS_PROFILE=kau`를 지정해야 합니다.
+- 로컬 저장소 폴더명과 Git 원격 주소는 자동으로 바꾸지 않습니다. 폴더를 나중에 옮긴 경우 연결형 스킬은 새 위치에서 재설치하세요.
 
 ## 요구 사항 (Requirements)
 
@@ -29,7 +39,7 @@
 
 3. `.env.example`을 `.env`로 복사한 뒤, 아래 키 값을 **직접** 채워 넣으세요. 이 값들은 절대 채팅이나 커밋에 공유하지 마세요.
 
-   - `LMS_URL` — 학교의 Coursemos(Moodle) 기반 LXP/LMS 주소 — 한국항공대는 기본값 https://lxp.kau.ac.kr 이므로 비워 두거나 그대로 두면 됩니다.
+   - `LMS_URL` — 학교의 Coursemos 기반 LMS 주소. 직접 지정하거나 `LMS_PROFILE=kau`를 선택하세요. 기본 학교는 없습니다.
    - `LMS_USERNAME` — LMS 학번/아이디
    - `LMS_PASSWORD` — LMS 비밀번호
    - `NOTION_TOKEN` — Notion 통합(integration) 토큰
@@ -37,7 +47,8 @@
 
 ## LMS 주소 (LMS_URL)
 
-- **기본 주소**: 한국항공대 학생의 이번 학기 강의는 https://lxp.kau.ac.kr (KAU LXP)에서 열립니다. `.env`에 `LMS_URL`을 설정하지 않으면 자동으로 이 주소를 조회합니다.
+- **명시적 학교 선택**: `LMS_URL`을 직접 지정합니다. 주소와 프로필이 모두 없으면 LMS 조회 전에 설정 오류를 반환합니다.
+- **선택적 학교 프로필**: 한국항공대는 `LMS_PROFILE=kau`로 https://lxp.kau.ac.kr 을 선택할 수 있습니다. `LMS_URL`이 있으면 프로필보다 우선합니다.
 - **이전 LMS**: 이전 주소인 https://lms.kau.ac.kr 은 지난 학기 강좌만 보관하므로 현재 학기 과목이 0개로 나타납니다.
 - **다른 학교 지원 (Coursemos 패밀리)**: 같은 유비온 Coursemos (Moodle) 엔진을 사용하는 타 대학 학생인 경우, `.env`의 `LMS_URL`을 해당 학교의 LXP/LMS 주소로 변경하여 사용할 수 있습니다.
 - **미지원 플랫폼**: Canvas, Blackboard 등 Coursemos 계열이 아닌 학습 관리 시스템은 지원하지 않습니다.
@@ -46,10 +57,10 @@
 
 | 명령어 | 설명 |
 |--------|------|
-| `python -m kau_assistant check` | LMS에 로그인해 미완료 강의/과제 현황을 확인합니다. Notion에는 접근하지 않습니다. |
-| `python -m kau_assistant sync` | LMS 현황을 Notion Scheduler에 동기화합니다. 기본값은 **미리보기(dry-run)**이며, 아무것도 기록하지 않습니다. |
-| `python -m kau_assistant sync --apply` | 미리보기 대신 실제로 Notion에 생성/수정을 반영합니다. |
-| `python -m kau_assistant install-skill --agent <id>` | 이 저장소의 `kau-lxp` 스킬을 지정한 에이전트의 사용자 스킬 폴더에 설치합니다. |
+| `python -m coursepilot check` | LMS에 로그인해 미완료 강의/과제 현황을 확인합니다. Notion에는 접근하지 않습니다. |
+| `python -m coursepilot sync` | LMS 현황을 Notion Scheduler에 동기화합니다. 기본값은 **미리보기(dry-run)**이며, 아무것도 기록하지 않습니다. |
+| `python -m coursepilot sync --apply` | 미리보기 대신 실제로 Notion에 생성/수정을 반영합니다. |
+| `python -m coursepilot install-skill --agent <id>` | 이 저장소의 `coursepilot` 스킬을 지정한 에이전트의 사용자 스킬 폴더에 설치합니다. |
 
 공통 옵션:
 
@@ -66,7 +77,7 @@
 
 `check`와 `sync`는 영상·자료·과제·퀴즈를 모두 수집합니다. 강의실 요약 대시보드에서는 주차별 목록으로 전환하고 실제 섹션의 주차와 완료 상태를 읽습니다. 활동 링크가 있는데 해석하지 못하면 부분 수집 실패를 보고합니다.
 
-예를 들어 `uv run python -m kau_assistant check --course-week "자료구조:5" --course-week "기초전자실험:5" --prepare-by 2026-10-02 --include-completed --json`으로 수업 준비 목록을 점검한 뒤, 같은 옵션으로 `sync --json` 미리보기를 실행할 수 있습니다. 과제 제목의 `W04`를 학기 4주차로 추정하지 않습니다. 무기한 영상도 선택한 주차에 속하면 포함합니다. `--prepare-by`는 LMS 공식 마감이나 기존 사용자 `Plan`·`상태`를 덮어쓰지 않습니다.
+예를 들어 `uv run python -m coursepilot check --course-week "자료구조:5" --course-week "기초전자실험:5" --prepare-by 2026-10-02 --include-completed --json`으로 수업 준비 목록을 점검한 뒤, 같은 옵션으로 `sync --json` 미리보기를 실행할 수 있습니다. 과제 제목의 `W04`를 학기 4주차로 추정하지 않습니다. 무기한 영상도 선택한 주차에 속하면 포함합니다. `--prepare-by`는 LMS 공식 마감이나 기존 사용자 `Plan`·`상태`를 덮어쓰지 않습니다.
 
 ### 종료 코드 (Exit Codes)
 
@@ -76,12 +87,12 @@
 | `1` | 부분 실패 — 일부 과목/항목에서 오류가 있었지만 나머지 결과는 정상 출력됨 |
 | `2` | 치명적 오류 — 설정 누락 또는 로그인 실패 등으로 실행이 중단됨 |
 
-JSON 출력의 정확한 필드 구조는 [`skills/kau-lxp/JSON_CONTRACT.md`](skills/kau-lxp/JSON_CONTRACT.md)를 참고하세요.
+JSON 출력의 정확한 필드 구조는 [`skills/coursepilot/JSON_CONTRACT.md`](skills/coursepilot/JSON_CONTRACT.md)를 참고하세요.
 
 ## 문제 해결 (Troubleshooting)
 
 - **수강 중인 과목을 찾지 못함 (`no_courses_found`)**:
-  로그인에는 성공했으나 과목이 0개인 경우 안내 문구가 표시됩니다. 저장소 `.env`의 `LMS_URL`이 현재 학기 강의가 열리는 주소(한국항공대 기본값 https://lxp.kau.ac.kr)인지, 그리고 이번 학기 수강 신청된 과목이 있는지 확인하세요.
+  로그인에는 성공했으나 과목이 0개인 경우 안내 문구가 표시됩니다. 저장소 `.env`의 `LMS_URL` 또는 선택한 `LMS_PROFILE`이 현재 학기 강의가 열리는 주소인지, 그리고 이번 학기 수강 신청된 과목이 있는지 확인하세요.
 - **지원하지 않는 사이트 구조 (`UnsupportedLmsError`)**:
   `LMS_URL`이 가리키는 사이트가 Coursemos(Moodle) 기반 사이트가 아닌 경우 치명적 오류(종료 코드 2)가 발생합니다. 저장소 `.env`의 `LMS_URL`을 확인하고 학교의 Coursemos LXP/LMS 주소로 수정하세요.
 - **인증 실패 (`AuthenticationError`)**:
@@ -93,21 +104,21 @@ JSON 출력의 정확한 필드 구조는 [`skills/kau-lxp/JSON_CONTRACT.md`](sk
 
 ## 에이전트 스킬 설치 (Agent Skill Installation)
 
-`skills/kau-lxp/`는 에이전트 중립적인 `SKILL.md`(및 `JSON_CONTRACT.md`)로 구성된 범용 Agent Skill입니다. 아래 명령으로 지원하는 각 에이전트의 사용자 스킬 폴더에 설치할 수 있습니다.
+`skills/coursepilot/`는 에이전트 중립적인 `SKILL.md`(및 `JSON_CONTRACT.md`)로 구성된 범용 Agent Skill입니다. 아래 명령으로 지원하는 각 에이전트의 사용자 스킬 폴더에 설치할 수 있습니다.
 
 | 에이전트 | 설치 명령 | 설치 경로 (예시) | 상태 |
 |----------|-----------|-------------------|------|
-| Claude Code | `python -m kau_assistant install-skill --agent claude` | `~/.claude/skills/kau-lxp` | 확인됨 (과제 확인, 노션 미리보기) |
-| Codex | `python -m kau_assistant install-skill --agent codex` | `~/.codex/skills/kau-lxp` | 과제 확인 확인됨, 노션 미리보기 재확인 대기 |
-| Antigravity | `python -m kau_assistant install-skill --agent antigravity` | `~/.gemini/antigravity/skills/kau-lxp` | 빈 폴더에서 재확인 대기 |
-| Pi | `python -m kau_assistant install-skill --agent pi` | `~/.pi/agent/skills/kau-lxp` | 과제 확인 확인됨, 노션 미리보기 재확인 대기 |
-| Hermes | `python -m kau_assistant install-skill --agent hermes` | `$HERMES_HOME/skills/kau-lxp` (또는 Windows `%LOCALAPPDATA%\hermes\skills\kau-lxp`, 그 외 `~/.hermes/skills/kau-lxp`) | 설치 경로 수정됨, 재확인 대기 |
+| Claude Code | `python -m coursepilot install-skill --agent claude` | `~/.claude/skills/coursepilot` | 새 이름 설치 테스트 통과; 에이전트 재발견 확인 대기 |
+| Codex | `python -m coursepilot install-skill --agent codex` | `~/.codex/skills/coursepilot` | 새 이름 설치 테스트 통과; 에이전트 재발견 확인 대기 |
+| Antigravity | `python -m coursepilot install-skill --agent antigravity` | `~/.gemini/antigravity/skills/coursepilot` | 빈 폴더에서 재확인 대기 |
+| Pi | `python -m coursepilot install-skill --agent pi` | `~/.pi/agent/skills/coursepilot` | 새 이름 설치 테스트 통과; 에이전트 재발견 확인 대기 |
+| Hermes | `python -m coursepilot install-skill --agent hermes` | `$HERMES_HOME/skills/coursepilot` (또는 Windows `%LOCALAPPDATA%\hermes\skills\coursepilot`, 그 외 `~/.hermes/skills/coursepilot`) | 새 이름 설치 테스트 통과; 에이전트 재발견 확인 대기 |
 
 설치가 끝나면 **해당 에이전트를 재시작(또는 새 세션 시작)**한 뒤 "과제 확인해줘"처럼 자연어로 요청해 보세요. 상세 확인 결과는 `.planning/phases/05-cli-reporting-antigravity-skill-packaging/05-AGENT-SKILL-EVIDENCE.md`에 기록됩니다.
 
 ### 개발용 `--link` 설치
 
-`install-skill --agent <id> --link`를 사용하면 복사 대신 심볼릭 링크(Windows에서 권한 문제로 심볼릭 링크가 실패하면 NTFS 접합점(junction)으로 자동 대체)로 설치되어, 저장소의 `skills/kau-lxp/` 파일을 수정할 때마다 설치된 스킬에도 즉시 반영됩니다. 심볼릭 링크와 접합점이 **모두** 실패하면 조용히 복사로 넘어가지 않고, 종료 코드 `2`와 함께 명확한 오류 메시지로 실패를 알립니다 — 이 경우 `--link` 없이 다시 실행해 복사 설치를 사용하세요.
+`install-skill --agent <id> --link`를 사용하면 복사 대신 심볼릭 링크(Windows에서 권한 문제로 심볼릭 링크가 실패하면 NTFS 접합점(junction)으로 자동 대체)로 설치되어, 저장소의 `skills/coursepilot/` 파일을 수정할 때마다 설치된 스킬에도 즉시 반영됩니다. 심볼릭 링크와 접합점이 **모두** 실패하면 조용히 복사로 넘어가지 않고, 종료 코드 `2`와 함께 명확한 오류 메시지로 실패를 알립니다 — 이 경우 `--link` 없이 다시 실행해 복사 설치를 사용하세요.
 
 ## 라이선스
 
