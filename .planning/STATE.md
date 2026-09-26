@@ -5,10 +5,10 @@ milestone_name: Completed)
 current_phase: 16
 status: completed
 stopped_at: Phase 17 context gathered
-last_updated: "2026-09-26T18:03:55.472Z"
+last_updated: "2026-09-26T18:20:50.717Z"
 last_activity: 2026-09-27
-last_activity_desc: Completed quick task 260927-3u6 - CoursePilot rebranding with legacy compatibility
-state_head: 1196e66726d2723eae937742341d3166ede0b552
+last_activity_desc: Completed quick task 260927-4dc - CoursePilot single-identity cleanup
+state_head: e02754accba1d36187b82f3a5bf69b65fb34b720
 progress:
   total_phases: 5
   completed_phases: 4
@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-09-25)
 Phase: 16
 Plan: Not started
 Status: All phases complete
-Last activity: 2026-09-27 — Completed quick task 260927-3u6: CoursePilot rebranding with legacy compatibility
+Last activity: 2026-09-27 — Completed quick task 260927-4dc: CoursePilot single-identity cleanup
 
 Progress: [█████████████░░░░░░░] 11/17 phases ([████████░░] 80%)
 
@@ -84,7 +84,8 @@ Progress: [█████████████░░░░░░░] 11/17 p
 
 ### Decisions
 
-- [Quick 260927-3u6]: CoursePilot is the primary product/package/CLI/skill identity. KAU is an optional LMS_PROFILE, not a default school; explicit LMS_URL wins. Legacy names remain identity-safe aliases; no new LMS support is implied. Workspace directory, source URLs and historical phase records stay unchanged.
+- [Quick 260927-3u6]: CoursePilot became the primary product/package/CLI/skill identity; an optional school profile does not override explicit LMS_URL. Its compatibility strategy was superseded by quick 260927-4dc; only the canonical identity remains. No new LMS support is implied.
+- [Quick 260927-4dc]: User explicitly rejects compatibility: only CoursePilot package, command, public exception and source skill remain. Former identities were removed from all tracked text and file names, including historical planning terminology; commit IDs, test counts and Git history are preserved. Actual school URLs/profile IDs and application state remain unchanged. Other devices must pull, sync and reinstall canonical skill links; no external agent directories or active workspace root were renamed. Phase 17 remains pending.
 - [Quick 260927-2wg]: Unique LMS source URL now precedes exact-title matching, superseding Phase 04's title-only identity; ambiguous identities still fail closed. Scope is explicit actual section weeks/date union. Preparation targets never replace official DueDate or user-owned Plan/status.
 - [Init]: Playwright 헤드리스 브라우저 채택 (동적 자바스크립트/SPA 렌더링 지원)
 - [Init]: 사용자의 기존 Notion Scheduler DB(`21d53280-64be-80ec-af4e-000b679f03bb`) 스키마 및 네이밍 관례(`[{과목약어}] ...`) 직접 준수
@@ -100,8 +101,8 @@ Progress: [█████████████░░░░░░░] 11/17 p
 - [Phase 05]: Kept sync's Task 1 (tracer) notice=None placeholder and minimal non-JSON output, deferring the unconfigured-Notion notice and full Rich render_sync_report to Task 2's GREEN step — Let the tracer commit stay a clean, isolated, production-quality slice (real engine, zero writes) before any Rich-rendering code existed
 - [Phase 05]: Unconfigured-Notion sync notice is a static Korean string naming all three candidate .env keys, not settings-derived — Matches the plan's literal wording and trivially satisfies 'contains no setting values' without adding a settings parameter to build_sync_report
 - [Phase 05]: install_skill shipped copy-mode only in Task 1's tracer commit, with link=True raising a clear not-yet-supported InstallError -- kept the tracer a clean, narrowly-scoped slice before Task 3 added link/replace handling on the same signature
-- [Phase 05]: Replace-safety check for a prior kau-lxp install reads only the target's own SKILL.md name: frontmatter line (no YAML dependency) -- cheap and sufficient to distinguish our skill from foreign content before any destructive write
-- [Phase 05]: --link writes repo-root.txt into the source directory (the repo's own skills/kau-lxp/), not the linked target, since the target is only a link to the source -- required a new .gitignore entry
+- [Phase 05]: Replace-safety check for a prior coursepilot install reads only the target's own SKILL.md name: frontmatter line (no YAML dependency) -- cheap and sufficient to distinguish our skill from foreign content before any destructive write
+- [Phase 05]: --link writes repo-root.txt into the source directory (the repo's own skills/coursepilot/), not the linked target, since the target is only a link to the source -- required a new .gitignore entry
 - [Phase 05]: Live-run precondition gaps (real ConfigError from empty .env credentials) are recorded truthfully and not retried, per the plan's own explicit instructions -- distinguishes an unmet external precondition from a code defect requiring auto-fix.
 - [Phase 05]: Proceeded past Task 1's live-evidence gap to complete Tasks 2/3 (JSON contract doc, README, five-agent install) since neither depends on the live LMS run -- avoided halting independently completable phase-closure work.
 
@@ -119,6 +120,7 @@ None yet.
 |---|-------------|------|--------|--------|-----------|
 | 260927-2wg | Complete LMS activity coverage and scoped preparation (409 tests; live 18/17) | 2026-09-27 | 25b18a6 | Verified | [260927-2wg-fix-course-activity-omissions-and-scoped](./quick/260927-2wg-fix-course-activity-omissions-and-scoped/) |
 | 260927-3u6 | CoursePilot rebranding with legacy compatibility (419 tests; wheel verified) | 2026-09-27 | 1196e66 | Verified | [260927-3u6-rebrand-project-to-coursepilot-with-lega](./quick/260927-3u6-rebrand-project-to-coursepilot-with-lega/) |
+| 260927-4dc | CoursePilot single-identity cleanup (419 tests; isolated wheel verified) | 2026-09-27 | e02754a | Verified | [260927-4dc-remove-obsolete-product-aliases-and-bran](./quick/260927-4dc-remove-obsolete-product-aliases-and-bran/) |
 
 ## Session Continuity
 
