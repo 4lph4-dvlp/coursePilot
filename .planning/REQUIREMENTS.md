@@ -106,8 +106,8 @@
 | VDL-02 | Phase 14 | Complete |
 | BRD-01 | Phase 15 | Complete |
 | BRD-02 | Phase 15 | Complete |
-| PROG-01 | Phase 16 | Pending |
-| PROG-02 | Phase 16 | Pending |
+| PROG-01 | Phase 16 | Complete |
+| PROG-02 | Phase 16 | Complete |
 | NOTF-01 | Future | Backlog |
 | CAL-01 | Future | Backlog |
 | MOBI-01 | Future | Backlog |
@@ -120,6 +120,6 @@
 
 ---
 *Requirements defined: 2026-09-21*
-*Last updated: 2026-09-26 for Milestone 4 (Phase 15)*
+*Last updated: 2026-09-26 for Milestone 4 (Phase 16)*
 
 

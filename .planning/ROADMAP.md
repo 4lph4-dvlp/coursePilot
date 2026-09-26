@@ -414,7 +414,20 @@ Plans:
   2. "전체 진도율", "지나온 주차 누적 이수율", "이번 주차 현황(완료/미완료 목록)"을 한눈에 볼 수 있는 `progress` 리포트를 제공한다.
   3. 콘솔 및 JSON 계약 형식으로 에이전트 브리핑을 지원한다.
 
-**Plans**: 0/1 plans executed
+**Plans**: 2/2 plans executed
+
+Plans:
+
+- [x] 16-01-PLAN.md — Domain Models, Assessment Week Parser, and Progress Calculation Engine
+- [x] 16-02-PLAN.md — Progress Pipeline Runner, 3-Tier Terminal UI, and CLI Command
+
+**Wave 1**
+
+- [x] 16-01: Domain Models (`models.py`), Assessment Week Parser (`assessment_parser.py`), and Calculation Engine (`calculator.py`)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 16-02: Progress Pipeline Runner (`runner.py`), 3-Tier Rich Dashboard (`reporter.py`), Click CLI Command (`progress`), and schema_version 1 JSON Contract
 
 ---
 
@@ -455,5 +468,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 13. Learning Materials (ubfile) Auto-Completion & File Downloader | 1/1 | Complete    | 2026-09-25 |
 | 14. Pure-Python VOD Stream Downloader Integration | 2/2 | Complete    | 2026-09-25 |
 | 15. Course Announcements & Q&A Board Briefing | 2/2 | Complete    | 2026-09-26 |
-| 16. Comprehensive Activity Progress Dashboard | 0/1 | Planned |  |
+| 16. Comprehensive Activity Progress Dashboard | 2/2 | Complete    | 2026-09-26 |
 | 17. Universal Skill Packaging, Multi-Agent Deployment & End-to-End Verification | 0/1 | Planned |  |
