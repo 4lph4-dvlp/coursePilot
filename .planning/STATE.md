@@ -5,10 +5,10 @@ milestone_name: Completed)
 current_phase: 16
 status: completed
 stopped_at: Phase 17 context gathered
-last_updated: "2026-09-26T04:52:51.473Z"
-last_activity: 2026-09-26
-last_activity_desc: Phase 16 complete
-state_head: 26127123b2b1513b2c8922cac6267088753ac231
+last_updated: "2026-09-26T17:33:59.733Z"
+last_activity: 2026-09-27
+last_activity_desc: Completed quick task 260927-2wg - complete activity coverage and scoped preparation
+state_head: 25b18a698887bfaff6e97f3ce3a863e12ad46493
 progress:
   total_phases: 5
   completed_phases: 4
@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-09-25)
 Phase: 16
 Plan: Not started
 Status: All phases complete
-Last activity: 2026-09-26 — Phase 16 complete
+Last activity: 2026-09-27 — Completed quick task 260927-2wg: complete activity coverage and scoped preparation
 
 Progress: [█████████████░░░░░░░] 11/17 phases ([████████░░] 80%)
 
@@ -84,6 +84,7 @@ Progress: [█████████████░░░░░░░] 11/17 p
 
 ### Decisions
 
+- [Quick 260927-2wg]: Unique LMS source URL now precedes exact-title matching, superseding Phase 04's title-only identity; ambiguous identities still fail closed. Scope is explicit actual section weeks/date union. Preparation targets never replace official DueDate or user-owned Plan/status.
 - [Init]: Playwright 헤드리스 브라우저 채택 (동적 자바스크립트/SPA 렌더링 지원)
 - [Init]: 사용자의 기존 Notion Scheduler DB(`21d53280-64be-80ec-af4e-000b679f03bb`) 스키마 및 네이밍 관례(`[{과목약어}] ...`) 직접 준수
 - [Init]: 중복 방지 엔진(Deduplication Engine)을 도입하여 기존 등록 작업 재등록 방지
@@ -109,7 +110,13 @@ None yet.
 
 ### Blockers/Concerns
 
-- D-26 (live evidence) unmet: .env LMS_USERNAME/LMS_PASSWORD are empty, real check/sync exit 2 (ConfigError). User must fill real LMS credentials and re-run before phase verification. Tracked in .planning/WINDOWS.md.
+- Historical D-26 credential blocker is no longer current: quick 260927-2wg verified fresh live check and Notion preview with zero errors. Actual sync application and download/player verification remain outside this quick task; Phase 17 is still pending.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Status | Directory |
+|---|-------------|------|--------|--------|-----------|
+| 260927-2wg | Complete LMS activity coverage and scoped preparation (409 tests; live 18/17) | 2026-09-27 | 25b18a6 | Verified | [260927-2wg-fix-course-activity-omissions-and-scoped](./quick/260927-2wg-fix-course-activity-omissions-and-scoped/) |
 
 ## Session Continuity
 
