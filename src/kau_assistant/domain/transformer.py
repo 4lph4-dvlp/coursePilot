@@ -23,6 +23,7 @@ from kau_assistant.scraper.models import (
     LectureItem,
     SubmissionStatus,
 )
+from kau_assistant.materials.models import MaterialItem
 
 
 def extract_deadline_from_description(text: str) -> datetime | None:
@@ -149,6 +150,8 @@ def transform_lecture_to_task(
         source_url=lecture.link,
         week_number=lecture.week_number,
         clip_number=lecture.clip_number,
+        start_date=lecture.start_date,
+        is_available=lecture.is_available,
     )
 
 
@@ -214,6 +217,29 @@ def transform_assessment_to_task(
         is_overdue=is_overdue,
         is_urgent=is_urgent,
         source_url=assessment.url,
+        week_number=assessment.week_number,
+        start_date=assessment.start_date,
+        is_available=assessment.is_available,
+    )
+
+
+def transform_material_to_task(
+    course: CourseItem, material: MaterialItem, mappings: dict[str, str], now: datetime | None = None,
+) -> SyncTask:
+    """Schedule the material activity without marking it viewed or downloading it."""
+    priority, urgent, overdue = calculate_priority(TaskType.MATERIAL, material.due_date, material.is_completed, now)
+    return SyncTask(
+        id=f"mat_{course.course_id}_{material.module_id}",
+        course_id=course.course_id, course_name=course.clean_name,
+        course_abbr=mappings.get(course.clean_name, course.clean_name),
+        title=format_task_title(course.clean_name, material.title, TaskType.MATERIAL, week_number=material.week_number, course_mappings=mappings),
+        raw_title=material.title, task_type=TaskType.MATERIAL,
+        selection=TaskSelect.ROUTINE, category=["학업"],
+        due_date=material.due_date, priority=priority,
+        status=TaskStatus.COMPLETED if material.is_completed else TaskStatus.NOT_STARTED,
+        is_completed=material.is_completed, is_urgent=urgent, is_overdue=overdue,
+        memo=format_memo(TaskType.MATERIAL, url=material.url), source_url=material.url,
+        week_number=material.week_number, start_date=material.start_date, is_available=material.is_available,
     )
 
 
@@ -224,6 +250,7 @@ def transform_to_sync_tasks(
     include_completed: bool = False,
     mappings: dict[str, str] | None = None,
     now: datetime | None = None,
+    materials_by_course: dict[str, list[MaterialItem]] | None = None,
 ) -> list[SyncTask]:
     """Transforms all collected course activities into normalized SyncTasks (D-09).
 
@@ -248,6 +275,11 @@ def transform_to_sync_tasks(
             if task is not None:
                 if include_completed or not task.is_completed:
                     tasks.append(task)
+
+        for material in (materials_by_course or {}).get(cid, []):
+            task = transform_material_to_task(course, material, active_mappings, now=now)
+            if include_completed or not task.is_completed:
+                tasks.append(task)
 
     # Sort: earliest deadline first, tasks without deadline last
     tasks.sort(

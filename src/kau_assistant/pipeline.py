@@ -28,6 +28,8 @@ from kau_assistant.scraper.lecture_parser import (
 )
 from kau_assistant.scraper.models import AssessmentItem, CourseItem, LectureItem
 from kau_assistant.scraper.navigator import CourseNavigator
+from kau_assistant.scraper.material_parser import parse_materials_from_course_sections
+from kau_assistant.materials.models import MaterialItem
 from kau_assistant.session_manager import SessionManager
 
 logger = logging.getLogger("kau_assistant.pipeline")
@@ -60,6 +62,7 @@ class PipelineResult(BaseModel):
     """Outcome of one `collect_tasks` run: courses seen, normalized tasks, and collected errors."""
 
     course_count: int
+    courses: list[CourseItem] = Field(default_factory=list)
     tasks: list[SyncTask]
     errors: list[ErrorItem] = Field(default_factory=list)
 
@@ -86,7 +89,7 @@ def scrape_course(
             elif not lectures and not ub_rows:
                 lectures = parse_lectures_from_progress_table(progress_html, course)
 
-    assessments = scrape_course_assessments(page, course, navigator)
+    assessments = scrape_course_assessments(page, course, navigator, home_html=home_html)
     return lectures, assessments
 
 
@@ -98,6 +101,7 @@ def collect_tasks(
     progress: ProgressCallback | None = None,
     session_factory: Callable[..., SessionManager] | None = None,
     now: datetime | None = None,
+    include_completed: bool = False,
 ) -> PipelineResult:
     """Runs LMS login -> course list -> per-course scrape -> transform_to_sync_tasks (D-07, D-09)."""
     validate_lms_settings(settings)
@@ -123,12 +127,16 @@ def collect_tasks(
 
         lectures_by_course: dict[str, list[LectureItem]] = {}
         assessments_by_course: dict[str, list[AssessmentItem]] = {}
+        materials_by_course: dict[str, list[MaterialItem]] = {}
 
         for index, course in enumerate(courses, start=1):
             if progress is not None:
                 progress(index, len(courses), course.clean_name)
             try:
                 lectures, assessments = scrape_course(page, course, navigator)
+                materials = parse_materials_from_course_sections(
+                    navigator.course_html.get(course.course_id, ""), course
+                )
             except Exception as error:
                 logger.warning(
                     "과목 수집 실패: course_id=%s (%s)",
@@ -146,6 +154,7 @@ def collect_tasks(
                 continue
             lectures_by_course[course.course_id] = lectures
             assessments_by_course[course.course_id] = assessments
+            materials_by_course[course.course_id] = materials
 
         tasks = transform_to_sync_tasks(
             courses,
@@ -153,6 +162,8 @@ def collect_tasks(
             assessments_by_course,
             mappings=load_course_mappings(settings.course_mappings_path),
             now=now,
+            include_completed=include_completed,
+            materials_by_course=materials_by_course,
         )
 
-    return PipelineResult(course_count=len(courses), tasks=tasks, errors=errors)
+    return PipelineResult(course_count=len(courses), courses=courses, tasks=tasks, errors=errors)

@@ -16,6 +16,7 @@ class TaskType(str, Enum):
     QUIZ = "quiz"
     FORUM = "forum"
     OTHER = "other"
+    MATERIAL = "material"
 
 
 class TaskPriority(str, Enum):
@@ -66,8 +67,11 @@ class SyncTask(BaseModel):
     source_url: str = ""
     week_number: int | None = None
     clip_number: int | None = None
+    start_date: datetime | None = None
+    is_available: bool = True
+    preparation_date: datetime | None = None
 
-    @field_validator("due_date", "plan_date", mode="after")
+    @field_validator("due_date", "plan_date", "start_date", "preparation_date", mode="after")
     @classmethod
     def ensure_kst(cls, v: datetime | None) -> datetime | None:
         """Ensures that datetimes have KST timezone attached."""

@@ -71,6 +71,10 @@ def format_task_title(
         return f"[{abbr}] {w}주차 {c}차시 강의 시청"
 
     # 2. Assessments: Assignment, Quiz, Forum, Other (D-02, D-03)
+    if task_type == TaskType.MATERIAL:
+        week = f"{week_number}주차 " if week_number is not None else ""
+        return f"[{abbr}] {week}{clean_task_title(raw_title)} 확인 및 다운로드"
+
     extracted_week, clean_name = extract_week_and_title(raw_title)
     effective_week = (
         week_number if (week_number is not None and week_number > 0) else extracted_week

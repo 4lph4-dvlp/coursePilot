@@ -2,7 +2,7 @@
 
 import logging
 import sys
-from datetime import datetime
+from datetime import datetime, time
 
 import click
 from rich.console import Console
@@ -27,6 +27,8 @@ from kau_assistant.reporter import (
     to_json,
 )
 from kau_assistant.scraper.date_parser import get_current_kst_time
+from kau_assistant.scraper.date_parser import KST
+from kau_assistant.domain.scope import scope_tasks
 
 
 @click.group()
@@ -41,6 +43,7 @@ def _collect_lms_tasks(
     err: Console,
     now: datetime,
     status_message: str,
+    include_completed: bool = False,
 ) -> tuple[Settings, PipelineResult]:
     """Shared settings-load + LMS-collect step for `check` and `sync` (D-07, D-08).
 
@@ -53,22 +56,47 @@ def _collect_lms_tasks(
     def _on_progress(index: int, total: int, name: str) -> None:
         err.print(f"[{index}/{total}] {name} 수집 중", markup=False, highlight=False)
 
+    extra = {"include_completed": True} if include_completed else {}
     result = collect_tasks(
         settings,
         headed=headed,
         relogin=relogin,
         progress=_on_progress,
         now=now,
+        **extra,
     )
     return settings, result
 
 
+def _scope_options(command):
+    """Shared supported filters for briefing and synchronization."""
+    command = click.option("--include-completed", is_flag=True, help="완료 항목도 점검표에 표시합니다 (동기화 시 생성하지 않음).")(command)
+    command = click.option("--week", "weeks", type=click.IntRange(min=1), multiple=True, help="포함할 LMS 주차 (여러 번 지정 가능).")(command)
+    command = click.option("--course-week", "course_weeks", multiple=True, help="과목별 LMS 주차: '과목명:5' (여러 번 지정 가능).")(command)
+    command = click.option("--due-before", type=click.DateTime(formats=["%Y-%m-%d"]), help="이 날짜 종일까지 마감하는 항목도 포함합니다 (주차 조건과 OR).")(command)
+    command = click.option("--prepare-by", type=click.DateTime(formats=["%Y-%m-%d"]), help="공식 마감을 유지하고 별도 수업 준비 목표일을 기록합니다.")(command)
+    return command
+
+
+def _scoped_result(result, weeks, course_weeks, due_before, prepare_by):
+    def end_of_day(value):
+        return datetime.combine(value.date(), time(23, 59, 59), tzinfo=KST) if value else None
+    return result.model_copy(update={"tasks": scope_tasks(
+        result.tasks, weeks=weeks, course_weeks=course_weeks,
+        due_before=end_of_day(due_before), prepare_by=end_of_day(prepare_by),
+        courses=result.courses,
+    )})
+
+
 @cli.command()
+@_scope_options
 @click.option("--json", "as_json", is_flag=True, help="결과를 JSON으로 출력합니다.")
 @click.option("--headed", is_flag=True, help="브라우저 창을 표시하며 실행합니다.")
 @click.option("--relogin", is_flag=True, help="캐시된 세션을 무시하고 다시 로그인합니다.")
 @click.pass_context
-def check(ctx: click.Context, as_json: bool, headed: bool, relogin: bool) -> None:
+def check(ctx: click.Context, as_json: bool, headed: bool, relogin: bool,
+          include_completed: bool, weeks: tuple[int, ...], course_weeks: tuple[str, ...],
+          due_before: datetime | None, prepare_by: datetime | None) -> None:
     """LMS에 로그인해 미완료 강의/과제 현황을 확인합니다 (Notion에는 접근하지 않습니다)."""
     err = Console(stderr=True)
     out = Console()
@@ -82,7 +110,9 @@ def check(ctx: click.Context, as_json: bool, headed: bool, relogin: bool) -> Non
             err=err,
             now=now,
             status_message="LMS 로그인 및 과목 목록 수집 중…",
+            include_completed=include_completed,
         )
+        result = _scoped_result(result, weeks, course_weeks, due_before, prepare_by)
         report = build_check_report(
             result.tasks,
             course_count=result.course_count,
@@ -102,12 +132,15 @@ def check(ctx: click.Context, as_json: bool, headed: bool, relogin: bool) -> Non
 
 
 @cli.command()
+@_scope_options
 @click.option("--json", "as_json", is_flag=True, help="결과를 JSON으로 출력합니다.")
 @click.option("--headed", is_flag=True, help="브라우저 창을 표시하며 실행합니다.")
 @click.option("--relogin", is_flag=True, help="캐시된 세션을 무시하고 다시 로그인합니다.")
 @click.option("--apply", "apply_changes", is_flag=True, help="미리보기 대신 실제로 Notion에 반영합니다.")
 @click.pass_context
-def sync(ctx: click.Context, as_json: bool, headed: bool, relogin: bool, apply_changes: bool) -> None:
+def sync(ctx: click.Context, as_json: bool, headed: bool, relogin: bool, apply_changes: bool,
+         include_completed: bool, weeks: tuple[int, ...], course_weeks: tuple[str, ...],
+         due_before: datetime | None, prepare_by: datetime | None) -> None:
     """LMS 현황을 Notion Scheduler에 동기화합니다 (기본은 미리보기, --apply로만 실제 반영, D-06)."""
     err = Console(stderr=True)
     out = Console()
@@ -121,7 +154,9 @@ def sync(ctx: click.Context, as_json: bool, headed: bool, relogin: bool, apply_c
             err=err,
             now=now,
             status_message="LMS 로그인 및 과목 목록 수집 중…",
+            include_completed=include_completed,
         )
+        result = _scoped_result(result, weeks, course_weeks, due_before, prepare_by)
     except Exception as error:  # noqa: BLE001 - top-level fatal boundary (D-08, D-12)
         fatal = safe_cli_error(error, scope="fatal")
         report = build_sync_report([], None, course_count=0, errors=[fatal], now=now)

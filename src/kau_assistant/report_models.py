@@ -46,6 +46,11 @@ class ReportItem(BaseModel):
     remaining_text: str
     lms_url: str
     detail: str | None
+    week_number: int | None = None
+    is_completed: bool = False
+    start_date: datetime | None = None
+    is_available: bool = True
+    preparation_date: datetime | None = None
 
 
 class CourseGroup(BaseModel):

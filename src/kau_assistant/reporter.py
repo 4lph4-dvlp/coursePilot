@@ -120,6 +120,11 @@ def _to_report_item(task: SyncTask, current: datetime, *, include_detail: bool) 
         remaining_text=format_remaining(task.due_date, current),
         lms_url=task.source_url,
         detail=detail,
+        week_number=task.week_number,
+        is_completed=task.is_completed,
+        start_date=task.start_date,
+        is_available=task.is_available,
+        preparation_date=task.preparation_date,
     )
 
 
