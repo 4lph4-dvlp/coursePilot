@@ -1,8 +1,8 @@
-# KAU LXP Assistant & Notion Scheduler Sync Skill
+# CoursePilot
 
 ## What This Is
 
-대학 온라인 학습 플랫폼(한국항공대 LXP / 표준 Canvas·Moodle 기반 LMS)에 학생 로그인 정보를 통해 자동으로 로그인하여, 수강 중인 모든 강의의 주차별 온라인 강의 수강 여부 및 과제 제출 여부, 마감 기한을 추출하는 AI 에이전트 Skill입니다. 
+학교·학습 플랫폼에 종속되지 않는 대학 학업 일정·활동 관리 도우미입니다. 현재는 Coursemos 계열 LMS에서 영상·자료·과제·퀴즈의 상태와 마감일을 수집하며, 한국항공대는 첫 실사이트 검증 환경입니다. Canvas·Blackboard 등 다른 플랫폼 지원은 향후 별도 연결 구현·검증이 필요하며 현재 지원한다고 주장하지 않습니다.
 추출된 데이터는 에이전트와의 채팅창 브리핑 리포트로 제공되며, 학생의 기존 Notion `Scheduler` 데이터베이스에 통일된 네이밍 규칙으로 중복 없이 자동 동기화됩니다.
 
 ## Core Value
@@ -34,15 +34,16 @@
 
 ## Context
 
-- **대상 플랫폼**: 한국항공대 LXP 및 Canvas/Moodle 표준 LMS 구조 대응
+- **제품 범위**: 대학별 학업 일정·활동 관리. 현재 연결 구현은 Coursemos 계열 LMS 및 Notion Scheduler이며 다른 LMS 연결은 향후 확장 대상입니다.
+- **학교 선택**: LMS_URL을 명시하거나 선택적 LMS_PROFILE=kau 사용. 기본 학교 없음; 기존 URL·캐시·활동 ID 보존.
 - **Notion 데이터베이스**: `Scheduler` (database container: `21d53280-64be-80e9-827a-e6fd0f85499a`, data source: `21d53280-64be-80ec-af4e-000b679f03bb`)
   - 필드: `이름`(Title), `선택`(Select: 루틴/이벤트), `구분`(Multi-select: 학업 등), `DueDate`(Date), `Plan`(Date), `우선순위`(Select: 🔴 긴급 (P1)/🟡 중요 (P2)/🔵 보통 (P3)/⚪ 낮음 (P4)), `상태`(Status: 시작 전/진행 중/완료/폐기), `메모`(Text)
   - 기존 네이밍 관례: `[공수2] 3주차 강의 시청`, `[자구] 3주차 강의 시청`, `[디시설] 2주차 개념 강의 정리` 등 `[{과목약어}] ...` 브래킷 표기법 준수
-- **동작 방식**: 범용 Agent Skill(`skills/kau-lxp/SKILL.md`)을 `install-skill` 명령으로 Claude Code, Codex, Antigravity, Pi, Hermes(그 외 SKILL.md를 지원하는 모든 에이전트 포함)에 설치하고, 에이전트가 자연어 요청을 받으면 `python -m kau_assistant check|sync --json`을 직접 실행해 버전이 명시된 JSON(schema_version 1)을 읽어 채팅창에 브리핑하며, 사용자가 승인한 뒤에만 Notion에 동기화
+- **동작 방식**: 범용 Agent Skill(`skills/coursepilot/SKILL.md`)을 `install-skill` 명령으로 Claude Code, Codex, Antigravity, Pi, Hermes(그 외 SKILL.md를 지원하는 모든 에이전트 포함)에 설치하고, 에이전트가 자연어 요청을 받으면 `python -m coursepilot check|sync --json`을 직접 실행해 버전이 명시된 JSON(schema_version 1)을 읽어 채팅창에 브리핑하며, 사용자가 승인한 뒤에만 Notion에 동기화. 기존 kau_assistant 명령과 kau-lxp 링크는 호환 경로로 남깁니다.
 
 ## Constraints
 
-- **Tech Stack**: Python 3.10+, Playwright, Notion API / Notion MCP
+- **Tech Stack**: Python 3.11+, Playwright, Notion API / Notion MCP
 - **보안**: 계정 정보 및 API 키는 코드에 하드코딩하지 않고 `.env` 파일로 격리
 - **중복 방지**: 정규화된 작업 제목을 단독 식별자로 사용하며, 같은 제목의 기존 페이지가 있으면 마감일 변경도 새 페이지 대신 해당 페이지의 허용 필드만 갱신
 

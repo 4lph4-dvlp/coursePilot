@@ -5,10 +5,10 @@ milestone_name: Completed)
 current_phase: 16
 status: completed
 stopped_at: Phase 17 context gathered
-last_updated: "2026-09-26T17:33:59.733Z"
+last_updated: "2026-09-26T18:03:55.472Z"
 last_activity: 2026-09-27
-last_activity_desc: Completed quick task 260927-2wg - complete activity coverage and scoped preparation
-state_head: 25b18a698887bfaff6e97f3ce3a863e12ad46493
+last_activity_desc: Completed quick task 260927-3u6 - CoursePilot rebranding with legacy compatibility
+state_head: 1196e66726d2723eae937742341d3166ede0b552
 progress:
   total_phases: 5
   completed_phases: 4
@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-09-25)
 Phase: 16
 Plan: Not started
 Status: All phases complete
-Last activity: 2026-09-27 — Completed quick task 260927-2wg: complete activity coverage and scoped preparation
+Last activity: 2026-09-27 — Completed quick task 260927-3u6: CoursePilot rebranding with legacy compatibility
 
 Progress: [█████████████░░░░░░░] 11/17 phases ([████████░░] 80%)
 
@@ -84,6 +84,7 @@ Progress: [█████████████░░░░░░░] 11/17 p
 
 ### Decisions
 
+- [Quick 260927-3u6]: CoursePilot is the primary product/package/CLI/skill identity. KAU is an optional LMS_PROFILE, not a default school; explicit LMS_URL wins. Legacy names remain identity-safe aliases; no new LMS support is implied. Workspace directory, source URLs and historical phase records stay unchanged.
 - [Quick 260927-2wg]: Unique LMS source URL now precedes exact-title matching, superseding Phase 04's title-only identity; ambiguous identities still fail closed. Scope is explicit actual section weeks/date union. Preparation targets never replace official DueDate or user-owned Plan/status.
 - [Init]: Playwright 헤드리스 브라우저 채택 (동적 자바스크립트/SPA 렌더링 지원)
 - [Init]: 사용자의 기존 Notion Scheduler DB(`21d53280-64be-80ec-af4e-000b679f03bb`) 스키마 및 네이밍 관례(`[{과목약어}] ...`) 직접 준수
@@ -117,6 +118,7 @@ None yet.
 | # | Description | Date | Commit | Status | Directory |
 |---|-------------|------|--------|--------|-----------|
 | 260927-2wg | Complete LMS activity coverage and scoped preparation (409 tests; live 18/17) | 2026-09-27 | 25b18a6 | Verified | [260927-2wg-fix-course-activity-omissions-and-scoped](./quick/260927-2wg-fix-course-activity-omissions-and-scoped/) |
+| 260927-3u6 | CoursePilot rebranding with legacy compatibility (419 tests; wheel verified) | 2026-09-27 | 1196e66 | Verified | [260927-3u6-rebrand-project-to-coursepilot-with-lega](./quick/260927-3u6-rebrand-project-to-coursepilot-with-lega/) |
 
 ## Session Continuity
 
