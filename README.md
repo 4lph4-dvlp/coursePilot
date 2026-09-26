@@ -12,8 +12,7 @@
 
 ## 업데이트 및 스킬 연결
 
-- 배포 패키지·Python 모듈·명령·에이전트 스킬은 모두 `coursepilot` 하나만 제공합니다. 별도 호환 진입점은 없습니다.
-- 다른 기기에서는 `git pull` 후 `uv sync`를 실행하세요. `uv run coursepilot --help` 또는 `uv run python -m coursepilot --help`로 실행을 확인합니다.
+- 저장소를 받은 후 `uv sync`를 실행하세요. `uv run coursepilot --help` 또는 `uv run python -m coursepilot --help`로 실행을 확인합니다.
 - 에이전트 스킬은 `uv run coursepilot install-skill --agent <id> --link`로 다시 연결하세요. 사용하지 않는 이전 스킬 연결은 직접 제거하고 에이전트를 새 세션으로 시작하세요. 복사 설치라면 `--link` 없이 재설치합니다.
 - `.env`의 키·직접 설정한 LMS 주소·세션/진척도 캐시·다운로드 경로·Notion 작업 ID는 그대로 유지됩니다. 예전 학교 기본값에 의존했다면 `LMS_URL` 또는 `LMS_PROFILE=kau`를 지정해야 합니다.
 - 로컬 저장소 폴더명과 Git 원격 주소는 자동으로 바꾸지 않습니다. 폴더를 나중에 옮긴 경우 연결형 스킬은 새 위치에서 재설치하세요.
@@ -42,8 +41,8 @@
    - `LMS_URL` — 학교의 Coursemos 기반 LMS 주소. 직접 지정하거나 `LMS_PROFILE=kau`를 선택하세요. 기본 학교는 없습니다.
    - `LMS_USERNAME` — LMS 학번/아이디
    - `LMS_PASSWORD` — LMS 비밀번호
-   - `NOTION_TOKEN` — Notion 통합(integration) 토큰
-   - `NOTION_DATABASE_NAME` 또는 `NOTION_DATABASE_ID` — 동기화 대상 Notion `Scheduler` 데이터베이스 (둘 중 하나만 있으면 됩니다)
+   - `NOTION_TOKEN` (선택) — Notion 통합(integration) 토큰
+   - `NOTION_DATABASE_NAME` 또는 `NOTION_DATABASE_ID` (선택) — 동기화 대상 Notion `Scheduler` 데이터베이스 (둘 중 하나만 있으면 됩니다)
 
 ## LMS 주소 (LMS_URL)
 
