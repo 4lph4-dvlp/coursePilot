@@ -55,6 +55,10 @@ class LectureItem(BaseModel):
     raw_due_date: str = ""
     is_overdue: bool = False
     link: str = ""
+    module_id: str | None = None
+    start_date: datetime | None = None
+    is_available: bool = True
+    completion_known: bool = False
 
 
 class AttachmentMeta(BaseModel):
@@ -82,3 +86,5 @@ class AssessmentItem(BaseModel):
     url: str = ""
     is_overdue: bool = False
     week_number: int | None = None
+    start_date: datetime | None = None
+    is_available: bool = True

@@ -9,6 +9,7 @@ from kau_assistant.config import Settings
 from kau_assistant.exceptions import CourseAccessDeniedError
 from kau_assistant.scraper.debug_dump import capture_debug_snapshot
 from kau_assistant.scraper.models import CourseItem
+from kau_assistant.scraper.course_sections import needs_section_view, sections_url, validate_activity_coverage
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,7 @@ class CourseNavigator:
         self.min_delay = min_delay
         self.max_delay = max_delay
         self.timeout_ms = settings.timeout_ms
+        self.course_html: dict[str, str] = {}
 
     def polite_delay(self) -> None:
         """Applies a polite micro-delay to avoid WAF/DoS blocks."""
@@ -70,6 +72,14 @@ class CourseNavigator:
                 f"Access denied or course restricted for course {course.course_id}: {course.clean_name}"
             )
 
+        if needs_section_view(content):
+            self.polite_delay()
+            response = page.goto(sections_url(course.url), wait_until="domcontentloaded")
+            if response and response.status in (403, 401):
+                raise CourseAccessDeniedError(f"HTTP {response.status} access denied to course {course.course_id}")
+            content = page.content()
+        validate_activity_coverage(content, course)
+        self.course_html[course.course_id] = content
         return content
 
     def navigate_progress_page(self, page: Page, course: CourseItem) -> str | None:

@@ -110,6 +110,8 @@ def resolve_candidate_vods(
     # 1. Keep only VOD lectures, excluding OT/orientation lectures
     vods: list[LectureItem] = []
     for lec in lectures:
+        if not lec.is_available:
+            continue
         if lec.week_number == 0:
             continue
         title_lower = (lec.title + " " + lec.full_title).lower()

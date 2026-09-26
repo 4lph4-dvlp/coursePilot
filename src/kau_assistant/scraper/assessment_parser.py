@@ -270,10 +270,43 @@ def enrich_assessment_detail(
     return item
 
 
+def merge_section_assessments(
+    items: list[AssessmentItem], home_html: str, course: CourseItem,
+) -> list[AssessmentItem]:
+    """Enrich index items and recover omitted ones using authoritative section metadata."""
+    from kau_assistant.scraper.course_sections import parse_course_activities
+
+    by_id = {item.item_id: item for item in items}
+    for activity in parse_course_activities(home_html, course):
+        if activity.module_type not in {"assign", "quiz"}:
+            continue
+        item = by_id.get(activity.module_id)
+        if item is None:
+            item = AssessmentItem(
+                course_id=course.course_id, item_id=activity.module_id,
+                item_type=AssessmentType.QUIZ if activity.module_type == "quiz" else AssessmentType.ASSIGNMENT,
+                title=activity.title, url=activity.url,
+                status=SubmissionStatus.NOT_ATTEMPTED,
+            )
+            items.append(item)
+            by_id[item.item_id] = item
+        item.week_number = activity.week_number
+        item.start_date = activity.start_date
+        item.is_available = activity.is_available
+        if activity.due_date is not None:
+            item.due_date = activity.due_date
+            item.raw_due_date = activity.raw_due_date
+        if activity.completion_known:
+            item.status = SubmissionStatus.SUBMITTED if activity.is_completed else SubmissionStatus.NOT_ATTEMPTED
+        item.is_overdue = item.status in (SubmissionStatus.NOT_ATTEMPTED, SubmissionStatus.DRAFT) and is_past_deadline(item.due_date)
+    return items
+
+
 def scrape_course_assessments(
     page: Page,
     course: CourseItem,
     navigator: CourseNavigator,
+    home_html: str = "",
 ) -> list[AssessmentItem]:
     """Navigates to assignment and quiz summary pages and deep-scrapes details."""
     all_assessments: list[AssessmentItem] = []
@@ -304,9 +337,11 @@ def scrape_course_assessments(
         )
         all_assessments.extend(quiz_items)
 
-    # 3. Deep detail extraction for each item with polite delay
+    all_assessments = merge_section_assessments(all_assessments, home_html, course)
+
+    # 3. Deep detail extraction for each available item with polite delay
     for item in all_assessments:
-        if item.url:
+        if item.url and item.is_available:
             navigator.polite_delay()
             logger.info(f"Deep scraping assessment detail: {item.title} ({item.item_id})")
             try:

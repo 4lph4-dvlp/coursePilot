@@ -1,5 +1,6 @@
 """Domain models for course learning materials and download results."""
 
+from datetime import datetime
 from enum import Enum
 from pydantic import BaseModel, Field
 
@@ -25,6 +26,11 @@ class MaterialItem(BaseModel):
     is_completed: bool = False
     download_url: str = ""
     suggested_filename: str = ""
+    start_date: datetime | None = None
+    due_date: datetime | None = None
+    raw_due_date: str = ""
+    is_overdue: bool = False
+    is_available: bool = True
 
 
 class MaterialDownloadResult(BaseModel):

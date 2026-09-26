@@ -80,6 +80,13 @@ def process_course_materials(
     for idx, item in enumerate(materials, 1):
         target_dir = output_root / course.clean_name / f"W{item.week_number}"
 
+        if not item.is_available:
+            results.append(MaterialDownloadResult(
+                item=item, status=MaterialStatus.SKIPPED,
+                view_success=False, error_message="아직 공개되지 않은 학습자료입니다.",
+            ))
+            continue
+
         if progress_callback:
             progress_callback(
                 f"[{course.clean_name}] ({idx}/{len(materials)}) {item.title}"
@@ -213,12 +220,12 @@ def run_materials_pipeline(
             else:
                 target_courses = courses
 
-            navigator = CourseNavigator()
+            navigator = CourseNavigator(cfg)
             for c in target_courses:
                 if progress_callback:
                     progress_callback(f"과목 진입 중: {c.clean_name}")
 
-                navigator.navigate_to_course(page, c.url)
+                navigator.navigate_to_course(page, c)
                 html = page.content()
                 materials = parse_materials_from_course_sections(html, c)
                 target_week, selected_materials = resolve_candidate_materials(materials, week_query)

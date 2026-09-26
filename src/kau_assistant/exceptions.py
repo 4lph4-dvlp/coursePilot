@@ -25,6 +25,11 @@ class CourseAccessDeniedError(KauAssistantError):
     pass
 
 
+class ActivityCollectionError(KauAssistantError):
+    """Raised when supported course activities cannot be fully parsed."""
+    pass
+
+
 class UnsupportedLmsError(KauAssistantError):
     """Raised when LMS_URL does not serve a Coursemos/Moodle course list (unsupported platform or wrong address)."""
     pass
@@ -56,4 +61,3 @@ class NotionTransportError(NotionIntegrationError):
 
 class VodDownloadError(KauAssistantError):
     """Raised when VOD stream download, decryption, or assembly fails."""
-

@@ -32,6 +32,7 @@ from kau_assistant.report_models import ErrorItem, ReportNotice
 from kau_assistant.scraper.assessment_parser import (
     is_quiz_attempt_completed,
     parse_assessment_list,
+    merge_section_assessments,
 )
 from kau_assistant.scraper.course_list import extract_courses
 from kau_assistant.scraper.date_parser import KST, get_current_kst_time, parse_lms_date
@@ -42,6 +43,7 @@ from kau_assistant.scraper.lecture_parser import (
     parse_ublogs_completion,
 )
 from kau_assistant.scraper.material_parser import parse_materials_from_course_sections
+from kau_assistant.scraper.course_sections import needs_section_view, sections_url, validate_activity_coverage
 from kau_assistant.scraper.models import (
     AssessmentType,
     AttendanceStatus,
@@ -188,6 +190,11 @@ def _collect_single_course_progress(
     resp = client.get(course.url)
     resp.raise_for_status()
     course_html = resp.text
+    if needs_section_view(course_html):
+        resp = client.get(sections_url(course.url))
+        resp.raise_for_status()
+        course_html = resp.text
+    validate_activity_coverage(course_html, course)
 
     # Extract lectures, materials, sections metadata from course home HTML
     lectures = parse_lectures_from_course_sections(course_html, course)
@@ -195,7 +202,7 @@ def _collect_single_course_progress(
     sections_meta = extract_course_sections_meta(course_html)
 
     # 2. Fetch ublogs completion for video lectures
-    ublogs_url = f"{base_lms_url}/report/ubcompletion/user_progress_a.php?id={course.course_id}"
+    ublogs_url = f"{base_lms_url}/report/ublogs/completion.php?id={course.course_id}"
     try:
         ub_resp = client.get(ublogs_url)
         if ub_resp.status_code == 200:
@@ -211,6 +218,7 @@ def _collect_single_course_progress(
     assignments = []
     try:
         asg_resp = client.get(assign_url)
+        asg_resp.raise_for_status()
         if asg_resp.status_code == 200:
             assignments = parse_assessment_list(
                 asg_resp.text,
@@ -219,11 +227,12 @@ def _collect_single_course_progress(
                 base_url=assign_url,
             )
     except Exception as e:
-        logger.debug(f"Failed to fetch assignments for course {course.course_id}: {e}")
+        raise RuntimeError("과제 목록 수집에 실패했습니다.") from e
 
     quizzes = []
     try:
         quiz_resp = client.get(quiz_url)
+        quiz_resp.raise_for_status()
         if quiz_resp.status_code == 200:
             quizzes = parse_assessment_list(
                 quiz_resp.text,
@@ -232,11 +241,15 @@ def _collect_single_course_progress(
                 base_url=quiz_url,
             )
     except Exception as e:
-        logger.debug(f"Failed to fetch quizzes for course {course.course_id}: {e}")
+        raise RuntimeError("퀴즈 목록 수집에 실패했습니다.") from e
+
+    assessments = merge_section_assessments(assignments + quizzes, course_html, course)
+    assignments = [a for a in assessments if a.item_type == AssessmentType.ASSIGNMENT]
+    quizzes = [a for a in assessments if a.item_type == AssessmentType.QUIZ]
 
     # For quizzes: verify completion status via quiz view page (Pitfall 3)
     for q in quizzes:
-        if q.status in (SubmissionStatus.NOT_ATTEMPTED, SubmissionStatus.DRAFT) and q.url:
+        if q.status in (SubmissionStatus.NOT_ATTEMPTED, SubmissionStatus.DRAFT) and q.url and q.is_available:
             try:
                 q_detail_resp = client.get(q.url)
                 if q_detail_resp.status_code == 200:
@@ -265,6 +278,9 @@ def _collect_single_course_progress(
                 is_overdue=lec.is_overdue,
                 is_urgent=is_urgent,
                 url=lec.link,
+                module_id=lec.module_id,
+                start_date=lec.start_date,
+                is_available=lec.is_available,
                 clip_number=lec.clip_number,
             )
         )
@@ -285,6 +301,9 @@ def _collect_single_course_progress(
                 is_overdue=asmt.is_overdue,
                 is_urgent=is_urgent,
                 url=asmt.url,
+                module_id=asmt.item_id,
+                start_date=asmt.start_date,
+                is_available=asmt.is_available,
             )
         )
 
@@ -304,6 +323,9 @@ def _collect_single_course_progress(
                 is_overdue=qz.is_overdue,
                 is_urgent=is_urgent,
                 url=qz.url,
+                module_id=qz.item_id,
+                start_date=qz.start_date,
+                is_available=qz.is_available,
             )
         )
 
@@ -323,6 +345,9 @@ def _collect_single_course_progress(
                 is_overdue=mat.is_overdue,
                 is_urgent=is_urgent,
                 url=mat.url,
+                module_id=mat.module_id,
+                start_date=mat.start_date,
+                is_available=mat.is_available,
             )
         )
 

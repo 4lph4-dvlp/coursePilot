@@ -31,6 +31,8 @@ class ActivityItem(BaseModel):
     title: str
     is_completed: bool
     due_date: datetime | None = None
+    start_date: datetime | None = None
+    is_available: bool = True
     raw_due_date: str = ""
     is_overdue: bool = False
     is_urgent: bool = False

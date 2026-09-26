@@ -12,6 +12,7 @@ from pydantic import ValidationError
 
 from kau_assistant.config import DEFAULT_LMS_URL
 from kau_assistant.exceptions import (
+    ActivityCollectionError,
     AuthenticationError,
     ConfigError,
     CourseAccessDeniedError,
@@ -81,6 +82,9 @@ def safe_cli_error(
     elif isinstance(error, CourseAccessDeniedError):
         code = type(error).__name__
         message = _COURSE_ACCESS_MESSAGE
+    elif isinstance(error, ActivityCollectionError):
+        code = type(error).__name__
+        message = "학습활동 목록을 빠짐없이 해석하지 못했습니다. 강의실 화면 형식과 주차별 목록을 확인하세요."
     elif isinstance(error, UnsupportedLmsError):
         code = type(error).__name__
         message = _UNSUPPORTED_LMS_MESSAGE

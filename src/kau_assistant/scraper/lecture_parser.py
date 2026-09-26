@@ -242,147 +242,34 @@ def parse_lectures_from_course_sections(
     course: CourseItem,
     term_start_date: datetime | None = None,
 ) -> list[LectureItem]:
-    """Extracts video lectures from main course home sections (top-level only)."""
-    soup = BeautifulSoup(html, "lxml")
+    """Extracts current and legacy section VODs, including scheduled activities."""
+    from kau_assistant.scraper.course_sections import parse_course_activities
+
     lectures: list[LectureItem] = []
-
-    # 1. Collect candidate section elements
-    candidate_sections = soup.find_all(
-        lambda tag: tag.name == "li"
-        and (
-            any(cls in ("section", "course-section") for cls in tag.get("class", []))
-            or (tag.get("id") and re.match(r"^section-\d+$", tag.get("id")))
+    counters: dict[int, int] = {}
+    for activity in parse_course_activities(html, course):
+        if activity.module_type != "vod":
+            continue
+        week = activity.week_number
+        counters[week] = counters.get(week, 0) + 1
+        clip = counters[week]
+        title = clean_lecture_title(activity.title)
+        due_date = activity.due_date
+        if due_date is None and not activity.raw_due_date and term_start_date:
+            due_date, _ = parse_lms_date("", fallback_week=week, term_start_date=term_start_date)
+        overdue = not activity.is_completed and is_past_deadline(due_date)
+        status = AttendanceStatus.COMPLETED if activity.is_completed else (
+            AttendanceStatus.OVERDUE if overdue else AttendanceStatus.INCOMPLETE
         )
-    )
-
-    # 2. Filter candidates: drop any candidate that has an ancestor also in candidates
-    candidate_set = set(candidate_sections)
-    top_sections = [
-        sec for sec in candidate_sections
-        if not any(parent in candidate_set for parent in sec.parents)
-    ]
-    if not top_sections:
-        top_sections = [soup]
-
-    seen_module_ids: set[str] = set()
-    clip_counter_per_week: dict[int, int] = {}
-
-    for sec_idx, sec in enumerate(top_sections):
-        # Determine week number
-        week_num: int | None = None
-        sec_heading = sec.find(class_=re.compile(r"sectionname|section-title", re.I)) or sec.find(["h3", "h4", "h5"])
-        if sec_heading:
-            parsed_w = _parse_week_number(sec_heading.get_text(strip=True), default=None)
-            if parsed_w is not None:
-                week_num = parsed_w
-
-        if week_num is None:
-            sec_id = sec.get("id", "")
-            id_m = re.search(r"section-(\d+)", sec_id)
-            if id_m:
-                week_num = int(id_m.group(1))
-            elif sec.has_attr("data-number"):
-                week_num = int(sec["data-number"])
-            elif sec.has_attr("data-sectionid"):
-                week_num = int(sec["data-sectionid"])
-            else:
-                week_num = sec_idx
-
-        # Find VOD activity items
-        activities = sec.find_all(
-            lambda tag: tag.name == "li"
-            and any(cls == "activity" for cls in tag.get("class", []))
-            and any(cls in ("vod", "modtype_vod") for cls in tag.get("class", []))
-        )
-
-        for act in activities:
-            a_el = act.find("a")
-            if not a_el:
-                continue
-
-            href = a_el.get("href", "")
-            link = urljoin(course.url, href) if href else ""
-
-            # Extract module ID
-            module_id: str | None = None
-            act_id = act.get("id", "")
-            m_id_match = re.search(r"module-(\d+)", act_id)
-            if m_id_match:
-                module_id = m_id_match.group(1)
-            elif href:
-                h_match = re.search(r"[?&]id=(\d+)", href)
-                if h_match:
-                    module_id = h_match.group(1)
-
-            if module_id:
-                if module_id in seen_module_ids:
-                    continue
-                seen_module_ids.add(module_id)
-
-            # Week-based clip indexing
-            clip_counter_per_week[week_num] = clip_counter_per_week.get(week_num, 0) + 1
-            clip_idx = clip_counter_per_week[week_num]
-
-            # Title extraction: prefer span.instancename without accesshide
-            name_el = a_el.find("span", class_="instancename") or a_el
-            name_copy = copy.deepcopy(name_el)
-            for ah in name_copy.find_all(class_="accesshide"):
-                ah.decompose()
-            raw_title = name_copy.get_text(strip=True)
-            title = clean_lecture_title(raw_title)
-
-            # Check completion status
-            is_completed = False
-            comp_el = act.find(class_=re.compile(r"completion|autocompletion", re.I))
-            if comp_el:
-                comp_text = comp_el.get_text(strip=True)
-                if any(m in comp_text for m in ("완료", "출석", "수강 완료")):
-                    is_completed = True
-                img = comp_el.find("img")
-                if img and any(m in img.get("alt", "") for m in ("완료", "출석")):
-                    is_completed = True
-
-            # Availability / Period text: check span.text-ubstrap first
-            raw_due = ""
-            ubstrap = act.find("span", class_="text-ubstrap")
-            if ubstrap:
-                raw_due = ubstrap.get_text(strip=True)
-            else:
-                avail_el = act.find(class_=re.compile(r"availabilityinfo|activity-dates", re.I))
-                if avail_el:
-                    raw_due = avail_el.get_text(strip=True)
-
-            due_date = None
-            if raw_due:
-                due_date, _ = parse_lms_date(
-                    raw_due,
-                    fallback_week=week_num,
-                    term_start_date=term_start_date,
-                )
-
-            status = AttendanceStatus.COMPLETED if is_completed else AttendanceStatus.INCOMPLETE
-            is_overdue = False
-            if not is_completed and is_past_deadline(due_date):
-                is_overdue = True
-                status = AttendanceStatus.OVERDUE
-
-            full_title = f"[{course.clean_name}] {week_num}주차 {clip_idx}차시: {title}"
-
-            item = LectureItem(
-                course_id=course.course_id,
-                week_number=week_num,
-                clip_number=clip_idx,
-                title=title,
-                full_title=full_title,
-                status=status,
-                progress_percent=100.0 if is_completed else 0.0,
-                due_date=due_date,
-                raw_due_date=raw_due,
-                is_overdue=is_overdue,
-                link=link,
-            )
-            lectures.append(item)
-
+        lectures.append(LectureItem(
+            course_id=course.course_id, week_number=week, clip_number=clip,
+            title=title, full_title=f"[{course.clean_name}] {week}주차 {clip}차시: {title}",
+            status=status, progress_percent=100.0 if activity.is_completed else 0.0,
+            due_date=due_date, raw_due_date=activity.raw_due_date,
+            is_overdue=overdue, link=activity.url, module_id=activity.module_id,
+            start_date=activity.start_date, is_available=activity.is_available,
+            completion_known=activity.completion_known,
+        ))
     return lectures
 
 
@@ -715,7 +602,7 @@ def merge_ublogs_completion(
     # Apply matches
     for lec_idx, lec in enumerate(lectures):
         record = matches.get(lec_idx)
-        if record is None:
+        if record is None or lec.completion_known:
             merged.append(lec)
             continue
 
@@ -741,4 +628,3 @@ def merge_ublogs_completion(
         merged.append(updated_lec)
 
     return merged
-
