@@ -497,3 +497,22 @@ def render_sync_report(report: SyncReport, console: Console) -> None:
         _render_sync_skip_table(report.sync.skip, console)
 
     _render_errors(report.errors, console)
+
+
+# Re-exports for unified reporting interface
+from kau_assistant.progress.reporter import (
+    render_course_matrix,
+    render_detailed_activities,
+    render_progress_dashboard,
+)
+
+__all__ = [
+    "format_remaining",
+    "render_check_report",
+    "render_sync_report",
+    "render_board_report",
+    "render_article_viewer",
+    "render_progress_dashboard",
+    "render_course_matrix",
+    "render_detailed_activities",
+]

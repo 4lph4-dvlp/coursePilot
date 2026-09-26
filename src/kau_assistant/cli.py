@@ -13,6 +13,12 @@ from kau_assistant.installer import AGENT_SKILL_PATHS, InstallError, install_ski
 from kau_assistant.notion import NotionSyncEngine
 from kau_assistant.notion.client import NotionClient
 from kau_assistant.pipeline import PipelineResult, collect_tasks
+from kau_assistant.progress.reporter import (
+    render_course_matrix,
+    render_detailed_activities,
+    render_progress_dashboard,
+)
+from kau_assistant.progress.runner import run_progress_pipeline
 from kau_assistant.reporter import (
     build_check_report,
     build_sync_report,
@@ -838,6 +844,66 @@ def notices_command(ctx: click.Context, **kwargs) -> None:
 def qna_command(ctx: click.Context, **kwargs) -> None:
     """과목별 Q&A(질의응답) 게시판 및 답변 현황을 브리핑합니다."""
     _handle_board_command(ctx, command_scope="qna", **kwargs)
+
+
+@cli.command("progress")
+@click.option("--course", "course_query", type=str, default=None, help="특정 과목 이름, 약칭, 또는 과목 ID (생략 시 전체 수강 과목)")
+@click.option("--week", "week_query", type=int, default=None, help="조회할 특정 주차 번호 (생략 시 자동 판별된 이번 주차)")
+@click.option("--detail", "detail", is_flag=True, help="모든 주차의 세부 활동 목록을 전개하여 조회합니다.")
+@click.option("--cached", "use_cache", is_flag=True, help="10분 이내에 저장된 로컬 캐시 데이터가 있으면 즉시 반환합니다.")
+@click.option("--refresh", "refresh", is_flag=True, help="기존 캐시를 무시하고 LMS에서 실시간으로 새로 수집합니다.")
+@click.option("--json", "as_json", is_flag=True, help="표준 JSON 계약(schema_version: 1) 규격으로 결과를 출력합니다.")
+@click.option("--relogin", "relogin", is_flag=True, help="캐시된 세션을 무시하고 새로 로그인합니다.")
+@click.option("--headed", "headed", is_flag=True, help="브라우저 창을 화면에 표시합니다.")
+@click.pass_context
+def progress_command(
+    ctx: click.Context,
+    course_query: str | None,
+    week_query: int | None,
+    detail: bool,
+    use_cache: bool,
+    refresh: bool,
+    as_json: bool,
+    relogin: bool,
+    headed: bool,
+) -> None:
+    """수강 과목의 4대 활동(동영상, 과제, 퀴즈, 학습자료) 진척도를 종합 대시보드로 브리핑합니다."""
+    err = Console(stderr=True)
+    out = Console()
+
+    def _on_progress(msg: str) -> None:
+        err.print(msg, markup=False, highlight=False)
+
+    try:
+        report = run_progress_pipeline(
+            course_query=course_query,
+            week_query=week_query,
+            cached=use_cache,
+            refresh=refresh,
+            relogin=relogin,
+            headful=headed,
+            progress_callback=_on_progress,
+        )
+    except Exception as e:
+        err.print(f"[오류] 진척도 집계 실패: {e}", markup=False, highlight=False)
+        ctx.exit(2)
+
+    if as_json:
+        click.echo(report.model_dump_json(indent=2))
+    else:
+        if course_query and len(report.courses) == 1:
+            render_course_matrix(report.courses[0], out, week_filter=week_query)
+        elif detail:
+            render_detailed_activities(report, out)
+        else:
+            render_progress_dashboard(report, out, detail=detail)
+
+    if report.status == "error" or report.errors:
+        ctx.exit(1)
+    elif report.summary.missed_past_count > 0:
+        ctx.exit(1)
+    else:
+        ctx.exit(0)
 
 
 def _configure_streams() -> None:
