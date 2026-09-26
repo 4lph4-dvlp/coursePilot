@@ -4,7 +4,7 @@ from pathlib import Path
 from unittest.mock import patch
 import pytest
 
-from kau_assistant.board.read_state import BoardReadStateManager
+from coursepilot.board.read_state import BoardReadStateManager
 
 
 def test_read_state_lifecycle(tmp_path: Path):

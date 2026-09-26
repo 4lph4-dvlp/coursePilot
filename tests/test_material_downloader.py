@@ -6,13 +6,13 @@ from unittest.mock import MagicMock, patch
 import httpx
 import pytest
 
-from kau_assistant.config import Settings
-from kau_assistant.materials.downloader import (
+from coursepilot.config import Settings
+from coursepilot.materials.downloader import (
     download_material_file,
     get_authenticated_httpx_client,
     mark_material_viewed,
 )
-from kau_assistant.materials.models import MaterialItem
+from coursepilot.materials.models import MaterialItem
 
 
 @pytest.fixture

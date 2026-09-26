@@ -6,14 +6,14 @@ from datetime import datetime, timedelta
 
 from rich.console import Console
 
-from kau_assistant.domain.models import (
+from coursepilot.domain.models import (
     SyncTask,
     TaskPriority,
     TaskSelect,
     TaskStatus,
     TaskType,
 )
-from kau_assistant.notion.models import (
+from coursepilot.notion.models import (
     CreateAction,
     FieldDiff,
     NotionTarget,
@@ -22,8 +22,8 @@ from kau_assistant.notion.models import (
     SyncStats,
     UpdateAction,
 )
-from kau_assistant.report_models import ErrorItem
-from kau_assistant.reporter import (
+from coursepilot.report_models import ErrorItem
+from coursepilot.reporter import (
     build_check_report,
     build_sync_report,
     format_remaining,
@@ -31,7 +31,7 @@ from kau_assistant.reporter import (
     render_sync_report,
     to_json,
 )
-from kau_assistant.scraper.date_parser import KST
+from coursepilot.scraper.date_parser import KST
 
 NOW = datetime(2026, 9, 23, 12, 0, tzinfo=KST)
 
@@ -432,8 +432,8 @@ def test_render_without_notices_has_no_notice_heading():
     assert "안내" not in sync_output
 
 
-def test_no_courses_notice_names_default_lms_url():
-    from kau_assistant.config import DEFAULT_LMS_URL
-    from kau_assistant.reporter import NO_COURSES_NOTICE_MESSAGE
+def test_no_courses_notice_names_explicit_school_selection():
+    from coursepilot.reporter import NO_COURSES_NOTICE_MESSAGE
 
-    assert DEFAULT_LMS_URL in NO_COURSES_NOTICE_MESSAGE
+    assert "LMS_URL" in NO_COURSES_NOTICE_MESSAGE
+    assert "LMS_PROFILE" in NO_COURSES_NOTICE_MESSAGE

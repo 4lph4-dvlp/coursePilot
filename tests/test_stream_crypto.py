@@ -4,7 +4,7 @@ import pytest
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import padding
 
-from kau_assistant.stream.crypto import (
+from coursepilot.stream.crypto import (
     decrypt_aes_128_segment,
     derive_implicit_iv,
 )

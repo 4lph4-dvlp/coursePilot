@@ -5,11 +5,11 @@ from unittest.mock import MagicMock, patch
 import httpx
 import pytest
 
-from kau_assistant.board.models import BoardType
-from kau_assistant.board.read_state import BoardReadStateManager
-from kau_assistant.board.runner import run_board_pipeline, view_board_article
-from kau_assistant.config import Settings
-from kau_assistant.scraper.models import CourseItem
+from coursepilot.board.models import BoardType
+from coursepilot.board.read_state import BoardReadStateManager
+from coursepilot.board.runner import run_board_pipeline, view_board_article
+from coursepilot.config import Settings
+from coursepilot.scraper.models import CourseItem
 
 
 @pytest.fixture
@@ -175,9 +175,9 @@ def test_run_board_pipeline_multi_course(dummy_settings, mock_courses):
     mock_client = MagicMock()
     mock_client.get.side_effect = mock_get
 
-    with patch("kau_assistant.board.runner.SessionManager") as MockSM, patch(
-        "kau_assistant.board.runner.get_authenticated_httpx_client", return_value=mock_client
-    ), patch("kau_assistant.board.runner.extract_courses", return_value=mock_courses):
+    with patch("coursepilot.board.runner.SessionManager") as MockSM, patch(
+        "coursepilot.board.runner.get_authenticated_httpx_client", return_value=mock_client
+    ), patch("coursepilot.board.runner.extract_courses", return_value=mock_courses):
         mock_page = MagicMock()
         mock_page.locator.return_value.count.return_value = 0
         MockSM.return_value.__enter__.return_value.get_authenticated_page.return_value = mock_page
@@ -213,9 +213,9 @@ def test_run_board_pipeline_course_error_isolation(dummy_settings, mock_courses)
     mock_client = MagicMock()
     mock_client.get.side_effect = mock_get
 
-    with patch("kau_assistant.board.runner.SessionManager") as MockSM, patch(
-        "kau_assistant.board.runner.get_authenticated_httpx_client", return_value=mock_client
-    ), patch("kau_assistant.board.runner.extract_courses", return_value=mock_courses):
+    with patch("coursepilot.board.runner.SessionManager") as MockSM, patch(
+        "coursepilot.board.runner.get_authenticated_httpx_client", return_value=mock_client
+    ), patch("coursepilot.board.runner.extract_courses", return_value=mock_courses):
         mock_page = MagicMock()
         mock_page.locator.return_value.count.return_value = 0
         MockSM.return_value.__enter__.return_value.get_authenticated_page.return_value = mock_page
@@ -248,9 +248,9 @@ def test_run_board_pipeline_filters(dummy_settings, mock_courses):
     mock_client = MagicMock()
     mock_client.get.side_effect = mock_get
 
-    with patch("kau_assistant.board.runner.SessionManager") as MockSM, patch(
-        "kau_assistant.board.runner.get_authenticated_httpx_client", return_value=mock_client
-    ), patch("kau_assistant.board.runner.extract_courses", return_value=[mock_courses[0]]):
+    with patch("coursepilot.board.runner.SessionManager") as MockSM, patch(
+        "coursepilot.board.runner.get_authenticated_httpx_client", return_value=mock_client
+    ), patch("coursepilot.board.runner.extract_courses", return_value=[mock_courses[0]]):
         mock_page = MagicMock()
         # Set user name to 홍길동
         mock_user = MagicMock()
@@ -313,9 +313,9 @@ def test_view_board_article_auto_marks_read(dummy_settings, mock_courses):
     state_mgr = BoardReadStateManager(read_state_path)
     assert state_mgr.is_read("101", "1001") is False
 
-    with patch("kau_assistant.board.runner.SessionManager") as MockSM, patch(
-        "kau_assistant.board.runner.get_authenticated_httpx_client", return_value=mock_client
-    ), patch("kau_assistant.board.runner.extract_courses", return_value=[mock_courses[0]]):
+    with patch("coursepilot.board.runner.SessionManager") as MockSM, patch(
+        "coursepilot.board.runner.get_authenticated_httpx_client", return_value=mock_client
+    ), patch("coursepilot.board.runner.extract_courses", return_value=[mock_courses[0]]):
         MockSM.return_value.__enter__.return_value.get_authenticated_page.return_value = MagicMock()
 
         article = view_board_article(
@@ -354,10 +354,10 @@ def test_view_board_article_downloads_attachments(dummy_settings, mock_courses):
     mock_client = MagicMock()
     mock_client.get.side_effect = mock_get
 
-    with patch("kau_assistant.board.runner.SessionManager") as MockSM, patch(
-        "kau_assistant.board.runner.get_authenticated_httpx_client", return_value=mock_client
-    ), patch("kau_assistant.board.runner.extract_courses", return_value=[mock_courses[0]]), patch(
-        "kau_assistant.board.runner.download_material_file",
+    with patch("coursepilot.board.runner.SessionManager") as MockSM, patch(
+        "coursepilot.board.runner.get_authenticated_httpx_client", return_value=mock_client
+    ), patch("coursepilot.board.runner.extract_courses", return_value=[mock_courses[0]]), patch(
+        "coursepilot.board.runner.download_material_file",
         return_value=(Path("downloads/알고리즘/notices/syllabus.pdf"), 2048, False),
     ) as mock_download:
         MockSM.return_value.__enter__.return_value.get_authenticated_page.return_value = MagicMock()
@@ -379,7 +379,7 @@ def test_render_board_report():
     import io
     from datetime import datetime
     from rich.console import Console
-    from kau_assistant.board.models import (
+    from coursepilot.board.models import (
         BoardAttachmentItem,
         BoardPostItem,
         BoardReport,
@@ -387,7 +387,7 @@ def test_render_board_report():
         BoardType,
         CourseBoardGroup,
     )
-    from kau_assistant.reporter import render_board_report
+    from coursepilot.reporter import render_board_report
 
     active_group = CourseBoardGroup(
         course_id="101",
@@ -490,13 +490,13 @@ def test_render_article_viewer():
     """Verify Rich console rendering for single article viewer."""
     import io
     from rich.console import Console
-    from kau_assistant.board.models import (
+    from coursepilot.board.models import (
         BoardAttachmentItem,
         BoardPostItem,
         BoardReplyItem,
         BoardType,
     )
-    from kau_assistant.reporter import render_article_viewer
+    from coursepilot.reporter import render_article_viewer
 
     post = BoardPostItem(
         post_id="5001",

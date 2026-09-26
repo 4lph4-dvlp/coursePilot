@@ -5,8 +5,8 @@ from unittest.mock import MagicMock
 import pytest
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 
-from kau_assistant.player.models import PlaybackOptions, PlaybackProgress
-from kau_assistant.player.vod_player import VodPlayer
+from coursepilot.player.models import PlaybackOptions, PlaybackProgress
+from coursepilot.player.vod_player import VodPlayer
 
 
 def test_playback_models_defaults():

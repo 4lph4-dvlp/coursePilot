@@ -5,10 +5,10 @@ from unittest.mock import MagicMock, patch
 import httpx
 import pytest
 
-from kau_assistant.config import Settings
-from kau_assistant.player.models import PlaybackProgress
-from kau_assistant.player.runner import watch_course_vods
-from kau_assistant.scraper.models import AttendanceStatus, CourseItem, LectureItem
+from coursepilot.config import Settings
+from coursepilot.player.models import PlaybackProgress
+from coursepilot.player.runner import watch_course_vods
+from coursepilot.scraper.models import AttendanceStatus, CourseItem, LectureItem
 
 
 @pytest.fixture
@@ -67,9 +67,9 @@ def test_watch_course_vods_triggers_concurrent_download(mock_environment, tmp_pa
 
     player.play_vod.side_effect = mock_play_vod
 
-    with patch("kau_assistant.player.runner.extract_courses", return_value=courses), \
-         patch("kau_assistant.player.runner.scrape_course", return_value=(lectures, [])), \
-         patch("kau_assistant.stream.downloader.SegmentDownloader") as mock_downloader_cls:
+    with patch("coursepilot.player.runner.extract_courses", return_value=courses), \
+         patch("coursepilot.player.runner.scrape_course", return_value=(lectures, [])), \
+         patch("coursepilot.stream.downloader.SegmentDownloader") as mock_downloader_cls:
 
         mock_downloader = MagicMock()
         mock_downloader_cls.return_value = mock_downloader
@@ -115,9 +115,9 @@ def test_watch_download_failure_does_not_abort_attendance(mock_environment, tmp_
 
     player.play_vod.side_effect = mock_play_vod
 
-    with patch("kau_assistant.player.runner.extract_courses", return_value=courses), \
-         patch("kau_assistant.player.runner.scrape_course", return_value=(lectures, [])), \
-         patch("kau_assistant.stream.downloader.SegmentDownloader") as mock_downloader_cls:
+    with patch("coursepilot.player.runner.extract_courses", return_value=courses), \
+         patch("coursepilot.player.runner.scrape_course", return_value=(lectures, [])), \
+         patch("coursepilot.stream.downloader.SegmentDownloader") as mock_downloader_cls:
 
         mock_downloader = MagicMock()
         mock_downloader_cls.return_value = mock_downloader
@@ -157,8 +157,8 @@ def test_watch_without_download_flag_skips_downloader(mock_environment):
 
     player.play_vod.side_effect = mock_play_vod
 
-    with patch("kau_assistant.player.runner.extract_courses", return_value=courses), \
-         patch("kau_assistant.player.runner.scrape_course", return_value=(lectures, [])):
+    with patch("coursepilot.player.runner.extract_courses", return_value=courses), \
+         patch("coursepilot.player.runner.scrape_course", return_value=(lectures, [])):
 
         result = watch_course_vods(
             settings=settings,

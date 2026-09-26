@@ -1,8 +1,8 @@
-"""Shared Pytest fixtures for KAU LXP Assistant tests."""
+"""Shared Pytest fixtures for CoursePilot tests."""
 
 import pytest
 from pathlib import Path
-from kau_assistant.config import Settings, get_settings
+from coursepilot.config import Settings, get_settings
 
 
 @pytest.fixture
@@ -10,6 +10,7 @@ def clean_env(monkeypatch):
     """Ensure sensitive environment variables are isolated during tests."""
     for key in [
         "LMS_URL",
+        "LMS_PROFILE",
         "LMS_USERNAME",
         "LMS_PASSWORD",
         "NOTION_TOKEN",

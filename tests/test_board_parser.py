@@ -4,7 +4,7 @@ from datetime import datetime
 import pytest
 from pydantic import ValidationError
 
-from kau_assistant.board.models import (
+from coursepilot.board.models import (
     SCHEMA_VERSION,
     BoardArticleDetail,
     BoardAttachmentItem,
@@ -16,7 +16,7 @@ from kau_assistant.board.models import (
     BoardType,
     CourseBoardGroup,
 )
-from kau_assistant.scraper.board_parser import (
+from coursepilot.scraper.board_parser import (
     classify_board_type,
     extract_board_modules,
     parse_board_article_page,

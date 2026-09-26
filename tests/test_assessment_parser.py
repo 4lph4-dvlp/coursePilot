@@ -3,13 +3,13 @@ from pathlib import Path
 from unittest.mock import MagicMock
 import pytest
 
-from kau_assistant.scraper.assessment_parser import (
+from coursepilot.scraper.assessment_parser import (
     enrich_assessment_detail,
     parse_assessment_list,
     scrape_course_assessments,
 )
-from kau_assistant.scraper.date_parser import KST
-from kau_assistant.scraper.models import (
+from coursepilot.scraper.date_parser import KST
+from coursepilot.scraper.models import (
     AssessmentItem,
     AssessmentType,
     CourseItem,
@@ -187,8 +187,8 @@ def test_header_mapping_deadline_before_title():
 
 
 def test_lxp_quiz_index_reaches_check_report(course):
-    from kau_assistant.domain.transformer import transform_to_sync_tasks
-    from kau_assistant.reporter import build_check_report
+    from coursepilot.domain.transformer import transform_to_sync_tasks
+    from coursepilot.reporter import build_check_report
 
     fixture_path = Path(__file__).parent / "fixtures" / "lxp_quiz_index.html"
     html_content = fixture_path.read_text(encoding="utf-8")
@@ -212,7 +212,7 @@ def test_lxp_quiz_index_reaches_check_report(course):
 
 
 def test_is_quiz_attempt_completed():
-    from kau_assistant.scraper.assessment_parser import is_quiz_attempt_completed
+    from coursepilot.scraper.assessment_parser import is_quiz_attempt_completed
 
     # 1. Review button
     html_review = '<div class="singlebutton"><a href="review.php?attempt=123" class="btn btn-secondary">답안 검토</a></div>'

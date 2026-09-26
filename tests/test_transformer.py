@@ -3,7 +3,7 @@
 from datetime import datetime, timezone, timedelta
 import pytest
 
-from kau_assistant.domain import (
+from coursepilot.domain import (
     Course,
     SyncTask,
     TaskPriority,
@@ -21,8 +21,8 @@ from kau_assistant.domain import (
     transform_lecture_to_task,
     transform_to_sync_tasks,
 )
-from kau_assistant.scraper.date_parser import KST
-from kau_assistant.scraper.models import (
+from coursepilot.scraper.date_parser import KST
+from coursepilot.scraper.models import (
     AssessmentItem,
     AssessmentType,
     AttachmentMeta,
@@ -44,7 +44,7 @@ def sample_course():
 
 
 def test_domain_facade_imports():
-    """Verify all expected symbols can be imported directly from kau_assistant.domain."""
+    """Verify all expected symbols can be imported directly from coursepilot.domain."""
     assert SyncTask is not None
     assert Course is not None
     assert TaskPriority is not None

@@ -7,12 +7,12 @@ import pytest
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import padding
 
-from kau_assistant.exceptions import VodDownloadError
-from kau_assistant.stream.downloader import (
+from coursepilot.exceptions import VodDownloadError
+from coursepilot.stream.downloader import (
     SegmentDownloader,
     assemble_ts_segments_atomic,
 )
-from kau_assistant.stream.models import (
+from coursepilot.stream.models import (
     DownloadProgress,
     StreamInfo,
     StreamKeyInfo,

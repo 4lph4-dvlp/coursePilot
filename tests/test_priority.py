@@ -3,9 +3,9 @@
 from datetime import datetime, timedelta
 import pytest
 
-from kau_assistant.domain.models import TaskPriority, TaskSelect, TaskType
-from kau_assistant.domain.priority import calculate_priority, get_task_selection
-from kau_assistant.scraper.date_parser import KST
+from coursepilot.domain.models import TaskPriority, TaskSelect, TaskType
+from coursepilot.domain.priority import calculate_priority, get_task_selection
+from coursepilot.scraper.date_parser import KST
 
 
 def test_urgent_24h_boundary():

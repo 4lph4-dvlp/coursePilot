@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 import pytest
 from pydantic import ValidationError
 
-from kau_assistant.scraper.models import (
+from coursepilot.scraper.models import (
     AssessmentItem,
     AssessmentType,
     AttachmentMeta,

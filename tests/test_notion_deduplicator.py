@@ -2,22 +2,22 @@
 
 from datetime import datetime
 
-from kau_assistant.domain.models import (
+from coursepilot.domain.models import (
     SyncTask,
     TaskPriority,
     TaskSelect,
     TaskStatus,
     TaskType,
 )
-from kau_assistant.notion.deduplicator import plan_sync
-from kau_assistant.notion.models import (
+from coursepilot.notion.deduplicator import plan_sync
+from coursepilot.notion.models import (
     CreateAction,
     ErrorAction,
     ExistingPage,
     SkipAction,
     UpdateAction,
 )
-from kau_assistant.scraper.date_parser import KST
+from coursepilot.scraper.date_parser import KST
 
 
 def _task(

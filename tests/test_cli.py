@@ -7,21 +7,21 @@ from unittest.mock import MagicMock
 import pytest
 from click.testing import CliRunner
 
-from kau_assistant.cli import cli
-from kau_assistant.config import Settings
-from kau_assistant.domain.models import (
+from coursepilot.cli import cli
+from coursepilot.config import Settings
+from coursepilot.domain.models import (
     SyncTask,
     TaskPriority,
     TaskSelect,
     TaskStatus,
     TaskType,
 )
-from kau_assistant.exceptions import AuthenticationError, ConfigError
-from kau_assistant.notion import NotionSyncEngine
-from kau_assistant.notion.models import ExistingPage, NotionTarget
-from kau_assistant.pipeline import PipelineResult
-from kau_assistant.report_models import ErrorItem
-from kau_assistant.scraper.date_parser import KST
+from coursepilot.exceptions import AuthenticationError, ConfigError
+from coursepilot.notion import NotionSyncEngine
+from coursepilot.notion.models import ExistingPage, NotionTarget
+from coursepilot.pipeline import PipelineResult
+from coursepilot.report_models import ErrorItem
+from coursepilot.scraper.date_parser import KST
 
 NOW = datetime(2026, 9, 23, 12, 0, tzinfo=KST)
 
@@ -105,7 +105,7 @@ def _sample_tasks() -> list[SyncTask]:
 @pytest.fixture
 def fake_pipeline(monkeypatch, sample_settings):
     """Patches cli.get_settings/collect_tasks so no real .env or browser is ever touched."""
-    monkeypatch.setattr("kau_assistant.cli.get_settings", lambda: sample_settings)
+    monkeypatch.setattr("coursepilot.cli.get_settings", lambda: sample_settings)
 
     calls: dict = {}
 
@@ -118,7 +118,7 @@ def fake_pipeline(monkeypatch, sample_settings):
             progress(1, 2, "자료구조")
         return PipelineResult(course_count=2, tasks=_sample_tasks(), errors=[])
 
-    monkeypatch.setattr("kau_assistant.cli.collect_tasks", _fake_collect_tasks)
+    monkeypatch.setattr("coursepilot.cli.collect_tasks", _fake_collect_tasks)
     return calls
 
 
@@ -182,9 +182,9 @@ def test_human_default_renders_sections(fake_pipeline):
 def test_main_utf8_stdout_under_cp949(monkeypatch, sample_settings):
     import io as io_mod
 
-    from kau_assistant.cli import main
+    from coursepilot.cli import main
 
-    monkeypatch.setattr("kau_assistant.cli.get_settings", lambda: sample_settings)
+    monkeypatch.setattr("coursepilot.cli.get_settings", lambda: sample_settings)
 
     special_task = _task(
         task_id="urgent-special",
@@ -197,7 +197,7 @@ def test_main_utf8_stdout_under_cp949(monkeypatch, sample_settings):
     def _fake_collect_tasks(settings, *, headed=False, relogin=False, progress=None, now=None):
         return PipelineResult(course_count=1, tasks=[special_task], errors=[])
 
-    monkeypatch.setattr("kau_assistant.cli.collect_tasks", _fake_collect_tasks)
+    monkeypatch.setattr("coursepilot.cli.collect_tasks", _fake_collect_tasks)
 
     stdout_buf = io_mod.TextIOWrapper(io_mod.BytesIO(), encoding="cp949")
     stderr_buf = io_mod.TextIOWrapper(io_mod.BytesIO(), encoding="cp949")
@@ -222,7 +222,7 @@ def test_exit_code_zero_on_success(fake_pipeline):
 
 
 def test_exit_code_one_on_course_errors(monkeypatch, sample_settings):
-    monkeypatch.setattr("kau_assistant.cli.get_settings", lambda: sample_settings)
+    monkeypatch.setattr("coursepilot.cli.get_settings", lambda: sample_settings)
 
     course_error = ErrorItem(
         scope="course",
@@ -236,7 +236,7 @@ def test_exit_code_one_on_course_errors(monkeypatch, sample_settings):
             kwargs["progress"](1, 2, "자료구조")
         return PipelineResult(course_count=2, tasks=_sample_tasks(), errors=[course_error])
 
-    monkeypatch.setattr("kau_assistant.cli.collect_tasks", _fake_collect_tasks)
+    monkeypatch.setattr("coursepilot.cli.collect_tasks", _fake_collect_tasks)
 
     runner = CliRunner()
     result = runner.invoke(cli, ["check", "--json"])
@@ -247,12 +247,12 @@ def test_exit_code_one_on_course_errors(monkeypatch, sample_settings):
 
 
 def test_exit_code_two_on_config_error(monkeypatch, sample_settings):
-    monkeypatch.setattr("kau_assistant.cli.get_settings", lambda: sample_settings)
+    monkeypatch.setattr("coursepilot.cli.get_settings", lambda: sample_settings)
 
     def _fake_collect_tasks(settings, **kwargs):
         raise ConfigError("LMS_USERNAME 환경 변수가 설정되지 않았습니다.")
 
-    monkeypatch.setattr("kau_assistant.cli.collect_tasks", _fake_collect_tasks)
+    monkeypatch.setattr("coursepilot.cli.collect_tasks", _fake_collect_tasks)
 
     runner = CliRunner()
     result = runner.invoke(cli, ["check", "--json"])
@@ -272,7 +272,7 @@ def test_exit_code_two_on_settings_validation_error(monkeypatch):
     def _raise_settings() -> Settings:
         return Settings(timeout_ms="not-a-number", _env_file=None)
 
-    monkeypatch.setattr("kau_assistant.cli.get_settings", _raise_settings)
+    monkeypatch.setattr("coursepilot.cli.get_settings", _raise_settings)
 
     runner = CliRunner()
     result = runner.invoke(cli, ["check", "--json"])
@@ -284,14 +284,14 @@ def test_exit_code_two_on_settings_validation_error(monkeypatch):
 
 
 def test_redaction_fatal_auth_error_json_and_human(monkeypatch, sample_settings):
-    monkeypatch.setattr("kau_assistant.cli.get_settings", lambda: sample_settings)
+    monkeypatch.setattr("coursepilot.cli.get_settings", lambda: sample_settings)
 
     def _fake_collect_tasks(settings, **kwargs):
         raise AuthenticationError(
             f"로그인 실패: 사용자={sample_settings.lms_username}, 비밀번호={sample_settings.lms_password}"
         )
 
-    monkeypatch.setattr("kau_assistant.cli.collect_tasks", _fake_collect_tasks)
+    monkeypatch.setattr("coursepilot.cli.collect_tasks", _fake_collect_tasks)
 
     runner = CliRunner()
 
@@ -311,12 +311,12 @@ def test_redaction_fatal_auth_error_json_and_human(monkeypatch, sample_settings)
 
 
 def test_redaction_unexpected_exception(monkeypatch, sample_settings):
-    monkeypatch.setattr("kau_assistant.cli.get_settings", lambda: sample_settings)
+    monkeypatch.setattr("coursepilot.cli.get_settings", lambda: sample_settings)
 
     def _fake_collect_tasks(settings, **kwargs):
         raise RuntimeError(f"unexpected failure token={sample_settings.notion_token}")
 
-    monkeypatch.setattr("kau_assistant.cli.collect_tasks", _fake_collect_tasks)
+    monkeypatch.setattr("coursepilot.cli.collect_tasks", _fake_collect_tasks)
 
     runner = CliRunner()
     result = runner.invoke(cli, ["check", "--json"])
@@ -420,21 +420,21 @@ def _fake_notion_client() -> MagicMock:
 
 
 def test_sync_dry_run_default_never_writes(monkeypatch, sample_settings):
-    monkeypatch.setattr("kau_assistant.cli.get_settings", lambda: sample_settings)
+    monkeypatch.setattr("coursepilot.cli.get_settings", lambda: sample_settings)
 
     def _fake_collect_tasks(settings, *, headed=False, relogin=False, progress=None, now=None):
         if progress is not None:
             progress(1, 2, "자료구조")
         return PipelineResult(course_count=2, tasks=_sync_sample_tasks(), errors=[])
 
-    monkeypatch.setattr("kau_assistant.cli.collect_tasks", _fake_collect_tasks)
+    monkeypatch.setattr("coursepilot.cli.collect_tasks", _fake_collect_tasks)
 
     fake_client = _fake_notion_client()
 
     def _engine_factory(settings=None, client=None):
         return NotionSyncEngine(settings=settings, client=fake_client)
 
-    monkeypatch.setattr("kau_assistant.cli.NotionSyncEngine", _engine_factory)
+    monkeypatch.setattr("coursepilot.cli.NotionSyncEngine", _engine_factory)
 
     runner = CliRunner()
     result = runner.invoke(cli, ["sync", "--json"])
@@ -467,12 +467,12 @@ def test_sync_dry_run_default_never_writes(monkeypatch, sample_settings):
 
 
 def test_sync_apply_writes_planned_actions(monkeypatch, sample_settings):
-    monkeypatch.setattr("kau_assistant.cli.get_settings", lambda: sample_settings)
+    monkeypatch.setattr("coursepilot.cli.get_settings", lambda: sample_settings)
 
     def _fake_collect_tasks(settings, *, headed=False, relogin=False, progress=None, now=None):
         return PipelineResult(course_count=2, tasks=_sync_sample_tasks(), errors=[])
 
-    monkeypatch.setattr("kau_assistant.cli.collect_tasks", _fake_collect_tasks)
+    monkeypatch.setattr("coursepilot.cli.collect_tasks", _fake_collect_tasks)
 
     fake_client = _fake_notion_client()
     fake_client.create_page.return_value = {"id": "new-page-id"}
@@ -481,7 +481,7 @@ def test_sync_apply_writes_planned_actions(monkeypatch, sample_settings):
     def _engine_factory(settings=None, client=None):
         return NotionSyncEngine(settings=settings, client=fake_client)
 
-    monkeypatch.setattr("kau_assistant.cli.NotionSyncEngine", _engine_factory)
+    monkeypatch.setattr("coursepilot.cli.NotionSyncEngine", _engine_factory)
 
     runner = CliRunner()
     result = runner.invoke(cli, ["sync", "--apply", "--json"])
@@ -498,7 +498,7 @@ def test_check_no_notion_engine_constructed(fake_pipeline, monkeypatch):
     def _raise(*args, **kwargs):
         raise AssertionError("NotionSyncEngine must never be constructed by check")
 
-    monkeypatch.setattr("kau_assistant.cli.NotionSyncEngine", _raise)
+    monkeypatch.setattr("coursepilot.cli.NotionSyncEngine", _raise)
 
     runner = CliRunner()
     result = runner.invoke(cli, ["check", "--json"])
@@ -518,14 +518,14 @@ def test_sync_no_notion_configured_notice(monkeypatch, tmp_path):
         session_cache_path=tmp_path / "session.json",
         course_mappings_path=tmp_path / "course_mappings.json",
     )
-    monkeypatch.setattr("kau_assistant.cli.get_settings", lambda: settings)
+    monkeypatch.setattr("coursepilot.cli.get_settings", lambda: settings)
 
     sample_tasks = _sync_sample_tasks()
 
     def _fake_collect_tasks(*args, **kwargs):
         return PipelineResult(course_count=1, tasks=sample_tasks, errors=[])
 
-    monkeypatch.setattr("kau_assistant.cli.collect_tasks", _fake_collect_tasks)
+    monkeypatch.setattr("coursepilot.cli.collect_tasks", _fake_collect_tasks)
 
     runner = CliRunner()
     result = runner.invoke(cli, ["sync", "--json"])
@@ -543,14 +543,14 @@ def test_sync_no_notion_configured_notice(monkeypatch, tmp_path):
 
 
 def test_exit_code_sync_notion_error_is_partial(monkeypatch, sample_settings):
-    monkeypatch.setattr("kau_assistant.cli.get_settings", lambda: sample_settings)
+    monkeypatch.setattr("coursepilot.cli.get_settings", lambda: sample_settings)
 
     def _fake_collect_tasks(*args, **kwargs):
         return PipelineResult(course_count=1, tasks=_sync_sample_tasks(), errors=[])
 
-    monkeypatch.setattr("kau_assistant.cli.collect_tasks", _fake_collect_tasks)
+    monkeypatch.setattr("coursepilot.cli.collect_tasks", _fake_collect_tasks)
 
-    from kau_assistant.exceptions import NotionAuthenticationError
+    from coursepilot.exceptions import NotionAuthenticationError
 
     fake_client = MagicMock()
     fake_client.resolve_target.side_effect = NotionAuthenticationError("Notion 토큰이 유효하지 않습니다.")
@@ -558,7 +558,7 @@ def test_exit_code_sync_notion_error_is_partial(monkeypatch, sample_settings):
     def _engine_factory(settings=None, client=None):
         return NotionSyncEngine(settings=settings, client=fake_client)
 
-    monkeypatch.setattr("kau_assistant.cli.NotionSyncEngine", _engine_factory)
+    monkeypatch.setattr("coursepilot.cli.NotionSyncEngine", _engine_factory)
 
     runner = CliRunner()
     result = runner.invoke(cli, ["sync", "--json"])
@@ -569,12 +569,12 @@ def test_exit_code_sync_notion_error_is_partial(monkeypatch, sample_settings):
 
 
 def test_exit_code_sync_fatal_skips_notion(monkeypatch, sample_settings):
-    monkeypatch.setattr("kau_assistant.cli.get_settings", lambda: sample_settings)
+    monkeypatch.setattr("coursepilot.cli.get_settings", lambda: sample_settings)
 
     def _fake_collect_tasks(*args, **kwargs):
         raise ConfigError("LMS_USERNAME 환경 변수가 설정되지 않았습니다.")
 
-    monkeypatch.setattr("kau_assistant.cli.collect_tasks", _fake_collect_tasks)
+    monkeypatch.setattr("coursepilot.cli.collect_tasks", _fake_collect_tasks)
 
     engine_calls: list = []
 
@@ -582,7 +582,7 @@ def test_exit_code_sync_fatal_skips_notion(monkeypatch, sample_settings):
         engine_calls.append(1)
         raise AssertionError("NotionSyncEngine must not be constructed on the fatal path")
 
-    monkeypatch.setattr("kau_assistant.cli.NotionSyncEngine", _engine_factory)
+    monkeypatch.setattr("coursepilot.cli.NotionSyncEngine", _engine_factory)
 
     runner = CliRunner()
     result = runner.invoke(cli, ["sync", "--json"])
@@ -594,12 +594,12 @@ def test_exit_code_sync_fatal_skips_notion(monkeypatch, sample_settings):
 
 
 def test_redaction_sync_outputs(monkeypatch, sample_settings):
-    monkeypatch.setattr("kau_assistant.cli.get_settings", lambda: sample_settings)
+    monkeypatch.setattr("coursepilot.cli.get_settings", lambda: sample_settings)
 
     def _fake_collect_tasks(*args, **kwargs):
         return PipelineResult(course_count=2, tasks=_sync_sample_tasks(), errors=[])
 
-    monkeypatch.setattr("kau_assistant.cli.collect_tasks", _fake_collect_tasks)
+    monkeypatch.setattr("coursepilot.cli.collect_tasks", _fake_collect_tasks)
 
     fake_client = _fake_notion_client()
     fake_client.create_page.return_value = {"id": "new-page-id"}
@@ -608,7 +608,7 @@ def test_redaction_sync_outputs(monkeypatch, sample_settings):
     def _engine_factory(settings=None, client=None):
         return NotionSyncEngine(settings=settings, client=fake_client)
 
-    monkeypatch.setattr("kau_assistant.cli.NotionSyncEngine", _engine_factory)
+    monkeypatch.setattr("coursepilot.cli.NotionSyncEngine", _engine_factory)
 
     runner = CliRunner()
     secrets = (sample_settings.lms_username, sample_settings.lms_password, sample_settings.notion_token)
@@ -621,9 +621,9 @@ def test_redaction_sync_outputs(monkeypatch, sample_settings):
 
 
 def test_zero_courses_check_json_has_notice(monkeypatch, sample_settings):
-    monkeypatch.setattr("kau_assistant.cli.get_settings", lambda: sample_settings)
+    monkeypatch.setattr("coursepilot.cli.get_settings", lambda: sample_settings)
     monkeypatch.setattr(
-        "kau_assistant.cli.collect_tasks",
+        "coursepilot.cli.collect_tasks",
         lambda *args, **kwargs: PipelineResult(course_count=0, tasks=[], errors=[]),
     )
 
@@ -636,7 +636,7 @@ def test_zero_courses_check_json_has_notice(monkeypatch, sample_settings):
     notice = payload["notices"][0]
     assert notice["code"] == "no_courses_found"
     assert "LMS_URL" in notice["message"]
-    assert "https://lxp.kau.ac.kr" in notice["message"]
+    assert "LMS_PROFILE" in notice["message"]
     assert sample_settings.lms_username not in result.stdout
     assert sample_settings.lms_password not in result.stdout
     assert sample_settings.lms_username not in result.stderr
@@ -644,15 +644,15 @@ def test_zero_courses_check_json_has_notice(monkeypatch, sample_settings):
 
 
 def test_zero_courses_sync_json_has_notice(monkeypatch, sample_settings):
-    monkeypatch.setattr("kau_assistant.cli.get_settings", lambda: sample_settings)
+    monkeypatch.setattr("coursepilot.cli.get_settings", lambda: sample_settings)
     monkeypatch.setattr(
-        "kau_assistant.cli.collect_tasks",
+        "coursepilot.cli.collect_tasks",
         lambda *args, **kwargs: PipelineResult(course_count=0, tasks=[], errors=[]),
     )
 
     fake_client = _fake_notion_client()
     monkeypatch.setattr(
-        "kau_assistant.cli.NotionSyncEngine",
+        "coursepilot.cli.NotionSyncEngine",
         lambda settings=None, client=None: NotionSyncEngine(settings=settings, client=fake_client),
     )
 
@@ -674,12 +674,12 @@ def test_notices_empty_when_courses_found(fake_pipeline):
 
 
 def test_fatal_run_has_no_notice(monkeypatch, sample_settings):
-    monkeypatch.setattr("kau_assistant.cli.get_settings", lambda: sample_settings)
+    monkeypatch.setattr("coursepilot.cli.get_settings", lambda: sample_settings)
 
     def _raise(*args, **kwargs):
         raise ConfigError("LMS_URL 누락")
 
-    monkeypatch.setattr("kau_assistant.cli.collect_tasks", _raise)
+    monkeypatch.setattr("coursepilot.cli.collect_tasks", _raise)
 
     runner = CliRunner()
     result = runner.invoke(cli, ["check", "--json"])
@@ -688,4 +688,3 @@ def test_fatal_run_has_no_notice(monkeypatch, sample_settings):
     assert payload["notices"] == []
     assert len(payload["errors"]) == 1
     assert payload["errors"][0]["scope"] == "fatal"
-

@@ -9,12 +9,12 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
-from kau_assistant.installer import AGENT_SKILL_PATHS
-from kau_assistant.report_models import CheckReport, SyncReport
+from coursepilot.installer import AGENT_SKILL_PATHS
+from coursepilot.report_models import CheckReport, SyncReport
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-CONTRACT_DOC = REPO_ROOT / "skills" / "kau-lxp" / "JSON_CONTRACT.md"
-SKILL_MD = REPO_ROOT / "skills" / "kau-lxp" / "SKILL.md"
+CONTRACT_DOC = REPO_ROOT / "skills" / "coursepilot" / "JSON_CONTRACT.md"
+SKILL_MD = REPO_ROOT / "skills" / "coursepilot" / "SKILL.md"
 README = REPO_ROOT / "README.md"
 
 

@@ -7,15 +7,15 @@ import httpx
 import pytest
 from notion_client.errors import APIResponseError
 
-from kau_assistant.config import Settings
-from kau_assistant.exceptions import (
+from coursepilot.config import Settings
+from coursepilot.exceptions import (
     NotionAuthenticationError,
     NotionSchemaError,
     NotionTargetError,
     NotionTransportError,
 )
-from kau_assistant.notion.client import NotionClient
-from kau_assistant.scraper.date_parser import KST
+from coursepilot.notion.client import NotionClient
+from coursepilot.scraper.date_parser import KST
 
 
 def _schema() -> dict:
@@ -69,7 +69,7 @@ def _api_error(status: int, code: str = "internal_server_error") -> APIResponseE
 
 
 def test_sdk_uses_only_bounded_builtin_429_retry() -> None:
-    with patch("kau_assistant.notion.client.Client") as client_cls:
+    with patch("coursepilot.notion.client.Client") as client_cls:
         NotionClient(
             settings=Settings(
                 notion_token="token", notion_database_id="db-id", _env_file=None
@@ -207,12 +207,12 @@ def test_client_delegates_schema_and_every_page_to_mapper() -> None:
     parsed_pages = [MagicMock(page_id="one"), MagicMock(page_id="two")]
     client = NotionClient(settings=Settings(_env_file=None), sdk=sdk)
 
-    with patch("kau_assistant.notion.client.mapper.validate_scheduler_schema") as validate:
+    with patch("coursepilot.notion.client.mapper.validate_scheduler_schema") as validate:
         client.validate_scheduler_schema("source-id")
         validate.assert_called_once_with(_schema())
 
     with patch(
-        "kau_assistant.notion.client.mapper.parse_existing_page", side_effect=parsed_pages
+        "coursepilot.notion.client.mapper.parse_existing_page", side_effect=parsed_pages
     ) as parse:
         assert client.query_existing_pages(
             "source-id", now=datetime(2026, 9, 22, 12, 0, tzinfo=KST)

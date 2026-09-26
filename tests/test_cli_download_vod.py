@@ -5,8 +5,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 from click.testing import CliRunner
 
-from kau_assistant.cli import cli
-from kau_assistant.stream.models import (
+from coursepilot.cli import cli
+from coursepilot.stream.models import (
     CourseVodDownloadResult,
     VodDownloadItemResult,
     VodDownloadRunResult,
@@ -64,7 +64,7 @@ def test_cli_download_vod_dry_run_json():
     )
 
     runner = CliRunner()
-    with patch("kau_assistant.stream.runner.run_vod_download_pipeline", return_value=mock_run_res):
+    with patch("coursepilot.stream.runner.run_vod_download_pipeline", return_value=mock_run_res):
         res = runner.invoke(cli, ["download-vod", "--course", "컴파일러", "--dry-run", "--json"])
 
         assert res.exit_code == 0
@@ -78,7 +78,7 @@ def test_cli_download_vod_dry_run_json():
 
 def test_cli_watch_download_options_passed():
     runner = CliRunner()
-    with patch("kau_assistant.player.runner.watch_course_vods") as mock_watch:
+    with patch("coursepilot.player.runner.watch_course_vods") as mock_watch:
         mock_watch.return_value = MagicMock(
             error_message=None,
             total_vods=1,

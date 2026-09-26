@@ -5,7 +5,7 @@ import io
 from rich.console import Console
 import pytest
 
-from kau_assistant.progress.models import (
+from coursepilot.progress.models import (
     SCHEMA_VERSION,
     ActivityBreakdown,
     ActivityCount,
@@ -15,13 +15,13 @@ from kau_assistant.progress.models import (
     DashboardSummary,
     ProgressReport,
 )
-from kau_assistant.progress.reporter import (
+from coursepilot.progress.reporter import (
     _get_rate_style,
     render_course_matrix,
     render_detailed_activities,
     render_progress_dashboard,
 )
-from kau_assistant.scraper.date_parser import KST
+from coursepilot.scraper.date_parser import KST
 
 
 def _create_test_report(missed_items_count: int = 0) -> ProgressReport:

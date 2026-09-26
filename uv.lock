@@ -163,6 +163,56 @@ wheels = [
 ]
 
 [[package]]
+name = "coursepilot"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "beautifulsoup4" },
+    { name = "click" },
+    { name = "cryptography" },
+    { name = "httpx" },
+    { name = "lxml" },
+    { name = "m3u8" },
+    { name = "notion-client" },
+    { name = "playwright" },
+    { name = "pydantic" },
+    { name = "pydantic-settings" },
+    { name = "python-dateutil" },
+    { name = "python-dotenv" },
+    { name = "pytz" },
+    { name = "rich" },
+]
+
+[package.optional-dependencies]
+dev = [
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-mock" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "beautifulsoup4", specifier = ">=4.12.0" },
+    { name = "click", specifier = ">=8.1.0" },
+    { name = "cryptography", specifier = ">=50.0.0" },
+    { name = "httpx", specifier = ">=0.28.0" },
+    { name = "lxml", specifier = ">=5.2.0" },
+    { name = "m3u8", specifier = ">=6.0.0" },
+    { name = "notion-client", specifier = ">=2.2.1" },
+    { name = "playwright", specifier = ">=1.42.0" },
+    { name = "pydantic", specifier = ">=2.6.0" },
+    { name = "pydantic-settings", specifier = ">=2.2.0" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0.0" },
+    { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23.0" },
+    { name = "pytest-mock", marker = "extra == 'dev'", specifier = ">=3.12.0" },
+    { name = "python-dateutil", specifier = ">=2.9.0" },
+    { name = "python-dotenv", specifier = ">=1.0.0" },
+    { name = "pytz", specifier = ">=2024.1" },
+    { name = "rich", specifier = ">=13.7.0" },
+]
+provides-extras = ["dev"]
+
+[[package]]
 name = "cryptography"
 version = "50.0.1"
 source = { registry = "https://pypi.org/simple" }
@@ -349,56 +399,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/72/34/14ca021ce8e5dfedc
 wheels = [
     { url = "https://files.pythonhosted.org/packages/cb/b1/3846dd7f199d53cb17f49cba7e651e9ce294d8497c8c150530ed11865bb8/iniconfig-2.3.0-py3-none-any.whl", hash = "sha256:f631c04d2c48c52b84d0d0549c99ff3859c98df65b3101406327ecc7d53fbf12", size = 7484, upload-time = "2025-10-18T21:55:41.639Z" },
 ]
-
-[[package]]
-name = "kau-assistant"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "beautifulsoup4" },
-    { name = "click" },
-    { name = "cryptography" },
-    { name = "httpx" },
-    { name = "lxml" },
-    { name = "m3u8" },
-    { name = "notion-client" },
-    { name = "playwright" },
-    { name = "pydantic" },
-    { name = "pydantic-settings" },
-    { name = "python-dateutil" },
-    { name = "python-dotenv" },
-    { name = "pytz" },
-    { name = "rich" },
-]
-
-[package.optional-dependencies]
-dev = [
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-    { name = "pytest-mock" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "beautifulsoup4", specifier = ">=4.12.0" },
-    { name = "click", specifier = ">=8.1.0" },
-    { name = "cryptography", specifier = ">=50.0.0" },
-    { name = "httpx", specifier = ">=0.28.0" },
-    { name = "lxml", specifier = ">=5.2.0" },
-    { name = "m3u8", specifier = ">=6.0.0" },
-    { name = "notion-client", specifier = ">=2.2.1" },
-    { name = "playwright", specifier = ">=1.42.0" },
-    { name = "pydantic", specifier = ">=2.6.0" },
-    { name = "pydantic-settings", specifier = ">=2.2.0" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0.0" },
-    { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23.0" },
-    { name = "pytest-mock", marker = "extra == 'dev'", specifier = ">=3.12.0" },
-    { name = "python-dateutil", specifier = ">=2.9.0" },
-    { name = "python-dotenv", specifier = ">=1.0.0" },
-    { name = "pytz", specifier = ">=2024.1" },
-    { name = "rich", specifier = ">=13.7.0" },
-]
-provides-extras = ["dev"]
 
 [[package]]
 name = "lxml"

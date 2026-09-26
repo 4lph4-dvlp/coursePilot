@@ -2,8 +2,8 @@ from datetime import datetime
 from pathlib import Path
 import pytest
 
-from kau_assistant.scraper.date_parser import KST
-from kau_assistant.scraper.lecture_parser import (
+from coursepilot.scraper.date_parser import KST
+from coursepilot.scraper.lecture_parser import (
     LectureProgress,
     UblogsActivityStatus,
     _parse_duration_seconds,
@@ -15,7 +15,7 @@ from kau_assistant.scraper.lecture_parser import (
     parse_ubcompletion_progress,
     parse_ublogs_completion,
 )
-from kau_assistant.scraper.models import AttendanceStatus, CourseItem
+from coursepilot.scraper.models import AttendanceStatus, CourseItem
 
 
 @pytest.fixture
@@ -376,7 +376,7 @@ def test_parse_ublogs_completion():
 
 
 def test_merge_ublogs_completion(course):
-    from kau_assistant.scraper.models import LectureItem
+    from coursepilot.scraper.models import LectureItem
 
     lectures = [
         LectureItem(

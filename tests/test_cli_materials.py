@@ -4,8 +4,8 @@ import json
 from unittest.mock import MagicMock, patch
 from click.testing import CliRunner
 
-from kau_assistant.cli import cli
-from kau_assistant.materials.models import (
+from coursepilot.cli import cli
+from coursepilot.materials.models import (
     CourseMaterialsResult,
     MaterialDownloadResult,
     MaterialItem,
@@ -31,7 +31,7 @@ def test_materials_and_files_help():
     assert "--no-download" in res_files.output
 
 
-@patch("kau_assistant.materials.runner.run_materials_pipeline")
+@patch("coursepilot.materials.runner.run_materials_pipeline")
 def test_materials_dry_run_json(mock_run_pipeline):
     item = MaterialItem(
         course_id="101",
@@ -73,7 +73,7 @@ def test_materials_dry_run_json(mock_run_pipeline):
     assert data["courses"][0]["course_name"] == "자료구조"
 
 
-@patch("kau_assistant.materials.runner.run_materials_pipeline")
+@patch("coursepilot.materials.runner.run_materials_pipeline")
 def test_materials_flags_passed(mock_run_pipeline):
     mock_run_pipeline.return_value = MaterialsRunResult()
 
@@ -102,7 +102,7 @@ def test_materials_flags_passed(mock_run_pipeline):
     assert kwargs["dry_run"] is True
 
 
-@patch("kau_assistant.materials.runner.run_materials_pipeline")
+@patch("coursepilot.materials.runner.run_materials_pipeline")
 def test_materials_failure_exit_code_1(mock_run_pipeline):
     mock_run_pipeline.return_value = MaterialsRunResult(
         total_materials=1,
@@ -113,7 +113,7 @@ def test_materials_failure_exit_code_1(mock_run_pipeline):
     assert result.exit_code == 1
 
 
-@patch("kau_assistant.materials.runner.run_materials_pipeline")
+@patch("coursepilot.materials.runner.run_materials_pipeline")
 def test_materials_exception_exit_code_2(mock_run_pipeline):
     mock_run_pipeline.side_effect = RuntimeError("Fatal connection error")
     runner = CliRunner()

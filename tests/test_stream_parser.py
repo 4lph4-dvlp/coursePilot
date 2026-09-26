@@ -1,6 +1,6 @@
 import pytest
 
-from kau_assistant.stream.parser import (
+from coursepilot.stream.parser import (
     parse_media_playlist,
     parse_stream_manifest,
     resolve_media_playlist_url,

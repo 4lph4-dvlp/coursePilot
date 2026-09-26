@@ -3,7 +3,7 @@
 import json
 import logging
 from pathlib import Path
-from kau_assistant.course_mapping import (
+from coursepilot.course_mapping import (
     DEFAULT_MAPPINGS,
     get_abbreviation,
     load_course_mappings,

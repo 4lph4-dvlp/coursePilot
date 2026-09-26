@@ -4,7 +4,7 @@ from datetime import datetime, timezone, timedelta
 import pytest
 from pydantic import ValidationError
 
-from kau_assistant.domain.models import (
+from coursepilot.domain.models import (
     Course,
     SyncTask,
     TaskPriority,
@@ -12,8 +12,8 @@ from kau_assistant.domain.models import (
     TaskStatus,
     TaskType,
 )
-from kau_assistant.scraper.date_parser import KST
-from kau_assistant.scraper.models import AttendanceStatus, LectureItem
+from coursepilot.scraper.date_parser import KST
+from coursepilot.scraper.models import AttendanceStatus, LectureItem
 
 
 def test_task_enums():

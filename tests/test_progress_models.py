@@ -5,7 +5,7 @@ import json
 import pytest
 from pydantic import ValidationError
 
-from kau_assistant.progress.models import (
+from coursepilot.progress.models import (
     SCHEMA_VERSION,
     ActivityBreakdown,
     ActivityCount,
@@ -15,7 +15,7 @@ from kau_assistant.progress.models import (
     DashboardSummary,
     ProgressReport,
 )
-from kau_assistant.scraper.date_parser import KST
+from coursepilot.scraper.date_parser import KST
 
 
 def test_activity_type_enum():

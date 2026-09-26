@@ -1,10 +1,10 @@
 from unittest.mock import MagicMock, patch
 import pytest
 
-from kau_assistant.config import Settings
-from kau_assistant.exceptions import CourseAccessDeniedError
-from kau_assistant.scraper.models import CourseItem
-from kau_assistant.scraper.navigator import CourseNavigator
+from coursepilot.config import Settings
+from coursepilot.exceptions import CourseAccessDeniedError
+from coursepilot.scraper.models import CourseItem
+from coursepilot.scraper.navigator import CourseNavigator
 
 
 @pytest.fixture

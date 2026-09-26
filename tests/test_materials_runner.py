@@ -5,14 +5,14 @@ from unittest.mock import MagicMock, patch
 import httpx
 import pytest
 
-from kau_assistant.config import Settings
-from kau_assistant.materials.models import MaterialItem, MaterialStatus
-from kau_assistant.materials.runner import (
+from coursepilot.config import Settings
+from coursepilot.materials.models import MaterialItem, MaterialStatus
+from coursepilot.materials.runner import (
     process_course_materials,
     resolve_candidate_materials,
     run_materials_pipeline,
 )
-from kau_assistant.scraper.models import CourseItem
+from coursepilot.scraper.models import CourseItem
 
 
 @pytest.fixture
@@ -93,8 +93,8 @@ def test_resolve_candidate_materials_current_all_completed(sample_materials):
     assert items[0].module_id == "8003"
 
 
-@patch("kau_assistant.materials.runner.download_material_file")
-@patch("kau_assistant.materials.runner.mark_material_viewed")
+@patch("coursepilot.materials.runner.download_material_file")
+@patch("coursepilot.materials.runner.mark_material_viewed")
 def test_process_course_materials_normal(
     mock_mark_viewed,
     mock_download,
@@ -127,8 +127,8 @@ def test_process_course_materials_normal(
     assert res.items[0].status == MaterialStatus.DOWNLOADED
 
 
-@patch("kau_assistant.materials.runner.download_material_file")
-@patch("kau_assistant.materials.runner.mark_material_viewed")
+@patch("coursepilot.materials.runner.download_material_file")
+@patch("coursepilot.materials.runner.mark_material_viewed")
 def test_process_course_materials_no_download(
     mock_mark_viewed,
     mock_download,
@@ -171,8 +171,8 @@ def test_process_course_materials_dry_run(tmp_path: Path, sample_course, sample_
     assert "downloads" not in res.items[0].saved_path or str(tmp_path) in res.items[0].saved_path
 
 
-@patch("kau_assistant.materials.runner.download_material_file")
-@patch("kau_assistant.materials.runner.mark_material_viewed")
+@patch("coursepilot.materials.runner.download_material_file")
+@patch("coursepilot.materials.runner.mark_material_viewed")
 def test_process_course_materials_error_isolation(
     mock_mark_viewed,
     mock_download,
@@ -203,10 +203,10 @@ def test_process_course_materials_error_isolation(
     assert res.items[2].status == MaterialStatus.DOWNLOADED
 
 
-@patch("kau_assistant.materials.runner.SessionManager")
-@patch("kau_assistant.materials.runner.CourseNavigator")
-@patch("kau_assistant.materials.runner.extract_courses")
-@patch("kau_assistant.materials.runner.parse_materials_from_course_sections")
+@patch("coursepilot.materials.runner.SessionManager")
+@patch("coursepilot.materials.runner.CourseNavigator")
+@patch("coursepilot.materials.runner.extract_courses")
+@patch("coursepilot.materials.runner.parse_materials_from_course_sections")
 def test_run_materials_pipeline_dry_run(
     mock_parse_materials,
     mock_extract_courses,

@@ -5,18 +5,18 @@ from unittest.mock import MagicMock
 import pytest
 from click.testing import CliRunner
 
-from kau_assistant.cli import cli
-from kau_assistant.config import Settings
-from kau_assistant.player.models import PlaybackProgress, WatchHistoryRecord, WatchState
-from kau_assistant.player.runner import (
+from coursepilot.cli import cli
+from coursepilot.config import Settings
+from coursepilot.player.models import PlaybackProgress, WatchHistoryRecord, WatchState
+from coursepilot.player.runner import (
     WatchResult,
     find_target_course,
     resolve_candidate_vods,
     watch_course_vods,
 )
-from kau_assistant.player.state import WatchStateManager
-from kau_assistant.player.vod_player import VodPlayer
-from kau_assistant.scraper.models import AttendanceStatus, CourseItem, LectureItem
+from coursepilot.player.state import WatchStateManager
+from coursepilot.player.vod_player import VodPlayer
+from coursepilot.scraper.models import AttendanceStatus, CourseItem, LectureItem
 
 
 @pytest.fixture
@@ -95,12 +95,12 @@ def test_watch_course_vods_dry_run(monkeypatch, sample_courses):
     mock_page = MagicMock()
     mock_session.get_authenticated_page.return_value = mock_page
 
-    monkeypatch.setattr("kau_assistant.player.runner.extract_courses", lambda page, url: sample_courses)
+    monkeypatch.setattr("coursepilot.player.runner.extract_courses", lambda page, url: sample_courses)
     
     lectures = [
         LectureItem(course_id="1113", week_number=4, clip_number=1, title="4주차 1차시", full_title="[디시설] 4주차 1차시", link="https://lxp.kau.ac.kr/mod/vod/view.php?id=10", status=AttendanceStatus.INCOMPLETE)
     ]
-    monkeypatch.setattr("kau_assistant.player.runner.scrape_course", lambda page, course, nav: (lectures, []))
+    monkeypatch.setattr("coursepilot.player.runner.scrape_course", lambda page, course, nav: (lectures, []))
 
     mock_player = MagicMock()
     result = watch_course_vods(
@@ -131,12 +131,12 @@ def test_watch_course_vods_playback_and_notion_update(monkeypatch, sample_course
     mock_page = MagicMock()
     mock_session.get_authenticated_page.return_value = mock_page
 
-    monkeypatch.setattr("kau_assistant.player.runner.extract_courses", lambda page, url: sample_courses)
+    monkeypatch.setattr("coursepilot.player.runner.extract_courses", lambda page, url: sample_courses)
     
     lectures = [
         LectureItem(course_id="1113", week_number=4, clip_number=1, title="4주차 1차시", full_title="[디시설] 4주차 1차시", link="https://lxp.kau.ac.kr/mod/vod/view.php?id=10", status=AttendanceStatus.INCOMPLETE)
     ]
-    monkeypatch.setattr("kau_assistant.player.runner.scrape_course", lambda page, course, nav: (lectures, []))
+    monkeypatch.setattr("coursepilot.player.runner.scrape_course", lambda page, course, nav: (lectures, []))
 
     mock_player = MagicMock()
     mock_player.play_vod.return_value = PlaybackProgress(
@@ -156,7 +156,7 @@ def test_watch_course_vods_playback_and_notion_update(monkeypatch, sample_course
     mock_notion_client.query_existing_pages.return_value = {
         "[디시설] 4주차 1차시 강의 시청": mock_notion_page
     }
-    monkeypatch.setattr("kau_assistant.player.runner.NotionClient", lambda settings: mock_notion_client)
+    monkeypatch.setattr("coursepilot.player.runner.NotionClient", lambda settings: mock_notion_client)
 
     result = watch_course_vods(
         settings=settings,
@@ -175,14 +175,14 @@ def test_watch_course_vods_playback_and_notion_update(monkeypatch, sample_course
 
 
 def test_cli_watch_command_dry_run_json(monkeypatch, sample_courses):
-    monkeypatch.setattr("kau_assistant.player.runner.extract_courses", lambda page, url: sample_courses)
+    monkeypatch.setattr("coursepilot.player.runner.extract_courses", lambda page, url: sample_courses)
     lectures = [
         LectureItem(course_id="1103", week_number=3, clip_number=1, title="W03 실험 강의", full_title="[기초전자실험] W03 실험 강의", link="https://lxp.kau.ac.kr/mod/vod/view.php?id=20", status=AttendanceStatus.INCOMPLETE)
     ]
-    monkeypatch.setattr("kau_assistant.player.runner.scrape_course", lambda page, course, nav: (lectures, []))
+    monkeypatch.setattr("coursepilot.player.runner.scrape_course", lambda page, course, nav: (lectures, []))
     
     mock_session = MagicMock()
-    monkeypatch.setattr("kau_assistant.player.runner.SessionManager", lambda *args, **kwargs: mock_session)
+    monkeypatch.setattr("coursepilot.player.runner.SessionManager", lambda *args, **kwargs: mock_session)
 
     runner = CliRunner()
     res = runner.invoke(cli, ["watch", "--course", "기초전자실험", "--week", "3", "--dry-run", "--json"])
@@ -195,15 +195,15 @@ def test_cli_watch_command_dry_run_json(monkeypatch, sample_courses):
 
 
 def test_cli_watch_command_with_video_index(monkeypatch, sample_courses):
-    monkeypatch.setattr("kau_assistant.player.runner.extract_courses", lambda page, url: sample_courses)
+    monkeypatch.setattr("coursepilot.player.runner.extract_courses", lambda page, url: sample_courses)
     lectures = [
         LectureItem(course_id="1103", week_number=3, clip_number=1, title="W03 1차시", full_title="1차시", link="https://lxp.kau.ac.kr/mod/vod/view.php?id=21", status=AttendanceStatus.INCOMPLETE),
         LectureItem(course_id="1103", week_number=3, clip_number=2, title="W03 2차시", full_title="2차시", link="https://lxp.kau.ac.kr/mod/vod/view.php?id=22", status=AttendanceStatus.INCOMPLETE),
     ]
-    monkeypatch.setattr("kau_assistant.player.runner.scrape_course", lambda page, course, nav: (lectures, []))
+    monkeypatch.setattr("coursepilot.player.runner.scrape_course", lambda page, course, nav: (lectures, []))
 
     mock_session = MagicMock()
-    monkeypatch.setattr("kau_assistant.player.runner.SessionManager", lambda *args, **kwargs: mock_session)
+    monkeypatch.setattr("coursepilot.player.runner.SessionManager", lambda *args, **kwargs: mock_session)
 
     runner = CliRunner()
     res = runner.invoke(cli, ["watch", "--course", "기초전자실험", "--week", "3", "--video-index", "2", "--dry-run", "--json"])
@@ -215,7 +215,7 @@ def test_cli_watch_command_with_video_index(monkeypatch, sample_courses):
 
 def test_cli_watch_status_command(monkeypatch, tmp_path):
     sm = WatchStateManager(cache_dir=tmp_path)
-    monkeypatch.setattr("kau_assistant.player.state.WatchStateManager", lambda: sm)
+    monkeypatch.setattr("coursepilot.player.state.WatchStateManager", lambda: sm)
 
     runner = CliRunner()
 
@@ -255,7 +255,7 @@ def test_cli_watch_status_command(monkeypatch, tmp_path):
 
 def test_cli_watch_stop_command(monkeypatch, tmp_path):
     sm = WatchStateManager(cache_dir=tmp_path)
-    monkeypatch.setattr("kau_assistant.player.state.WatchStateManager", lambda: sm)
+    monkeypatch.setattr("coursepilot.player.state.WatchStateManager", lambda: sm)
 
     runner = CliRunner()
 
@@ -277,7 +277,7 @@ def test_cli_watch_stop_command(monkeypatch, tmp_path):
 
 def test_cli_watch_sync_notion_command(monkeypatch, tmp_path):
     sm = WatchStateManager(cache_dir=tmp_path)
-    monkeypatch.setattr("kau_assistant.player.state.WatchStateManager", lambda: sm)
+    monkeypatch.setattr("coursepilot.player.state.WatchStateManager", lambda: sm)
 
     # Record completed watch
     sm.record_completed_video(
@@ -296,7 +296,7 @@ def test_cli_watch_sync_notion_command(monkeypatch, tmp_path):
         notion_database_id="db_id",
         session_cache_path=tmp_path / "session.json",
     )
-    monkeypatch.setattr("kau_assistant.cli.get_settings", lambda: settings)
+    monkeypatch.setattr("coursepilot.cli.get_settings", lambda: settings)
 
     mock_notion_client = MagicMock()
     mock_page = MagicMock()
@@ -304,7 +304,7 @@ def test_cli_watch_sync_notion_command(monkeypatch, tmp_path):
     mock_notion_client.query_existing_pages.return_value = {
         "[기전실] 2주차 1차시 강의 시청": mock_page
     }
-    monkeypatch.setattr("kau_assistant.cli.NotionClient", lambda settings: mock_notion_client)
+    monkeypatch.setattr("coursepilot.cli.NotionClient", lambda settings: mock_notion_client)
 
     runner = CliRunner()
     res = runner.invoke(cli, ["watch", "sync-notion", "--json"])

@@ -7,22 +7,22 @@ from unittest.mock import MagicMock
 import pytest
 from click.testing import CliRunner
 
-from kau_assistant.cli import cli
-from kau_assistant.domain.scope import scope_tasks
-from kau_assistant.domain.transformer import transform_to_sync_tasks
-from kau_assistant.errors import safe_cli_error
-from kau_assistant.exceptions import ActivityCollectionError, ConfigError
-from kau_assistant.notion.deduplicator import plan_sync
-from kau_assistant.notion.models import CreateAction, ExistingPage, SkipAction, SyncResult, UpdateAction
-from kau_assistant.pipeline import PipelineResult
-from kau_assistant.scraper.assessment_parser import merge_section_assessments
-from kau_assistant.scraper.course_sections import needs_section_view, sections_url, validate_activity_coverage
-from kau_assistant.scraper.date_parser import KST
-from kau_assistant.scraper.lecture_parser import UblogsActivityStatus, merge_ublogs_completion, parse_lectures_from_course_sections
-from kau_assistant.scraper.material_parser import parse_materials_from_course_sections
-from kau_assistant.scraper.models import AttendanceStatus, CourseItem
-from kau_assistant.scraper.navigator import CourseNavigator
-from kau_assistant.progress.runner import _collect_single_course_progress
+from coursepilot.cli import cli
+from coursepilot.domain.scope import scope_tasks
+from coursepilot.domain.transformer import transform_to_sync_tasks
+from coursepilot.errors import safe_cli_error
+from coursepilot.exceptions import ActivityCollectionError, ConfigError
+from coursepilot.notion.deduplicator import plan_sync
+from coursepilot.notion.models import CreateAction, ExistingPage, SkipAction, SyncResult, UpdateAction
+from coursepilot.pipeline import PipelineResult
+from coursepilot.scraper.assessment_parser import merge_section_assessments
+from coursepilot.scraper.course_sections import needs_section_view, sections_url, validate_activity_coverage
+from coursepilot.scraper.date_parser import KST
+from coursepilot.scraper.lecture_parser import UblogsActivityStatus, merge_ublogs_completion, parse_lectures_from_course_sections
+from coursepilot.scraper.material_parser import parse_materials_from_course_sections
+from coursepilot.scraper.models import AttendanceStatus, CourseItem
+from coursepilot.scraper.navigator import CourseNavigator
+from coursepilot.progress.runner import _collect_single_course_progress
 
 NOW = datetime(2026, 9, 27, 1, 0, tzinfo=KST)
 # Source module IDs and section weeks from the read-only LMS diagnosis.
@@ -221,12 +221,12 @@ def test_inventory_completed_item_is_skipped_and_source_survives_title_change():
 
 @pytest.mark.parametrize("command,extra", [("check", []), ("sync", []), ("sync", ["--apply"])])
 def test_cli_supported_scope_is_applied_before_reporting_and_sync(monkeypatch, sample_settings, command, extra):
-    monkeypatch.setattr("kau_assistant.cli.get_settings", lambda: sample_settings)
-    monkeypatch.setattr("kau_assistant.cli.get_current_kst_time", lambda: NOW)
-    monkeypatch.setattr("kau_assistant.cli.collect_tasks", lambda *a, **kw: PipelineResult(course_count=6, tasks=inventory(kw.get("include_completed", False))))
+    monkeypatch.setattr("coursepilot.cli.get_settings", lambda: sample_settings)
+    monkeypatch.setattr("coursepilot.cli.get_current_kst_time", lambda: NOW)
+    monkeypatch.setattr("coursepilot.cli.collect_tasks", lambda *a, **kw: PipelineResult(course_count=6, tasks=inventory(kw.get("include_completed", False))))
     engine = MagicMock()
     engine.sync.return_value = SyncResult(enabled=False, dry_run=True)
-    monkeypatch.setattr("kau_assistant.cli.NotionSyncEngine", lambda **kw: engine)
+    monkeypatch.setattr("coursepilot.cli.NotionSyncEngine", lambda **kw: engine)
     result = CliRunner().invoke(cli, [command, "--json", "--course-week", "기초전자실험:5", "--prepare-by", "2026-10-02", *extra])
     assert result.exit_code == 0, result.output
     payload = json.loads(result.stdout)

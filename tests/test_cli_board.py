@@ -5,7 +5,7 @@ from datetime import datetime
 from unittest.mock import MagicMock, patch
 from click.testing import CliRunner
 
-from kau_assistant.board.models import (
+from coursepilot.board.models import (
     BoardAttachmentItem,
     BoardPostItem,
     BoardReplyItem,
@@ -14,7 +14,7 @@ from kau_assistant.board.models import (
     BoardType,
     CourseBoardGroup,
 )
-from kau_assistant.cli import cli
+from coursepilot.cli import cli
 
 
 def test_cli_board_help():
@@ -75,7 +75,7 @@ def test_cli_board_json_contract():
         errors=[],
     )
 
-    with patch("kau_assistant.board.runner.run_board_pipeline", return_value=mock_report):
+    with patch("coursepilot.board.runner.run_board_pipeline", return_value=mock_report):
         result = runner.invoke(cli, ["board", "--json"])
         assert result.exit_code == 0
         data = json.loads(result.output)
@@ -105,7 +105,7 @@ def test_cli_notices_and_qna_invocations():
         errors=[],
     )
 
-    with patch("kau_assistant.board.runner.run_board_pipeline", return_value=mock_report) as mock_run:
+    with patch("coursepilot.board.runner.run_board_pipeline", return_value=mock_report) as mock_run:
         # 1. notices command
         res1 = runner.invoke(cli, ["notices", "--limit", "5", "--unread-only"])
         assert res1.exit_code == 0
@@ -174,7 +174,7 @@ def test_cli_board_view_command():
         ],
     )
 
-    with patch("kau_assistant.board.runner.view_board_article", return_value=mock_post) as mock_view:
+    with patch("coursepilot.board.runner.view_board_article", return_value=mock_post) as mock_view:
         # Text view
         res = runner.invoke(cli, ["board", "--view", "1001", "--course", "알고리즘"])
         assert res.exit_code == 0
@@ -217,7 +217,7 @@ def test_cli_board_exit_codes():
         courses=[],
         errors=[],
     )
-    with patch("kau_assistant.board.runner.run_board_pipeline", return_value=report_ok):
+    with patch("coursepilot.board.runner.run_board_pipeline", return_value=report_ok):
         res = runner.invoke(cli, ["board"])
         assert res.exit_code == 0
 
@@ -237,12 +237,12 @@ def test_cli_board_exit_codes():
         courses=[],
         errors=[{"course_name": "CourseA", "error": "timeout"}],
     )
-    with patch("kau_assistant.board.runner.run_board_pipeline", return_value=report_err):
+    with patch("coursepilot.board.runner.run_board_pipeline", return_value=report_err):
         res = runner.invoke(cli, ["board"])
         assert res.exit_code == 1
 
     # 3. Fatal exception -> 2
-    with patch("kau_assistant.board.runner.run_board_pipeline", side_effect=RuntimeError("Login failed")):
+    with patch("coursepilot.board.runner.run_board_pipeline", side_effect=RuntimeError("Login failed")):
         res = runner.invoke(cli, ["board"])
         assert res.exit_code == 2
         assert "게시판 조회 실패" in res.output or "게시판 조회 실패" in res.stderr

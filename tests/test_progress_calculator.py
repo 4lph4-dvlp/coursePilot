@@ -3,19 +3,19 @@
 from datetime import datetime
 import pytest
 
-from kau_assistant.progress.calculator import (
+from coursepilot.progress.calculator import (
     SectionMeta,
     aggregate_dashboard_summary,
     calculate_course_progress,
     compute_breakdown,
     detect_current_week,
 )
-from kau_assistant.progress.models import (
+from coursepilot.progress.models import (
     ActivityItem,
     ActivityType,
     CourseProgress,
 )
-from kau_assistant.scraper.date_parser import KST
+from coursepilot.scraper.date_parser import KST
 
 
 def test_detect_current_week_by_date():

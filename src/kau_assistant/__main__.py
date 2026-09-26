@@ -1,6 +1,6 @@
-"""`python -m kau_assistant` entry point."""
+"""Legacy `python -m kau_assistant` entry point; delegates to CoursePilot."""
 
-from kau_assistant.cli import main
+from coursepilot.cli import main
 
 if __name__ == "__main__":
     main()

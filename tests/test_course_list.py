@@ -4,15 +4,15 @@ from unittest.mock import MagicMock
 import pytest
 from click.testing import CliRunner
 
-from kau_assistant.cli import cli
-from kau_assistant.exceptions import UnsupportedLmsError
-from kau_assistant.scraper.course_list import (
+from coursepilot.cli import cli
+from coursepilot.exceptions import UnsupportedLmsError
+from coursepilot.scraper.course_list import (
     clean_course_name,
     extract_courses,
     extract_courses_from_html,
     looks_like_coursemos,
 )
-from kau_assistant.scraper.models import CourseItem
+from coursepilot.scraper.models import CourseItem
 
 
 def test_clean_course_name_various_patterns():
@@ -136,7 +136,7 @@ def test_extract_courses_coursemos_zero_courses_returns_empty():
 
 def test_check_json_unsupported_lms_is_fatal(monkeypatch, sample_settings):
     runner = CliRunner()
-    monkeypatch.setattr("kau_assistant.cli.get_settings", lambda: sample_settings)
+    monkeypatch.setattr("coursepilot.cli.get_settings", lambda: sample_settings)
 
     class FakeSessionManager:
         def __init__(self, *args, **kwargs):
@@ -153,7 +153,7 @@ def test_check_json_unsupported_lms_is_fatal(monkeypatch, sample_settings):
             page.content.return_value = '<div id="application" class="ic-app">Canvas LMS</div>'
             return page
 
-    monkeypatch.setattr("kau_assistant.pipeline.SessionManager", FakeSessionManager)
+    monkeypatch.setattr("coursepilot.pipeline.SessionManager", FakeSessionManager)
 
     result = runner.invoke(cli, ["check", "--json"])
     assert result.exit_code == 2

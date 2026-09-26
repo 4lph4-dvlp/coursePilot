@@ -11,14 +11,14 @@ from unittest.mock import MagicMock
 import pytest
 from click.testing import CliRunner
 
-import kau_assistant.pipeline as pipeline
-from kau_assistant.cli import cli
-from kau_assistant.exceptions import AuthenticationError, ConfigError, CourseAccessDeniedError
-from kau_assistant.pipeline import collect_tasks, scrape_course
-from kau_assistant.domain.transformer import transform_to_sync_tasks
-from kau_assistant.scraper.date_parser import KST
-from kau_assistant.scraper.models import AttendanceStatus, CourseItem, LectureItem
-from kau_assistant.scraper.navigator import CourseNavigator
+import coursepilot.pipeline as pipeline
+from coursepilot.cli import cli
+from coursepilot.exceptions import AuthenticationError, ConfigError, CourseAccessDeniedError
+from coursepilot.pipeline import collect_tasks, scrape_course
+from coursepilot.domain.transformer import transform_to_sync_tasks
+from coursepilot.scraper.date_parser import KST
+from coursepilot.scraper.models import AttendanceStatus, CourseItem, LectureItem
+from coursepilot.scraper.navigator import CourseNavigator
 
 NOW = datetime(2026, 9, 23, 12, 0, tzinfo=KST)
 
@@ -136,7 +136,7 @@ def test_exit_code_one_end_to_end_course_failure(monkeypatch, sample_settings):
     """The real CLI `check --json` exits 1 when the real pipeline reports one course error."""
     courses = [_course("c1", "과목1"), _course("c2", "과목2"), _course("c3", "과목3")]
 
-    monkeypatch.setattr("kau_assistant.cli.get_settings", lambda: sample_settings)
+    monkeypatch.setattr("coursepilot.cli.get_settings", lambda: sample_settings)
     monkeypatch.setattr(pipeline, "SessionManager", FakeSession)
     monkeypatch.setattr(pipeline, "extract_courses", lambda page, lms_url: courses)
 
@@ -304,14 +304,14 @@ def test_zero_courses_warns_not_errors(monkeypatch, sample_settings, caplog):
     monkeypatch.setattr(pipeline, "SessionManager", FakeSession)
     monkeypatch.setattr(pipeline, "extract_courses", lambda page, lms_url: [])
 
-    with caplog.at_level(logging.WARNING, logger="kau_assistant.pipeline"):
+    with caplog.at_level(logging.WARNING, logger="coursepilot.pipeline"):
         result = collect_tasks(sample_settings, now=NOW)
 
     assert result.course_count == 0
     assert result.tasks == []
     assert result.errors == []
     assert any(
-        record.levelno == logging.WARNING and record.name == "kau_assistant.pipeline"
+        record.levelno == logging.WARNING and record.name == "coursepilot.pipeline"
         for record in caplog.records
     )
 

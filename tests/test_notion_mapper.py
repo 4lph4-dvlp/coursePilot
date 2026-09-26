@@ -4,15 +4,15 @@ from datetime import datetime
 
 import pytest
 
-from kau_assistant.domain.models import (
+from coursepilot.domain.models import (
     SyncTask,
     TaskPriority,
     TaskSelect,
     TaskStatus,
     TaskType,
 )
-from kau_assistant.exceptions import NotionSchemaError
-from kau_assistant.notion.mapper import (
+from coursepilot.exceptions import NotionSchemaError
+from coursepilot.notion.mapper import (
     PROTECTED_PROPERTIES,
     SCHEDULER_SCHEMA,
     UPDATEABLE_PROPERTIES,
@@ -22,8 +22,8 @@ from kau_assistant.notion.mapper import (
     to_update_properties,
     validate_scheduler_schema,
 )
-from kau_assistant.notion.models import ExistingPage
-from kau_assistant.scraper.date_parser import KST
+from coursepilot.notion.models import ExistingPage
+from coursepilot.scraper.date_parser import KST
 
 
 def _schema() -> dict:

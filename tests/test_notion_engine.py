@@ -3,17 +3,17 @@
 from datetime import datetime
 from unittest.mock import MagicMock
 
-from kau_assistant.config import Settings
-from kau_assistant.domain.models import (
+from coursepilot.config import Settings
+from coursepilot.domain.models import (
     SyncTask,
     TaskPriority,
     TaskSelect,
     TaskStatus,
     TaskType,
 )
-from kau_assistant.notion.engine import NotionSyncEngine
-from kau_assistant.notion.models import ExistingPage, NotionTarget
-from kau_assistant.scraper.date_parser import KST
+from coursepilot.notion.engine import NotionSyncEngine
+from coursepilot.notion.models import ExistingPage, NotionTarget
+from coursepilot.scraper.date_parser import KST
 
 
 def _task(
@@ -192,7 +192,7 @@ def test_configured_read_failure_is_contained_as_structured_error() -> None:
 
 
 def test_public_notion_facade_exports_only_stable_application_types() -> None:
-    import kau_assistant.notion as notion
+    import coursepilot.notion as notion
 
     assert notion.NotionSyncEngine is NotionSyncEngine
     assert notion.SyncResult.__name__ == "SyncResult"

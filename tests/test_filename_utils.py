@@ -1,6 +1,6 @@
 """Unit tests for filename_utils module."""
 
-from kau_assistant.materials.filename_utils import resolve_filename, sanitize_filename
+from coursepilot.materials.filename_utils import resolve_filename, sanitize_filename
 
 
 def test_resolve_filename_rfc5987_utf8():

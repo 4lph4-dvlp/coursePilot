@@ -2,7 +2,7 @@ from pathlib import Path
 from unittest.mock import MagicMock
 import pytest
 
-from kau_assistant.scraper.debug_dump import capture_debug_snapshot
+from coursepilot.scraper.debug_dump import capture_debug_snapshot
 
 
 def test_capture_debug_snapshot_creates_files(tmp_path: Path):

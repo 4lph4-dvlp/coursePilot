@@ -6,23 +6,23 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 import pytest
 
-from kau_assistant.progress.calculator import SectionMeta
-from kau_assistant.progress.models import (
+from coursepilot.progress.calculator import SectionMeta
+from coursepilot.progress.models import (
     SCHEMA_VERSION,
     ActivityBreakdown,
     CourseProgress,
     DashboardSummary,
     ProgressReport,
 )
-from kau_assistant.progress.runner import (
+from coursepilot.progress.runner import (
     CACHE_TTL_SECONDS,
     extract_course_sections_meta,
     load_progress_cache,
     run_progress_pipeline,
     save_progress_cache,
 )
-from kau_assistant.scraper.date_parser import KST
-from kau_assistant.scraper.models import CourseItem
+from coursepilot.scraper.date_parser import KST
+from coursepilot.scraper.models import CourseItem
 
 
 def _sample_report(generated_at: datetime) -> ProgressReport:
@@ -124,8 +124,8 @@ def test_extract_course_sections_meta():
     assert s1.end_date == datetime(2026, 9, 7, 23, 59, 59, tzinfo=KST)
 
 
-@patch("kau_assistant.progress.runner.SessionManager")
-@patch("kau_assistant.progress.runner.get_authenticated_httpx_client")
+@patch("coursepilot.progress.runner.SessionManager")
+@patch("coursepilot.progress.runner.get_authenticated_httpx_client")
 def test_progress_runner_course_error_isolation(mock_get_client, mock_session_mgr_cls, tmp_path: Path):
     mock_settings = MagicMock()
     mock_settings.session_cache_path = tmp_path / "session.json"
@@ -143,8 +143,8 @@ def test_progress_runner_course_error_isolation(mock_get_client, mock_session_mg
     mock_client = MagicMock()
     mock_get_client.return_value = mock_client
 
-    with patch("kau_assistant.progress.runner.extract_courses", return_value=[c1, c2]):
-        with patch("kau_assistant.progress.runner._collect_single_course_progress") as mock_collect:
+    with patch("coursepilot.progress.runner.extract_courses", return_value=[c1, c2]):
+        with patch("coursepilot.progress.runner._collect_single_course_progress") as mock_collect:
             # Course 1 raises exception (network failure)
             # Course 2 succeeds
             mock_collect.side_effect = [
@@ -179,8 +179,8 @@ def test_progress_runner_course_error_isolation(mock_get_client, mock_session_mg
             assert report.errors[0].course_id == "101"
 
 
-@patch("kau_assistant.progress.runner.SessionManager")
-@patch("kau_assistant.progress.runner.get_authenticated_httpx_client")
+@patch("coursepilot.progress.runner.SessionManager")
+@patch("coursepilot.progress.runner.get_authenticated_httpx_client")
 def test_progress_runner_cached_and_refresh_flags(mock_get_client, mock_session_mgr_cls, tmp_path: Path):
     mock_settings = MagicMock()
     cache_file = tmp_path / "progress_cache.json"
@@ -204,8 +204,8 @@ def test_progress_runner_cached_and_refresh_flags(mock_get_client, mock_session_
     mock_session_mgr_cls.return_value = mock_sm
 
     c1 = CourseItem(course_id="101", raw_name="알고리즘", clean_name="알고리즘", url="https://canvas.kau.ac.kr/c/101")
-    with patch("kau_assistant.progress.runner.extract_courses", return_value=[c1]):
-        with patch("kau_assistant.progress.runner._collect_single_course_progress") as mock_collect:
+    with patch("coursepilot.progress.runner.extract_courses", return_value=[c1]):
+        with patch("coursepilot.progress.runner._collect_single_course_progress") as mock_collect:
             mock_collect.return_value = CourseProgress(
                 course_id="101",
                 course_name="알고리즘",

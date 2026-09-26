@@ -6,16 +6,16 @@ from unittest.mock import MagicMock, patch
 from click.testing import CliRunner
 import pytest
 
-from kau_assistant.cli import cli
-from kau_assistant.progress.models import (
+from coursepilot.cli import cli
+from coursepilot.progress.models import (
     SCHEMA_VERSION,
     ActivityBreakdown,
     CourseProgress,
     DashboardSummary,
     ProgressReport,
 )
-from kau_assistant.report_models import ErrorItem
-from kau_assistant.scraper.date_parser import KST
+from coursepilot.report_models import ErrorItem
+from coursepilot.scraper.date_parser import KST
 
 
 def _sample_report(missed_past: int = 0, errors: list[ErrorItem] | None = None) -> ProgressReport:
@@ -76,7 +76,7 @@ def test_cli_progress_help():
     assert "--json" in result.output
 
 
-@patch("kau_assistant.cli.run_progress_pipeline")
+@patch("coursepilot.cli.run_progress_pipeline")
 def test_cli_progress_json_contract(mock_pipeline):
     mock_pipeline.return_value = _sample_report(missed_past=0)
 
@@ -93,7 +93,7 @@ def test_cli_progress_json_contract(mock_pipeline):
     assert data["courses"][0]["course_name"] == "자료구조(01분반)"
 
 
-@patch("kau_assistant.cli.run_progress_pipeline")
+@patch("coursepilot.cli.run_progress_pipeline")
 def test_cli_progress_stream_separation(mock_pipeline):
     def fake_pipeline(**kwargs):
         cb = kwargs.get("progress_callback")
@@ -115,8 +115,8 @@ def test_cli_progress_stream_separation(mock_pipeline):
     assert data["schema_version"] == 1
 
 
-@patch("kau_assistant.cli.render_course_matrix")
-@patch("kau_assistant.cli.run_progress_pipeline")
+@patch("coursepilot.cli.render_course_matrix")
+@patch("coursepilot.cli.run_progress_pipeline")
 def test_cli_progress_course_matrix_dispatch(mock_pipeline, mock_matrix):
     mock_pipeline.return_value = _sample_report(missed_past=0)
 
@@ -126,8 +126,8 @@ def test_cli_progress_course_matrix_dispatch(mock_pipeline, mock_matrix):
     assert mock_matrix.called
 
 
-@patch("kau_assistant.cli.render_detailed_activities")
-@patch("kau_assistant.cli.run_progress_pipeline")
+@patch("coursepilot.cli.render_detailed_activities")
+@patch("coursepilot.cli.run_progress_pipeline")
 def test_cli_progress_detail_dispatch(mock_pipeline, mock_detail):
     mock_pipeline.return_value = _sample_report(missed_past=0)
 
@@ -137,7 +137,7 @@ def test_cli_progress_detail_dispatch(mock_pipeline, mock_detail):
     assert mock_detail.called
 
 
-@patch("kau_assistant.cli.run_progress_pipeline")
+@patch("coursepilot.cli.run_progress_pipeline")
 def test_cli_progress_exit_codes(mock_pipeline):
     runner = CliRunner()
 

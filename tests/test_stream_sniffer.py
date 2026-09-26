@@ -3,8 +3,8 @@
 from unittest.mock import MagicMock
 import pytest
 
-from kau_assistant.player.vod_player import VodPlayer
-from kau_assistant.stream.sniffer import StreamSniffer
+from coursepilot.player.vod_player import VodPlayer
+from coursepilot.stream.sniffer import StreamSniffer
 
 
 def test_sniffer_response_interception():

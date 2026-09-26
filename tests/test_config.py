@@ -1,13 +1,13 @@
 """Tests for configuration loader (CONF-01)."""
 
 from pathlib import Path
-from kau_assistant.config import Settings, get_settings
+from coursepilot.config import Settings, get_settings
 
 
 def test_default_values(clean_env):
     """Verify default values are properly initialized."""
     settings = Settings(_env_file=None)
-    assert settings.lms_url == "https://lxp.kau.ac.kr"
+    assert settings.lms_url == ""
     assert settings.lms_username == ""
     assert settings.lms_password == ""
     assert settings.headless is True
@@ -22,9 +22,9 @@ def test_default_values(clean_env):
     assert settings.course_mappings_path == Path("config/course_mappings.json")
 
 
-def test_default_lms_url_is_kau_lxp():
-    from kau_assistant.config import DEFAULT_LMS_URL
-    assert DEFAULT_LMS_URL == "https://lxp.kau.ac.kr"
+def test_default_lms_url_requires_explicit_school_selection():
+    from coursepilot.config import DEFAULT_LMS_URL
+    assert DEFAULT_LMS_URL == ""
     assert Settings.model_fields["lms_url"].default == DEFAULT_LMS_URL
 
 
@@ -131,7 +131,7 @@ def test_get_settings_singleton(clean_env):
 
 
 def test_env_example_documents_lxp_default():
-    from kau_assistant.config import DEFAULT_LMS_URL
+    from coursepilot.config import DEFAULT_LMS_URL
 
     repo_dir = Path(__file__).resolve().parents[1]
     env_example = repo_dir / ".env.example"
@@ -156,7 +156,7 @@ def test_env_example_documents_lxp_default():
 
 
 def test_env_example_loads_through_settings(clean_env):
-    from kau_assistant.config import DEFAULT_LMS_URL
+    from coursepilot.config import DEFAULT_LMS_URL
 
     repo_dir = Path(__file__).resolve().parents[1]
     env_example = repo_dir / ".env.example"
@@ -165,4 +165,3 @@ def test_env_example_loads_through_settings(clean_env):
     assert (
         settings.lms_url == DEFAULT_LMS_URL
     ), "Loading .env.example must yield DEFAULT_LMS_URL"
-

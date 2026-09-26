@@ -1,8 +1,8 @@
 """Unit tests for task naming rules and smart title cleaning engine."""
 
 import pytest
-from kau_assistant.domain.models import TaskType
-from kau_assistant.domain.naming import (
+from coursepilot.domain.models import TaskType
+from coursepilot.domain.naming import (
     clean_task_title,
     extract_week_and_title,
     format_task_title,

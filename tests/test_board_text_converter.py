@@ -1,6 +1,6 @@
 """Unit tests for HTML-to-Markdown text converter and summary preview extractor."""
 
-from kau_assistant.board.text_converter import extract_summary_preview, html_to_markdown
+from coursepilot.board.text_converter import extract_summary_preview, html_to_markdown
 
 
 def test_html_to_markdown_tags():

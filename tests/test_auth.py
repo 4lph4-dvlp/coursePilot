@@ -2,7 +2,7 @@
 
 import pytest
 from unittest.mock import MagicMock
-from kau_assistant.auth import (
+from coursepilot.auth import (
     find_first_visible,
     perform_login,
     is_logged_in,
@@ -11,7 +11,7 @@ from kau_assistant.auth import (
     SUBMIT_SELECTORS,
     LOGGED_IN_SELECTORS,
 )
-from kau_assistant.exceptions import AuthenticationError
+from coursepilot.exceptions import AuthenticationError
 
 
 def test_find_first_visible_first_match():

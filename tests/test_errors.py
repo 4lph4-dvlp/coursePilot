@@ -2,17 +2,17 @@
 
 from pydantic import ValidationError
 
-from kau_assistant.config import Settings
-from kau_assistant.errors import EXIT_FATAL, EXIT_OK, EXIT_PARTIAL, exit_code_for, safe_cli_error
-from kau_assistant.exceptions import (
+from coursepilot.config import Settings
+from coursepilot.errors import EXIT_FATAL, EXIT_OK, EXIT_PARTIAL, exit_code_for, safe_cli_error
+from coursepilot.exceptions import (
     AuthenticationError,
     ConfigError,
     CourseAccessDeniedError,
-    KauAssistantError,
+    CoursePilotError,
     NavigationTimeoutError,
     NotionAuthenticationError,
 )
-from kau_assistant.report_models import ErrorItem
+from coursepilot.report_models import ErrorItem
 
 SECRET_PW = "supersecretpassword"
 
@@ -23,7 +23,7 @@ def test_redaction_allowlist_messages():
     auth_err = AuthenticationError(f"로그인 실패: 비밀번호={SECRET_PW}")
     nav_err = NavigationTimeoutError(f"페이지 이동 실패 (token={SECRET_PW})")
     denied_err = CourseAccessDeniedError(f"접근 거부: {SECRET_PW}")
-    bare_err = KauAssistantError(f"알 수 없는 내부 오류: {SECRET_PW}")
+    bare_err = CoursePilotError(f"알 수 없는 내부 오류: {SECRET_PW}")
     runtime_err = RuntimeError(f"예상치 못한 오류: {SECRET_PW}")
 
     config_item = safe_cli_error(config_err, scope="fatal")
@@ -79,8 +79,7 @@ def test_exit_code_for_mapping():
 
 
 def test_unsupported_lms_error_static_message():
-    from kau_assistant.config import DEFAULT_LMS_URL
-    from kau_assistant.exceptions import UnsupportedLmsError
+    from coursepilot.exceptions import UnsupportedLmsError
 
     err = UnsupportedLmsError(f"Leaked secret: {SECRET_PW}")
     item = safe_cli_error(err, scope="fatal")
@@ -88,7 +87,7 @@ def test_unsupported_lms_error_static_message():
     assert item.code == "UnsupportedLmsError"
     assert "LMS_URL" in item.message
     assert "Coursemos" in item.message
-    assert DEFAULT_LMS_URL in item.message
+    assert "LMS_PROFILE" in item.message
     assert SECRET_PW not in item.message
     assert str(err) not in item.message
     assert exit_code_for([item]) == EXIT_FATAL
@@ -99,4 +98,3 @@ def test_auth_message_mentions_lms_url():
     item = safe_cli_error(auth_err, scope="fatal")
     assert item.message.startswith("LMS 로그인에 실패했습니다")
     assert "LMS_URL" in item.message
-

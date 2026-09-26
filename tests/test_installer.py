@@ -10,8 +10,8 @@ from pathlib import Path
 import pytest
 from click.testing import CliRunner
 
-from kau_assistant.cli import cli
-from kau_assistant.installer import (
+from coursepilot.cli import cli
+from coursepilot.installer import (
     AGENT_SKILL_PATHS,
     InstallError,
     REPO_PLACEHOLDER,
@@ -43,6 +43,12 @@ def isolate_hermes_and_localappdata(tmp_path: Path, monkeypatch) -> None:
     fake_local.mkdir(parents=True, exist_ok=True)
     monkeypatch.setenv("LOCALAPPDATA", str(fake_local))
     monkeypatch.delenv("HERMES_HOME", raising=False)
+    # Include default-home installs: even a CLI hint test must never write into
+    # the real user's Claude/Codex skill directory.
+    default_home = tmp_path / "default-home"
+    default_home.mkdir()
+    monkeypatch.setenv("HOME", str(default_home))
+    monkeypatch.setenv("USERPROFILE", str(default_home))
 
 
 def _parse_frontmatter(content: str) -> dict[str, str]:
@@ -82,7 +88,7 @@ def fake_home(tmp_path: Path, monkeypatch) -> Path:
 
 def test_path_claude_user_target(fake_home: Path) -> None:
     target = resolve_install_target("claude", home=fake_home)
-    assert target == fake_home / ".claude" / "skills" / "kau-lxp"
+    assert target == fake_home / ".claude" / "skills" / "coursepilot"
 
 
 def test_resolve_path_copy_install_renders_repo_root(fake_home: Path) -> None:
@@ -90,13 +96,13 @@ def test_resolve_path_copy_install_renders_repo_root(fake_home: Path) -> None:
     result = runner.invoke(cli, ["install-skill", "--agent", "claude"])
     assert result.exit_code == 0, result.output
 
-    installed = fake_home / ".claude" / "skills" / "kau-lxp" / "SKILL.md"
+    installed = fake_home / ".claude" / "skills" / "coursepilot" / "SKILL.md"
     assert installed.exists()
     content = installed.read_text(encoding="utf-8")
     assert REPO_PLACEHOLDER not in content
     assert content.count(str(repo_root())) >= 2
 
-    repo_root_file = fake_home / ".claude" / "skills" / "kau-lxp" / REPO_ROOT_FILE
+    repo_root_file = fake_home / ".claude" / "skills" / "coursepilot" / REPO_ROOT_FILE
     assert repo_root_file.read_text(encoding="utf-8").strip() == str(repo_root())
 
     # The repo's own copy must still carry the placeholder.
@@ -114,7 +120,7 @@ def test_skill_frontmatter_agent_neutral() -> None:
     content = (skill_source_dir() / "SKILL.md").read_text(encoding="utf-8")
     frontmatter = _parse_frontmatter(content)
     assert set(frontmatter.keys()) == {"name", "description"}
-    assert frontmatter["name"] == "kau-lxp"
+    assert frontmatter["name"] == "coursepilot"
     assert len(frontmatter["description"]) <= 1024
     assert "과제 확인해줘" in frontmatter["description"]
     assert "노션에 올려줘" in frontmatter["description"]
@@ -171,7 +177,7 @@ def tmp_src(tmp_path: Path) -> Path:
     src = tmp_path / "src" / SKILL_NAME
     src.mkdir(parents=True)
     (src / "SKILL.md").write_text(
-        "---\nname: kau-lxp\ndescription: \"test\"\n---\n\nbody\n", encoding="utf-8"
+        "---\nname: coursepilot\ndescription: \"test\"\n---\n\nbody\n", encoding="utf-8"
     )
     return src
 
@@ -202,7 +208,7 @@ def test_hermes_home_env_var_wins(fake_home: Path, tmp_path: Path) -> None:
         env={"HERMES_HOME": str(custom_hermes), "LOCALAPPDATA": "C:/dummy"},
         platform="win32",
     )
-    assert target == custom_hermes / "skills" / "kau-lxp"
+    assert target == custom_hermes / "skills" / "coursepilot"
 
 
 def test_hermes_windows_localappdata(fake_home: Path, tmp_path: Path) -> None:
@@ -213,22 +219,22 @@ def test_hermes_windows_localappdata(fake_home: Path, tmp_path: Path) -> None:
         env={"LOCALAPPDATA": str(win_local)},
         platform="win32",
     )
-    assert target == win_local / "hermes" / "skills" / "kau-lxp"
+    assert target == win_local / "hermes" / "skills" / "coursepilot"
 
 
 def test_hermes_posix_and_windows_fallback(fake_home: Path) -> None:
     posix_target = resolve_install_target("hermes", home=fake_home, env={}, platform="linux")
-    assert posix_target == fake_home / ".hermes" / "skills" / "kau-lxp"
+    assert posix_target == fake_home / ".hermes" / "skills" / "coursepilot"
 
     win_target = resolve_install_target("hermes", home=fake_home, env={}, platform="win32")
-    assert win_target == fake_home / ".hermes" / "skills" / "kau-lxp"
+    assert win_target == fake_home / ".hermes" / "skills" / "coursepilot"
 
 
 def test_other_agents_ignore_hermes_env(fake_home: Path, tmp_path: Path) -> None:
     env = {"HERMES_HOME": str(tmp_path / "hermes"), "LOCALAPPDATA": str(tmp_path / "local")}
     for agent in ("claude", "codex", "antigravity", "pi"):
         target = resolve_install_target(agent, home=fake_home, env=env, platform="win32")
-        expected = fake_home.joinpath(*AGENT_SKILL_PATHS[agent].skills_dir, "kau-lxp")
+        expected = fake_home.joinpath(*AGENT_SKILL_PATHS[agent].skills_dir, "coursepilot")
         assert target == expected
 
 
@@ -246,7 +252,7 @@ def test_cli_install_hermes_uses_hermes_home(tmp_path: Path, monkeypatch) -> Non
     runner = CliRunner()
     result = runner.invoke(cli, ["install-skill", "--agent", "hermes"])
     assert result.exit_code == 0
-    installed = hermes_home / "skills" / "kau-lxp" / "SKILL.md"
+    installed = hermes_home / "skills" / "coursepilot" / "SKILL.md"
     assert installed.exists()
     assert "경고" not in result.output
 
@@ -255,7 +261,7 @@ def test_install_skill_prints_lms_url_hint() -> None:
     runner = CliRunner()
     result = runner.invoke(cli, ["install-skill", "--agent", "claude"])
     assert "LMS_URL" in result.output
-    assert "https://lxp.kau.ac.kr" in result.output
+    assert "LMS_PROFILE=kau" in result.output
     assert "Coursemos" in result.output
 
 

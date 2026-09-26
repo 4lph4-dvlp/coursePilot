@@ -1,1 +1,1 @@
-"""Test suite package for KAU LXP Assistant."""
+"""Test suite package for CoursePilot."""

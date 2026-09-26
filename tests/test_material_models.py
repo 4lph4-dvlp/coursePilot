@@ -2,8 +2,8 @@
 
 import json
 from pathlib import Path
-from kau_assistant.config import Settings
-from kau_assistant.materials.models import (
+from coursepilot.config import Settings
+from coursepilot.materials.models import (
     CourseMaterialsResult,
     MaterialDownloadResult,
     MaterialItem,

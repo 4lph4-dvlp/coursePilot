@@ -6,8 +6,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from kau_assistant.player.models import WatchHistoryRecord, WatchState
-from kau_assistant.player.state import WatchStateManager
+from coursepilot.player.models import WatchHistoryRecord, WatchState
+from coursepilot.player.state import WatchStateManager
 
 
 def test_watch_state_lifecycle(tmp_path: Path):

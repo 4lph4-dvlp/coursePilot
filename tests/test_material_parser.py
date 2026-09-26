@@ -1,11 +1,11 @@
 """Unit tests for material_parser module."""
 
 from pathlib import Path
-from kau_assistant.scraper.material_parser import (
+from coursepilot.scraper.material_parser import (
     extract_pluginfile_url,
     parse_materials_from_course_sections,
 )
-from kau_assistant.scraper.models import CourseItem
+from coursepilot.scraper.models import CourseItem
 
 
 def test_parse_materials_from_course_sections():

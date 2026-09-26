@@ -1,7 +1,7 @@
 from datetime import datetime
 import pytest
 
-from kau_assistant.scraper.date_parser import (
+from coursepilot.scraper.date_parser import (
     KST,
     is_past_deadline,
     parse_lms_date,

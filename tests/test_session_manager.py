@@ -4,15 +4,15 @@ import json
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 import pytest
-from kau_assistant.config import Settings
-from kau_assistant.exceptions import NavigationTimeoutError
-from kau_assistant.session_manager import SessionManager
+from coursepilot.config import Settings
+from coursepilot.exceptions import NavigationTimeoutError
+from coursepilot.session_manager import SessionManager
 
 
 @pytest.fixture
 def mock_playwright_stack():
     """Mock the entire Playwright sync stack (playwright, browser, context, page)."""
-    with patch("kau_assistant.session_manager.sync_playwright") as mock_sync:
+    with patch("coursepilot.session_manager.sync_playwright") as mock_sync:
         mock_p = MagicMock()
         mock_sync.return_value.start.return_value = mock_p
         mock_browser = MagicMock()
@@ -74,7 +74,7 @@ def test_valid_cache_skips_login(tmp_path: Path, mock_playwright_stack):
         _env_file=None,
     )
 
-    with patch("kau_assistant.session_manager.perform_login") as mock_login:
+    with patch("coursepilot.session_manager.perform_login") as mock_login:
         with SessionManager(settings=settings) as sm:
             # Mock authentication check returning True
             sm._check_authenticated = MagicMock(return_value=True)
@@ -100,7 +100,7 @@ def test_expired_cache_auto_healing(tmp_path: Path, mock_playwright_stack):
         _env_file=None,
     )
 
-    with patch("kau_assistant.session_manager.perform_login") as mock_login:
+    with patch("coursepilot.session_manager.perform_login") as mock_login:
         with SessionManager(settings=settings) as sm:
             # First check returns False (session expired)
             sm._check_authenticated = MagicMock(return_value=False)
@@ -122,7 +122,7 @@ def test_corrupted_cache_fallback(tmp_path: Path, mock_playwright_stack):
         _env_file=None,
     )
 
-    with patch("kau_assistant.session_manager.perform_login") as mock_login:
+    with patch("coursepilot.session_manager.perform_login") as mock_login:
         with SessionManager(settings=settings) as sm:
             sm._check_authenticated = MagicMock(return_value=False)
             page = sm.get_authenticated_page()
@@ -165,7 +165,7 @@ def test_navigation_retry_exhausted(mock_playwright_stack):
 
 def test_context_manager_lifecycle(mock_playwright_stack):
     """Verify browser and context are properly closed upon exit."""
-    settings = Settings(headless=True, _env_file=None)
+    settings = Settings(headless=True, lms_profile="kau", _env_file=None)
     with SessionManager(settings=settings) as sm:
         # Simulate creating a context
         sm._context = mock_playwright_stack["context"]
