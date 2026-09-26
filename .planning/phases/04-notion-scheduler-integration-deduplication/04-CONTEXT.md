@@ -6,7 +6,7 @@
 <domain>
 ## Phase Boundary
 
-Phase 4는 사용자의 기존 개인 Notion Scheduler 데이터베이스(`21d53280-64be-80ec-af4e-000b679f03bb` 또는 `NOTION_DATABASE_NAME`)와 연동하여, Phase 3에서 정규화된 `SyncTask` 목록을 기등록 페이지와 비교하여 중복을 방지하고 스마트하게 업서트(Smart Upsert)하는 전용 노션 동기화 엔진(`src/kau_assistant/notion/`)을 구축합니다:
+Phase 4는 사용자의 기존 개인 Notion Scheduler 데이터베이스(`21d53280-64be-80ec-af4e-000b679f03bb` 또는 `NOTION_DATABASE_NAME`)와 연동하여, Phase 3에서 정규화된 `SyncTask` 목록을 기등록 페이지와 비교하여 중복을 방지하고 스마트하게 업서트(Smart Upsert)하는 전용 노션 동기화 엔진(`src/coursepilot/notion/`)을 구축합니다:
 1. 공식 Python `notion-client` 기반 API 클라이언트 및 인증/에러 핸들러 (`client.py`)
 2. 데이터베이스 이름 기반 자동 탐색 및 ID 매핑 모듈 (`NOTION_DATABASE_NAME` 지원)
 3. 정규화된 작업명(`title`) 기준 기존 페이지 쿼리 및 중복 판별 엔진 (`deduplicator.py`)
@@ -59,10 +59,10 @@ Phase 4는 사용자의 기존 개인 Notion Scheduler 데이터베이스(`21d53
 - `.planning/phases/03-domain-modeling-naming-rules/03-CONTEXT.md` — Phase 3 도메인 모델 결정사항 (D-01~D-15)
 
 ### Source Code References
-- `src/kau_assistant/domain/models.py` — `SyncTask`, `TaskPriority`, `TaskSelect`, `TaskStatus`, `TaskType`
-- `src/kau_assistant/domain/naming.py` — `format_task_title` (매칭 키 생성)
-- `src/kau_assistant/domain/transformer.py` — `transform_to_sync_tasks`, `format_memo`
-- `src/kau_assistant/config.py` — `AppConfig`, `get_config` (환경변수 관리)
+- `src/coursepilot/domain/models.py` — `SyncTask`, `TaskPriority`, `TaskSelect`, `TaskStatus`, `TaskType`
+- `src/coursepilot/domain/naming.py` — `format_task_title` (매칭 키 생성)
+- `src/coursepilot/domain/transformer.py` — `transform_to_sync_tasks`, `format_memo`
+- `src/coursepilot/config.py` — `AppConfig`, `get_config` (환경변수 관리)
 
 ### External API References
 - Notion API Query Database: `https://developers.notion.com/reference/post-database-query`
@@ -76,9 +76,9 @@ Phase 4는 사용자의 기존 개인 Notion Scheduler 데이터베이스(`21d53
 ## Existing Code Insights
 
 ### Reusable Assets
-- `src/kau_assistant/domain/models.py`: `SyncTask` 객체가 노션 스케줄러 스키마의 8개 필드와 완벽히 정합하도록 설계되어 있음 (`selection`, `category`, `due_date`, `priority`, `status`, `memo`).
-- `src/kau_assistant/config.py`: `NOTION_TOKEN`, `NOTION_DATABASE_ID` 필드가 기정의되어 있으며, `NOTION_DATABASE_NAME`을 추가하여 이름 기반 탐색 지원 가능.
-- `src/kau_assistant/scraper/date_parser.py`: `KST` 타임존을 통해 노션 날짜 ISO 8601 포맷팅(`YYYY-MM-DDTHH:MM:SS+09:00`) 시 타임존 오차 차단.
+- `src/coursepilot/domain/models.py`: `SyncTask` 객체가 노션 스케줄러 스키마의 8개 필드와 완벽히 정합하도록 설계되어 있음 (`selection`, `category`, `due_date`, `priority`, `status`, `memo`).
+- `src/coursepilot/config.py`: `NOTION_TOKEN`, `NOTION_DATABASE_ID` 필드가 기정의되어 있으며, `NOTION_DATABASE_NAME`을 추가하여 이름 기반 탐색 지원 가능.
+- `src/coursepilot/scraper/date_parser.py`: `KST` 타임존을 통해 노션 날짜 ISO 8601 포맷팅(`YYYY-MM-DDTHH:MM:SS+09:00`) 시 타임존 오차 차단.
 
 ### Established Patterns
 - Pydantic BaseModel 기반 엄격한 스키마 및 결과 DTO 모델 정의
@@ -86,8 +86,8 @@ Phase 4는 사용자의 기존 개인 Notion Scheduler 데이터베이스(`21d53
 - 환경변수 누락 시 프로그램이 크래시되지 않고 친절한 경고와 함께 안전 폴백(Graceful degradation)
 
 ### Integration Points
-- `src/kau_assistant/notion/`: 이번 Phase 4에서 구축되는 노션 통합 모듈 (`client.py`, `mapper.py`, `deduplicator.py`, `engine.py`, `__init__.py`).
-- Phase 5 CLI 진입점(`src/kau_assistant/cli.py`)에서 `NotionSyncEngine`을 호출하여 `sync` 및 `check` 명령 수행.
+- `src/coursepilot/notion/`: 이번 Phase 4에서 구축되는 노션 통합 모듈 (`client.py`, `mapper.py`, `deduplicator.py`, `engine.py`, `__init__.py`).
+- Phase 5 CLI 진입점(`src/coursepilot/cli.py`)에서 `NotionSyncEngine`을 호출하여 `sync` 및 `check` 명령 수행.
 
 </code_context>
 

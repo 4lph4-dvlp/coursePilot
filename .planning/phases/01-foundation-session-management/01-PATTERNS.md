@@ -8,9 +8,9 @@
 
 ## 1. Codebase Status & Greenfield Context
 
-This is a **greenfield project** with no pre-existing Python source files or test suites in the repository (`kau-lxp-assistant`). Consequently:
+This is a **greenfield project** with no pre-existing Python source files or test suites in the repository (`coursepilot`). Consequently:
 - **No internal codebase analogs exist** for new Python files.
-- All code patterns, structural conventions, and implementation signatures are derived directly from the technical specifications in [01-RESEARCH.md](file:///D:/dev/kau-lxp-assistant/.planning/phases/01-foundation-session-management/01-RESEARCH.md) and locked user decisions in [01-CONTEXT.md](file:///D:/dev/kau-lxp-assistant/.planning/phases/01-foundation-session-management/01-CONTEXT.md).
+- All code patterns, structural conventions, and implementation signatures are derived directly from the technical specifications in [01-RESEARCH.md](01-RESEARCH.md) and locked user decisions in [01-CONTEXT.md](01-CONTEXT.md).
 - This document establishes the **canonical blueprints** that downstream implementation phases (Phase 1 through Phase 5) must replicate.
 
 ---
@@ -25,12 +25,12 @@ The following table maps every file to be created in Phase 1 to its pattern arch
 | `.env.example` | Environment Configuration Template | Section 1 (`User Constraints` D-01) & Section 8 (`Security Domain`) | Documents required and optional environment variables (`LMS_URL`, `LMS_USERNAME`, `LMS_PASSWORD`, `NOTION_API_KEY`, `NOTION_DATABASE_ID`, `HEADLESS`). |
 | `.gitignore` | VCS Ignore Specification | Section 1 (`User Constraints` D-03) & Section 8 (`Security Domain`) | Excludes `.env`, `.cache/`, `*.pyc`, `__pycache__/`, `.pytest_cache/`, `.venv/`, `dist/`. |
 | `config/course_mappings.json` | Configuration Data (JSON) | Section 1 (`User Constraints` D-05) & Section 5 (`Pattern 4`) | Decoupled JSON mapping for course names to abbreviations (`{"공학수학2": "공수2", ...}`). |
-| `src/kau_assistant/__init__.py` | Package Root | N/A (Standard Python package convention) | Package version (`__version__ = "0.1.0"`) and public API exports. |
-| `src/kau_assistant/exceptions.py` | Error Hierarchy | Section 4 (`Architectural Responsibility Map`) | Custom exceptions inheriting from `KauAssistantError` (`AuthenticationError`, `NavigationTimeoutError`, `ConfigError`). |
-| `src/kau_assistant/config.py` | Pydantic Settings Provider | Section 9.1 (`Configuration Model`) | Strongly typed `Settings` class using `pydantic-settings` (`BaseSettings`, `SettingsConfigDict`), singleton accessor `get_settings()`. |
-| `src/kau_assistant/course_mapping.py` | Tolerant Data Mapper | Section 9.2 (`Course Mapping Loader`) | `load_course_mappings()`, `get_abbreviation()`, non-breaking fallback with friendly guidance logging. |
-| `src/kau_assistant/auth.py` | Web Authentication Engine | Section 9.3 (`Auth & Login Flow`) | Multi-selector fallback lists, `find_first_visible()`, `perform_login()`, login error detection and verification. |
-| `src/kau_assistant/session_manager.py` | Playwright Resource Orchestrator | Section 9.4 (`Session Manager`) | Context manager (`__enter__`, `__exit__`), session caching (`storage_state`), session validity checking, auto-relogin, 30s timeout with 1 retry. |
+| `src/coursepilot/__init__.py` | Package Root | N/A (Standard Python package convention) | Package version (`__version__ = "0.1.0"`) and public API exports. |
+| `src/coursepilot/exceptions.py` | Error Hierarchy | Section 4 (`Architectural Responsibility Map`) | Custom exceptions inheriting from `CoursePilotError` (`AuthenticationError`, `NavigationTimeoutError`, `ConfigError`). |
+| `src/coursepilot/config.py` | Pydantic Settings Provider | Section 9.1 (`Configuration Model`) | Strongly typed `Settings` class using `pydantic-settings` (`BaseSettings`, `SettingsConfigDict`), singleton accessor `get_settings()`. |
+| `src/coursepilot/course_mapping.py` | Tolerant Data Mapper | Section 9.2 (`Course Mapping Loader`) | `load_course_mappings()`, `get_abbreviation()`, non-breaking fallback with friendly guidance logging. |
+| `src/coursepilot/auth.py` | Web Authentication Engine | Section 9.3 (`Auth & Login Flow`) | Multi-selector fallback lists, `find_first_visible()`, `perform_login()`, login error detection and verification. |
+| `src/coursepilot/session_manager.py` | Playwright Resource Orchestrator | Section 9.4 (`Session Manager`) | Context manager (`__enter__`, `__exit__`), session caching (`storage_state`), session validity checking, auto-relogin, 30s timeout with 1 retry. |
 | `tests/__init__.py` | Test Package Root | N/A (Standard Pytest convention) | Marks `tests/` directory as a package for test discovery. |
 | `tests/conftest.py` | Pytest Shared Fixtures | Section 10 (`Validation Architecture`) | Reusable fixtures (`tmp_path`, dummy `Settings`, mock `Page`/`BrowserContext`/`Browser`). |
 | `tests/test_config.py` | Settings Unit Tests | Section 10 (`test_config.py`) | Tests default values, `.env` file loading, environment variable precedence, type validation. |
@@ -104,9 +104,9 @@ The following table maps every file to be created in Phase 1 to its pattern arch
   ```python
   import logging
   from playwright.sync_api import Page, TimeoutError
-  from kau_assistant.exceptions import AuthenticationError
+  from coursepilot.exceptions import AuthenticationError
 
-  logger = logging.getLogger("kau_assistant.auth")
+  logger = logging.getLogger("coursepilot.auth")
 
   USERNAME_SELECTORS = [
       "#input-username",                           # KAU Coursemos/Moodle
@@ -163,11 +163,11 @@ The following table maps every file to be created in Phase 1 to its pattern arch
   import logging
   from pathlib import Path
   from playwright.sync_api import sync_playwright, Browser, BrowserContext, Page, Playwright
-  from kau_assistant.config import Settings, get_settings
-  from kau_assistant.auth import perform_login, find_first_visible, LOGGED_IN_SELECTORS
-  from kau_assistant.exceptions import NavigationTimeoutError
+  from coursepilot.config import Settings, get_settings
+  from coursepilot.auth import perform_login, find_first_visible, LOGGED_IN_SELECTORS
+  from coursepilot.exceptions import NavigationTimeoutError
 
-  logger = logging.getLogger("kau_assistant.session_manager")
+  logger = logging.getLogger("coursepilot.session_manager")
 
   class SessionManager:
       def __init__(self, settings: Settings | None = None, headful: bool = False):
@@ -225,7 +225,7 @@ The following table maps every file to be created in Phase 1 to its pattern arch
   import logging
   from pathlib import Path
 
-  logger = logging.getLogger("kau_assistant.course_mapping")
+  logger = logging.getLogger("coursepilot.course_mapping")
 
   DEFAULT_MAPPINGS = {
       "공학수학2": "공수2",
@@ -270,24 +270,24 @@ The following table maps every file to be created in Phase 1 to its pattern arch
 - **Archetype:** Domain-specific custom exceptions.
 - **Copy Pattern:**
   ```python
-  class KauAssistantError(Exception):
-      """Base exception for all kau-lxp-assistant errors."""
+  class CoursePilotError(Exception):
+      """Base exception for all coursepilot errors."""
       pass
 
-  class AuthenticationError(KauAssistantError):
+  class AuthenticationError(CoursePilotError):
       """Raised when LMS login fails or credentials are invalid."""
       pass
 
-  class NavigationTimeoutError(KauAssistantError):
+  class NavigationTimeoutError(CoursePilotError):
       """Raised when page navigation exceeds timeout even after retry."""
       pass
 
-  class ConfigError(KauAssistantError):
+  class ConfigError(CoursePilotError):
       """Raised when essential configuration is missing or invalid."""
       pass
   ```
 - **Rules to Follow:**
-  - All project exceptions must inherit from `KauAssistantError`.
+  - All project exceptions must inherit from `CoursePilotError`.
   - Distinguish operational errors (e.g., `AuthenticationError`, `NavigationTimeoutError`) from configuration errors (`ConfigError`).
 
 ---
@@ -308,7 +308,7 @@ The following table maps every file to be created in Phase 1 to its pattern arch
    - Always open text files with explicit `encoding="utf-8"`.
 
 4. **Console Output & Logging:**
-   - Standard logger names follow module hierarchy: `kau_assistant.<module>`.
+   - Standard logger names follow module hierarchy: `coursepilot.<module>`.
    - User-facing terminal messages should leverage `rich.console.Console` or informative logging levels (`logger.info`, `logger.warning`).
 
 5. **Security & Secrets Handling:**
@@ -320,18 +320,18 @@ The following table maps every file to be created in Phase 1 to its pattern arch
 ## 5. Testing Patterns (`tests/`)
 
 ### Test Conventions:
-- Every test file corresponds to a module in `src/kau_assistant/`:
-  - `tests/test_config.py` -> `src/kau_assistant/config.py`
-  - `tests/test_course_mapping.py` -> `src/kau_assistant/course_mapping.py`
-  - `tests/test_auth.py` -> `src/kau_assistant/auth.py`
-  - `tests/test_session_manager.py` -> `src/kau_assistant/session_manager.py`
+- Every test file corresponds to a module in `src/coursepilot/`:
+  - `tests/test_config.py` -> `src/coursepilot/config.py`
+  - `tests/test_course_mapping.py` -> `src/coursepilot/course_mapping.py`
+  - `tests/test_auth.py` -> `src/coursepilot/auth.py`
+  - `tests/test_session_manager.py` -> `src/coursepilot/session_manager.py`
 - Test function naming: `test_<function_or_method>_<scenario>_<expected_result>()`.
 
 ### Fixtures Pattern (`tests/conftest.py`):
 ```python
 import pytest
 from pathlib import Path
-from kau_assistant.config import Settings
+from coursepilot.config import Settings
 
 @pytest.fixture
 def dummy_settings(tmp_path: Path) -> Settings:

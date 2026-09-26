@@ -32,13 +32,13 @@ tech-stack:
 key-files:
   created: []
   modified:
-    - src/kau_assistant/pipeline.py
+    - src/coursepilot/pipeline.py
     - tests/test_pipeline.py
 
 key-decisions:
-  - "Zero-course handling returns PipelineResult early (inside the `with` session block) rather than falling through to transform_to_sync_tasks on empty lists - functionally equivalent output, but guarantees the WARNING is emitted through the kau_assistant.pipeline logger specifically (not conflated with course_mapping's own missing-file warning), which the test pins by filtering on record.name"
+  - "Zero-course handling returns PipelineResult early (inside the `with` session block) rather than falling through to transform_to_sync_tasks on empty lists - functionally equivalent output, but guarantees the WARNING is emitted through the coursepilot.pipeline logger specifically (not conflated with course_mapping's own missing-file warning), which the test pins by filtering on record.name"
   - "validate_lms_settings runs before the --relogin cache-deletion step and before the session factory is touched, so a missing-config run never deletes the user's cached session nor constructs SessionManager - confirmed via a tracking session_factory that raises if invoked"
-  - "Task 3's real scrape_course() needed no production-code change - three tests were written against the unmodified 05-01 implementation and all passed immediately, so no scraper module was touched (verified via `git log --format=%s -- src/kau_assistant/scraper` showing no 05-02 commits)"
+  - "Task 3's real scrape_course() needed no production-code change - three tests were written against the unmodified 05-01 implementation and all passed immediately, so no scraper module was touched (verified via `git log --format=%s -- src/coursepilot/scraper` showing no 05-02 commits)"
 
 patterns-established:
   - "Pattern: any new per-item collection failure inside a loop should isolate via try/except Exception -> safe_cli_error(scope=...) -> continue, never letting one item's failure abort the whole collection (mirrors this plan's per-course loop for future per-item loops, e.g. sync's per-task apply loop in 05-03)"
@@ -143,7 +143,7 @@ status: complete
 - Per-course error isolation (`pipeline.py`): each course's `scrape_course()` call is wrapped in `try`/`except Exception`, converting failures to `safe_cli_error(scope="course", course_id=..., course_name=...)` and continuing with the next course. A restricted or broken course no longer aborts the whole run or hides the other courses' items — `check` exits 1 with everything else intact.
 - Fatal-stage classification pinned by tests: settings validation, session login, and `extract_courses` failures propagate out of `collect_tasks` unconverted, reaching the CLI's guarded top-level exception boundary (exit 2). Only the per-course scraping step is isolated.
 - `validate_lms_settings(settings) -> None`: the first statement of `collect_tasks`, raising `ConfigError` naming only the missing `LMS_URL`/`LMS_USERNAME`/`LMS_PASSWORD` env-var keys — never a value — before the `--relogin` cache-deletion step or the session factory are touched.
-- Zero-course handling: `extract_courses` returning `[]` is not an error — logs a Korean `WARNING` through the `kau_assistant.pipeline` logger and returns `PipelineResult(course_count=0, tasks=[], errors=[])`.
+- Zero-course handling: `extract_courses` returning `[]` is not an error — logs a Korean `WARNING` through the `coursepilot.pipeline` logger and returns `PipelineResult(course_count=0, tasks=[], errors=[])`.
 - Progress order, `--relogin`/`--headed` forwarding, and course-mapping loading (already correct from 05-01) are now pinned by dedicated tests against regression.
 - The real `scrape_course()` — progress-table path and course-home fallback path — is exercised end to end over fixture HTML via a `MagicMock` page whose `content()` reflects the last `goto()` URL, and mechanically proven read-only: `page.method_calls` across both scenarios stays a subset of `{goto, content, wait_for_selector, wait_for_timeout, screenshot}`.
 
@@ -160,14 +160,14 @@ Task 1 was `type="tracer"` (single production-quality commit + re-verified `<ver
 
 ## Files Created/Modified
 
-- `src/kau_assistant/pipeline.py` - Per-course error isolation, `validate_lms_settings`, zero-course warning
+- `src/coursepilot/pipeline.py` - Per-course error isolation, `validate_lms_settings`, zero-course warning
 - `tests/test_pipeline.py` - 13 tests: isolation, fatal-stage, progress order, relogin/headed, mappings, zero-course, read-only scraping
 
 ## Decisions Made
 
-- Zero-course handling returns `PipelineResult` early inside the `with` session block instead of falling through to `transform_to_sync_tasks` on empty lists — functionally equivalent output, but guarantees the `WARNING` is attributable specifically to `kau_assistant.pipeline` (not conflated with `course_mapping`'s own missing-file warning), which the test pins by filtering `record.name`.
+- Zero-course handling returns `PipelineResult` early inside the `with` session block instead of falling through to `transform_to_sync_tasks` on empty lists — functionally equivalent output, but guarantees the `WARNING` is attributable specifically to `coursepilot.pipeline` (not conflated with `course_mapping`'s own missing-file warning), which the test pins by filtering `record.name`.
 - `validate_lms_settings` runs before the `--relogin` cache-deletion step and before the session factory is constructed, confirmed by a tracking `session_factory` that raises `AssertionError` if invoked — a missing-config run touches neither the cached session nor `SessionManager`.
-- Task 3's real `scrape_course()` needed no production-code change: three tests were written against the unmodified 05-01 implementation and all passed immediately (no RED failure). Per the plan's explicit guard ("do not change scraper modules from Phases 1-4"), this is recorded as a finding, not a gap — `git log --format=%s -- src/kau_assistant/scraper` shows no `05-02` commits, confirming Phase 1-4 scraper modules were untouched.
+- Task 3's real `scrape_course()` needed no production-code change: three tests were written against the unmodified 05-01 implementation and all passed immediately (no RED failure). Per the plan's explicit guard ("do not change scraper modules from Phases 1-4"), this is recorded as a finding, not a gap — `git log --format=%s -- src/coursepilot/scraper` shows no `05-02` commits, confirming Phase 1-4 scraper modules were untouched.
 
 ## Deviations from Plan
 
@@ -175,7 +175,7 @@ None - plan executed exactly as written. Task 3's TDD cycle produced no GREEN co
 
 ## Issues Encountered
 
-- The first draft of `test_zero_courses_warns_not_errors` passed for the wrong reason: `caplog.records` captures every propagated log record, not just ones from the logger named in `caplog.at_level(...)`, so a pre-existing `WARNING` from `course_mapping`'s missing-mappings-file loader satisfied a loose `any(record.levelno == logging.WARNING ...)` assertion before `pipeline.py` had any zero-course warning at all. Tightened the assertion to filter on `record.name == "kau_assistant.pipeline"`, which correctly failed until the real warning was added — caught during the RED-phase run, before GREEN.
+- The first draft of `test_zero_courses_warns_not_errors` passed for the wrong reason: `caplog.records` captures every propagated log record, not just ones from the logger named in `caplog.at_level(...)`, so a pre-existing `WARNING` from `course_mapping`'s missing-mappings-file loader satisfied a loose `any(record.levelno == logging.WARNING ...)` assertion before `pipeline.py` had any zero-course warning at all. Tightened the assertion to filter on `record.name == "coursepilot.pipeline"`, which correctly failed until the real warning was added — caught during the RED-phase run, before GREEN.
 
 ## User Setup Required
 
@@ -189,7 +189,7 @@ None - no external service configuration required. No new packages were installe
 
 ## Self-Check: PASSED
 
-- FOUND: src/kau_assistant/pipeline.py
+- FOUND: src/coursepilot/pipeline.py
 - FOUND: tests/test_pipeline.py
 - FOUND commits: 3f4e214, cf79703, f66cedf, 0b26832
 - `uv run pytest -q tests/test_pipeline.py -x` green (13 tests)

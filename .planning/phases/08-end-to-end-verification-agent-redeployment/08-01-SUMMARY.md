@@ -9,11 +9,11 @@ date: 2026-09-24
 
 ## Overview
 
-Plan 08-01 successfully validated Milestone 2 enhancements against the live KAU LXP system (`https://lxp.kau.ac.kr`) and re-deployed the unified `kau-lxp` skill to all 5 supported AI coding agents (Claude Code, Codex, Antigravity, Pi, Hermes).
+Plan 08-01 successfully validated Milestone 2 enhancements against the live KAU LXP system (`https://lxp.kau.ac.kr`) and re-deployed the unified `coursepilot` skill to all 5 supported AI coding agents (Claude Code, Codex, Antigravity, Pi, Hermes).
 
 ## Key Accomplishments
 
-1. **Relative Assessment Link Normalization Fix (`src/kau_assistant/scraper/assessment_parser.py`)**:
+1. **Relative Assessment Link Normalization Fix (`src/coursepilot/scraper/assessment_parser.py`)**:
    - Identified root cause where relative quiz URLs (`view.php?id=...`) were joined against `course.url` (`/course/view.php`), generating `/course/view.php?id=...` instead of `/mod/quiz/view.php?id=...`.
    - Fixed `parse_assessment_list` to prefix `/mod/quiz/` or `/mod/assign/` for relative view links, and passed module-specific index URLs from `scrape_course_assessments`.
 
@@ -32,11 +32,11 @@ Plan 08-01 successfully validated Milestone 2 enhancements against the live KAU 
    - **Zero Notion Writes**: Verified pure read-only inspection; Notion database was untouched.
 
 3. **Re-deployment Across All 5 Agents**:
-   - **Claude Code**: `C:\Users\alpha\.claude\skills\kau-lxp` (link mode)
-   - **Codex**: `C:\Users\alpha\.codex\skills\kau-lxp` (link mode)
-   - **Antigravity**: `C:\Users\alpha\.gemini\antigravity\skills\kau-lxp` (link mode)
-   - **Pi**: `C:\Users\alpha\.pi\agent\skills\kau-lxp` (link mode)
-   - **Hermes**: `C:\Users\alpha\AppData\Local\hermes\skills\kau-lxp` (link mode)
+   - **Claude Code**: `C:\Users\alpha\.claude\skills\coursepilot` (link mode)
+   - **Codex**: `C:\Users\alpha\.codex\skills\coursepilot` (link mode)
+   - **Antigravity**: `C:\Users\alpha\.gemini\antigravity\skills\coursepilot` (link mode)
+   - **Pi**: `C:\Users\alpha\.pi\agent\skills\coursepilot` (link mode)
+   - **Hermes**: `C:\Users\alpha\AppData\Local\hermes\skills\coursepilot` (link mode)
 
 ## Verification
 

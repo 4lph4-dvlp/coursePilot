@@ -8,26 +8,26 @@
 
 ## 1. Architectural Blueprint & Component Flow
 
-Phase 13 introduces automated completion of unviewed course materials (`ubfile` and Moodle `resource`) and a hierarchical document downloader. The data flow follows the established pipeline architecture in `kau_assistant`:
+Phase 13 introduces automated completion of unviewed course materials (`ubfile` and Moodle `resource`) and a hierarchical document downloader. The data flow follows the established pipeline architecture in `coursepilot`:
 
 ```mermaid
 flowchart TD
-    subgraph CLI ["CLI Interface (src/kau_assistant/cli.py)"]
-        Cmd["kau-assistant materials (or files)<br/>--course, --week, --output-dir,<br/>--no-download, --dry-run, --json"]
+    subgraph CLI ["CLI Interface (src/coursepilot/cli.py)"]
+        Cmd["coursepilot materials (or files)<br/>--course, --week, --output-dir,<br/>--no-download, --dry-run, --json"]
     end
 
-    subgraph Auth ["Session & Storage (src/kau_assistant/session_manager.py)"]
+    subgraph Auth ["Session & Storage (src/coursepilot/session_manager.py)"]
         Cache[".cache/session.json"] --> CookieJar["Extract MoodleSession & Cookies"]
         PW["Playwright SessionManager<br/>(Fallback Re-auth)"] --> CookieJar
     end
 
-    subgraph Scraper ["Scraper Core (src/kau_assistant/scraper/)"]
+    subgraph Scraper ["Scraper Core (src/coursepilot/scraper/)"]
         Nav["CourseNavigator<br/>(Polite delay, navigate_to_course)"]
         CL["course_list.py<br/>(extract_courses)"]
         MP["materials_parser.py<br/>(parse_materials_from_course_sections)"]
     end
 
-    subgraph MaterialsEngine ["Materials Pipeline (src/kau_assistant/materials/)"]
+    subgraph MaterialsEngine ["Materials Pipeline (src/coursepilot/materials/)"]
         Runner["runner.py<br/>(Orchestrator, course/week filtering,<br/>smart visit vs download decisions)"]
         Downloader["downloader.py<br/>(httpx streaming, atomic .tmp write,<br/>Content-Length skip check D-13-02)"]
         FNUtils["filename_utils.py<br/>(RFC 5987 / 6266 parsing,<br/>cross-platform sanitization)"]
@@ -51,26 +51,26 @@ flowchart TD
 
 | Target File to Create/Modify | Role & Data Flow | Closest Existing Codebase Analog | Key Pattern / Responsibility to Follow |
 |---|---|---|---|
-| [`src/kau_assistant/materials/models.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/materials/models.py) | DTO models for materials, download statuses, course results, and run summary | [`src/kau_assistant/player/models.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/player/models.py) & [`src/kau_assistant/scraper/models.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/scraper/models.py) | Pydantic `BaseModel`, `str, Enum` statuses, JSON serialization, default values |
-| [`src/kau_assistant/scraper/materials_parser.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/scraper/materials_parser.py) | Section parsing for `ubfile`/`resource` activities and completion status extraction | [`src/kau_assistant/scraper/lecture_parser.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/scraper/lecture_parser.py) | BeautifulSoup `"lxml"` parsing, DOM week grouping, title cleaning, completion badges |
-| [`src/kau_assistant/materials/filename_utils.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/materials/filename_utils.py) | RFC 5987/6266 `Content-Disposition` header parsing, MIME type inference, OS filename sanitization | [`src/kau_assistant/scraper/course_list.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/scraper/course_list.py) (`clean_course_name`) & [`src/kau_assistant/domain/naming.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/domain/naming.py) | Pure regex transformations, percent-decoding (`urllib.parse.unquote`), Windows reserved filename safety |
-| [`src/kau_assistant/materials/downloader.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/materials/downloader.py) | Cookie-authenticated HTTP client, streaming download, atomic rename (`.tmp`), size deduplication (D-13-02), embedded HTML fallback | [`src/kau_assistant/session_manager.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/session_manager.py) & [`src/kau_assistant/player/vod_player.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/player/vod_player.py) | `httpx.Client(stream=True)`, atomic `Path.replace()`, error cleanup, session cookie extraction |
-| [`src/kau_assistant/materials/runner.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/materials/runner.py) | High-level orchestrator across courses and weeks, smart visit vs download decision, progress reporting, dry-run evaluation | [`src/kau_assistant/player/runner.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/player/runner.py) (`watch_course_vods`) | Fuzzy course matching, week resolution, progress callbacks, exception boundaries, summary aggregation |
-| [`src/kau_assistant/cli.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/cli.py) | Click CLI command `materials` (and `files` alias), option wiring (`--course`, `--week`, `--output-dir`, `--no-download`, `--dry-run`, `--json`) | [`src/kau_assistant/cli.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/cli.py) (`watch_group`, `check`) | Click command decorators, stream separation (`stderr=True` for progress, stdout for result/JSON), exit codes |
-| [`src/kau_assistant/config.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/config.py) | Add `download_dir: Path = Path("downloads")` configuration | [`src/kau_assistant/config.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/config.py) (`Settings`) | Pydantic Settings `Field(default=..., description=...)` |
-| [`tests/test_material_models.py`](file:///D:/dev/kau-lxp-assistant/tests/test_material_models.py) | Unit tests for material models and JSON serialization | [`tests/test_vod_player.py`](file:///D:/dev/kau-lxp-assistant/tests/test_vod_player.py) (`test_playback_models_defaults`) | Pytest assertions on model defaults, serialization, and enum values |
-| [`tests/test_material_parser.py`](file:///D:/dev/kau-lxp-assistant/tests/test_material_parser.py) | Unit tests for parsing HTML course sections for `ubfile`/`resource` | [`tests/test_lecture_parser.py`](file:///D:/dev/kau-lxp-assistant/tests/test_lecture_parser.py) | HTML fixtures, extraction verification (module IDs, titles, weeks, completion status) |
-| [`tests/test_filename_utils.py`](file:///D:/dev/kau-lxp-assistant/tests/test_filename_utils.py) | Unit tests for RFC 5987 decoding and cross-platform sanitization | [`tests/test_course_list.py`](file:///D:/dev/kau-lxp-assistant/tests/test_course_list.py) & [`tests/test_domain_naming.py`](file:///D:/dev/kau-lxp-assistant/tests/test_domain_naming.py) | Parameterized test cases for UTF-8 RFC 5987 headers, Windows reserved words (`CON`, `PRN`), invalid path chars |
-| [`tests/test_material_downloader.py`](file:///D:/dev/kau-lxp-assistant/tests/test_material_downloader.py) | Unit tests for streaming download, size comparison, skip, atomic rename, failure rollback | [`tests/test_vod_player.py`](file:///D:/dev/kau-lxp-assistant/tests/test_vod_player.py) & `httpx` mock tests | `unittest.mock.MagicMock` on `httpx.Client.stream`, `tmp_path` filesystem verification |
-| [`tests/test_materials_runner.py`](file:///D:/dev/kau-lxp-assistant/tests/test_materials_runner.py) | Pipeline test for multi-course, single-course, week filters, `--dry-run`, `--no-download` | [`tests/test_watch_runner.py`](file:///D:/dev/kau-lxp-assistant/tests/test_watch_runner.py) (`test_watch_course_vods_dry_run`) | Mocking `extract_courses`, parser, and downloader; verifying call counts and return models |
-| [`tests/test_cli_materials.py`](file:///D:/dev/kau-lxp-assistant/tests/test_cli_materials.py) | CLI invocation tests for `materials` and `files` commands | [`tests/test_watch_runner.py`](file:///D:/dev/kau-lxp-assistant/tests/test_watch_runner.py) (CLI tests) & [`tests/test_cli.py`](file:///D:/dev/kau-lxp-assistant/tests/test_cli.py) | `click.testing.CliRunner`, `--json` deserialization, flag checking, exit codes |
+| [`src/coursepilot/materials/models.py`](../../../src/coursepilot/materials/models.py) | DTO models for materials, download statuses, course results, and run summary | [`src/coursepilot/player/models.py`](../../../src/coursepilot/player/models.py) & [`src/coursepilot/scraper/models.py`](../../../src/coursepilot/scraper/models.py) | Pydantic `BaseModel`, `str, Enum` statuses, JSON serialization, default values |
+| [`src/coursepilot/scraper/materials_parser.py`](../../../src/coursepilot/scraper/materials_parser.py) | Section parsing for `ubfile`/`resource` activities and completion status extraction | [`src/coursepilot/scraper/lecture_parser.py`](../../../src/coursepilot/scraper/lecture_parser.py) | BeautifulSoup `"lxml"` parsing, DOM week grouping, title cleaning, completion badges |
+| [`src/coursepilot/materials/filename_utils.py`](../../../src/coursepilot/materials/filename_utils.py) | RFC 5987/6266 `Content-Disposition` header parsing, MIME type inference, OS filename sanitization | [`src/coursepilot/scraper/course_list.py`](../../../src/coursepilot/scraper/course_list.py) (`clean_course_name`) & [`src/coursepilot/domain/naming.py`](../../../src/coursepilot/domain/naming.py) | Pure regex transformations, percent-decoding (`urllib.parse.unquote`), Windows reserved filename safety |
+| [`src/coursepilot/materials/downloader.py`](../../../src/coursepilot/materials/downloader.py) | Cookie-authenticated HTTP client, streaming download, atomic rename (`.tmp`), size deduplication (D-13-02), embedded HTML fallback | [`src/coursepilot/session_manager.py`](../../../src/coursepilot/session_manager.py) & [`src/coursepilot/player/vod_player.py`](../../../src/coursepilot/player/vod_player.py) | `httpx.Client(stream=True)`, atomic `Path.replace()`, error cleanup, session cookie extraction |
+| [`src/coursepilot/materials/runner.py`](../../../src/coursepilot/materials/runner.py) | High-level orchestrator across courses and weeks, smart visit vs download decision, progress reporting, dry-run evaluation | [`src/coursepilot/player/runner.py`](../../../src/coursepilot/player/runner.py) (`watch_course_vods`) | Fuzzy course matching, week resolution, progress callbacks, exception boundaries, summary aggregation |
+| [`src/coursepilot/cli.py`](../../../src/coursepilot/cli.py) | Click CLI command `materials` (and `files` alias), option wiring (`--course`, `--week`, `--output-dir`, `--no-download`, `--dry-run`, `--json`) | [`src/coursepilot/cli.py`](../../../src/coursepilot/cli.py) (`watch_group`, `check`) | Click command decorators, stream separation (`stderr=True` for progress, stdout for result/JSON), exit codes |
+| [`src/coursepilot/config.py`](../../../src/coursepilot/config.py) | Add `download_dir: Path = Path("downloads")` configuration | [`src/coursepilot/config.py`](../../../src/coursepilot/config.py) (`Settings`) | Pydantic Settings `Field(default=..., description=...)` |
+| [`tests/test_material_models.py`](../../../tests/test_material_models.py) | Unit tests for material models and JSON serialization | [`tests/test_vod_player.py`](../../../tests/test_vod_player.py) (`test_playback_models_defaults`) | Pytest assertions on model defaults, serialization, and enum values |
+| [`tests/test_material_parser.py`](../../../tests/test_material_parser.py) | Unit tests for parsing HTML course sections for `ubfile`/`resource` | [`tests/test_lecture_parser.py`](../../../tests/test_lecture_parser.py) | HTML fixtures, extraction verification (module IDs, titles, weeks, completion status) |
+| [`tests/test_filename_utils.py`](../../../tests/test_filename_utils.py) | Unit tests for RFC 5987 decoding and cross-platform sanitization | [`tests/test_course_list.py`](../../../tests/test_course_list.py) & [`tests/test_domain_naming.py`](../../../tests/test_domain_naming.py) | Parameterized test cases for UTF-8 RFC 5987 headers, Windows reserved words (`CON`, `PRN`), invalid path chars |
+| [`tests/test_material_downloader.py`](../../../tests/test_material_downloader.py) | Unit tests for streaming download, size comparison, skip, atomic rename, failure rollback | [`tests/test_vod_player.py`](../../../tests/test_vod_player.py) & `httpx` mock tests | `unittest.mock.MagicMock` on `httpx.Client.stream`, `tmp_path` filesystem verification |
+| [`tests/test_materials_runner.py`](../../../tests/test_materials_runner.py) | Pipeline test for multi-course, single-course, week filters, `--dry-run`, `--no-download` | [`tests/test_watch_runner.py`](../../../tests/test_watch_runner.py) (`test_watch_course_vods_dry_run`) | Mocking `extract_courses`, parser, and downloader; verifying call counts and return models |
+| [`tests/test_cli_materials.py`](../../../tests/test_cli_materials.py) | CLI invocation tests for `materials` and `files` commands | [`tests/test_watch_runner.py`](../../../tests/test_watch_runner.py) (CLI tests) & [`tests/test_cli.py`](../../../tests/test_cli.py) | `click.testing.CliRunner`, `--json` deserialization, flag checking, exit codes |
 
 ---
 
 ## 3. Detailed Concrete Code Excerpts & Patterns
 
 ### 3.1 Model Pattern: DTOs & Status Enums
-**Analog Source:** [`src/kau_assistant/player/models.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/player/models.py#L8-L30) & [`src/kau_assistant/scraper/models.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/scraper/models.py#L8-L24)
+**Analog Source:** [`src/coursepilot/player/models.py`](../../../src/coursepilot/player/models.py#L8-L30) & [`src/coursepilot/scraper/models.py`](../../../src/coursepilot/scraper/models.py#L8-L24)
 
 ```python
 # Existing Pattern in player/models.py
@@ -127,7 +127,7 @@ class MaterialsRunResult(BaseModel):
 ```
 
 ### 3.2 Parser Pattern: Section Navigation & Activity Extraction
-**Analog Source:** [`src/kau_assistant/scraper/lecture_parser.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/scraper/lecture_parser.py#L200-L245) & [`src/kau_assistant/scraper/lecture_parser.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/scraper/lecture_parser.py#L326-L345)
+**Analog Source:** [`src/coursepilot/scraper/lecture_parser.py`](../../../src/coursepilot/scraper/lecture_parser.py#L200-L245) & [`src/coursepilot/scraper/lecture_parser.py`](../../../src/coursepilot/scraper/lecture_parser.py#L326-L345)
 
 ```python
 # Existing Pattern in scraper/lecture_parser.py:
@@ -168,7 +168,7 @@ is_completed = "activity-complete" in act_classes or "iscompleted" in act_classe
 ```
 
 ### 3.3 Filename Utility Pattern: RFC 5987 / 6266 & Sanitization
-**Analog Source:** [`src/kau_assistant/scraper/course_list.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/scraper/course_list.py#L67-L104) & [`src/kau_assistant/domain/naming.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/domain/naming.py#L1-L35)
+**Analog Source:** [`src/coursepilot/scraper/course_list.py`](../../../src/coursepilot/scraper/course_list.py#L67-L104) & [`src/coursepilot/domain/naming.py`](../../../src/coursepilot/domain/naming.py#L1-L35)
 
 ```python
 # RFC 5987 and Cross-Platform Sanitization Pattern
@@ -230,15 +230,15 @@ def sanitize_filename(filename: str) -> str:
 ```
 
 ### 3.4 Downloader Pattern: Session Cookie Reuse & Streaming with Atomic Write
-**Analog Source:** [`src/kau_assistant/session_manager.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/session_manager.py#L57-L67) & [`src/kau_assistant/player/vod_player.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/player/vod_player.py#L50-L75)
+**Analog Source:** [`src/coursepilot/session_manager.py`](../../../src/coursepilot/session_manager.py#L57-L67) & [`src/coursepilot/player/vod_player.py`](../../../src/coursepilot/player/vod_player.py#L50-L75)
 
 ```python
 # Cookie extraction and httpx Streaming Pattern
 import json
 from pathlib import Path
 import httpx
-from kau_assistant.config import Settings
-from kau_assistant.session_manager import SessionManager
+from coursepilot.config import Settings
+from coursepilot.session_manager import SessionManager
 
 def get_authenticated_httpx_client(
     settings: Settings,
@@ -326,12 +326,12 @@ def download_stream(
 ```
 
 ### 3.5 Runner Orchestration Pattern: Fuzzy Course & Week Resolution
-**Analog Source:** [`src/kau_assistant/player/runner.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/player/runner.py#L44-L100) & [`src/kau_assistant/player/runner.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/player/runner.py#L123-L145)
+**Analog Source:** [`src/coursepilot/player/runner.py`](../../../src/coursepilot/player/runner.py#L44-L100) & [`src/coursepilot/player/runner.py`](../../../src/coursepilot/player/runner.py#L123-L145)
 
 ```python
 # Fuzzy course matching and week resolution pattern
 # 1. Fuzzy matching reuse:
-from kau_assistant.player.runner import find_target_course
+from coursepilot.player.runner import find_target_course
 
 # 2. Week resolution for materials (analogous to resolve_candidate_vods):
 def resolve_candidate_materials(
@@ -368,7 +368,7 @@ def resolve_candidate_materials(
 ```
 
 ### 3.6 CLI Command Pattern: Click Options & Output Separation
-**Analog Source:** [`src/kau_assistant/cli.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/cli.py#L190-L320) & [`src/kau_assistant/cli.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/cli.py#L60-L96)
+**Analog Source:** [`src/coursepilot/cli.py`](../../../src/coursepilot/cli.py#L190-L320) & [`src/coursepilot/cli.py`](../../../src/coursepilot/cli.py#L60-L96)
 
 ```python
 # Click command registration pattern in cli.py
@@ -405,12 +405,12 @@ def materials_command(
 ## 4. Test Strategy & Test Patterns
 
 ### 4.1 Pytest Fixture & CliRunner Patterns
-**Analog Source:** [`tests/test_watch_runner.py`](file:///D:/dev/kau-lxp-assistant/tests/test_watch_runner.py#L177-L196) & [`tests/test_cli.py`](file:///D:/dev/kau-lxp-assistant/tests/test_cli.py#L1-L40)
+**Analog Source:** [`tests/test_watch_runner.py`](../../../tests/test_watch_runner.py#L177-L196) & [`tests/test_cli.py`](../../../tests/test_cli.py#L1-L40)
 
 ```python
 # CLI CliRunner Pattern
 from click.testing import CliRunner
-from kau_assistant.cli import cli
+from coursepilot.cli import cli
 
 def test_cli_materials_dry_run_json(monkeypatch):
     runner = CliRunner()
@@ -422,7 +422,7 @@ def test_cli_materials_dry_run_json(monkeypatch):
 ```
 
 ### 4.2 Mock Streaming Downloader Pattern
-**Analog Source:** [`tests/test_vod_player.py`](file:///D:/dev/kau-lxp-assistant/tests/test_vod_player.py#L25-L68)
+**Analog Source:** [`tests/test_vod_player.py`](../../../tests/test_vod_player.py#L25-L68)
 
 ```python
 # Mocking httpx.Client.stream for download tests
@@ -458,4 +458,4 @@ Before and during Phase 13 implementation, ensure adherence to these rules:
 3. **No Notion Pollution (D-13-07):** Materials do not have task deadlines; never inject `MaterialItem` into `NotionClient` or Notion Scheduler DB.
 4. **Smart Visit vs Download (D-13-04):** Visit `view.php` only when `is_completed is False`. Download file whenever missing or size differs locally.
 5. **Atomic Writes:** Always download into `<path>.tmp` and execute atomic replace upon verified byte completion.
-6. **Alias Support (D-13-05):** Both `kau-assistant materials` and `kau-assistant files` must execute the exact same command.
+6. **Alias Support (D-13-05):** Both `coursepilot materials` and `coursepilot files` must execute the exact same command.

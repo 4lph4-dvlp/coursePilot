@@ -23,14 +23,14 @@ Plan 05-11 closed out Phase 05 gap-closure verification across all identified ga
    - **Write Audit:** Notion Scheduler page count remained strictly identical at 61 before and 61 after (`write_audit_pass: True`, zero writes).
 
 2. **Per-Agent Skill Re-installation & Stale Copy Cleanup (`05-AGENT-SKILL-EVIDENCE.md`)**:
-   - Re-installed `kau-lxp` skill into all 5 agents in copy mode with dynamic repo path replacement:
-     - Claude Code: `C:\Users\alpha\.claude\skills\kau-lxp`
-     - Codex: `C:\Users\alpha\.codex\skills\kau-lxp`
-     - Antigravity: `C:\Users\alpha\.gemini\antigravity\skills\kau-lxp`
-     - Pi: `C:\Users\alpha\.pi\agent\skills\kau-lxp`
-     - Hermes: `C:\Users\alpha\AppData\Local\hermes\skills\kau-lxp` (`%LOCALAPPDATA%` on Windows)
-   - Verified that all installed `SKILL.md` files contain `LMS_URL` guidance, the `notices` contract, and no unexpanded `{{KAU_LXP_REPO}}` placeholders.
-   - Detected and safely purged the stale `~/.hermes/skills/kau-lxp` directory after verifying its frontmatter identity.
+   - Re-installed `coursepilot` skill into all 5 agents in copy mode with dynamic repo path replacement:
+     - Claude Code: `C:\Users\alpha\.claude\skills\coursepilot`
+     - Codex: `C:\Users\alpha\.codex\skills\coursepilot`
+     - Antigravity: `C:\Users\alpha\.gemini\antigravity\skills\coursepilot`
+     - Pi: `C:\Users\alpha\.pi\agent\skills\coursepilot`
+     - Hermes: `C:\Users\alpha\AppData\Local\hermes\skills\coursepilot` (`%LOCALAPPDATA%` on Windows)
+   - Verified that all installed `SKILL.md` files contain `LMS_URL` guidance, the `notices` contract, and no unexpanded `{{COURSEPILOT_REPO}}` placeholders.
+   - Detected and safely purged the stale `~/.hermes/skills/coursepilot` directory after verifying its frontmatter identity.
    - Updated the Corrections table documenting the Hermes `%LOCALAPPDATA%` path fix.
 
 3. **Staged Clean UAT Directory for Human Check**:

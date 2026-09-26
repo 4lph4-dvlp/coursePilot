@@ -13,7 +13,7 @@
 > *The following implementation decisions and discretionary guidance are captured verbatim from `15-CONTEXT.md`:*
 
 ### 1. CLI 명령어 및 진입점 설계
-- **D-15-01:** `kau-assistant board`를 단일 통합 명령어로 제공하여 공지사항과 Q&A를 함께 브리핑하며, 사용자 편의를 위해 `kau-assistant notices`와 `kau-assistant qna` 단독 별칭(또는 서브커맨드)도 함께 지원한다. — **Reversibility:** costly — CLI 명령어 시그니처 및 에이전트 스킬 연동 경로에 영향
+- **D-15-01:** `coursepilot board`를 단일 통합 명령어로 제공하여 공지사항과 Q&A를 함께 브리핑하며, 사용자 편의를 위해 `coursepilot notices`와 `coursepilot qna` 단독 별칭(또는 서브커맨드)도 함께 지원한다. — **Reversibility:** costly — CLI 명령어 시그니처 및 에이전트 스킬 연동 경로에 영향
 - **D-15-02:** `--course` 옵션 생략 시 전체 수강 과목을 순회하되, 최근 공지/질문이 있는 과목 위주로 깔끔하게 묶어서 브리핑하고 공지가 없는 과목은 1줄 요약으로 컴팩트하게 출력한다.
 - **D-15-03:** 기본 조회 게시글 개수는 최근 3개(`--limit 3`)로 설정하며, `--limit <N>`으로 개수 조절 및 `--all` 플래그로 게시판 전체 글 조회를 지원한다.
 - **D-15-04:** 에이전트 연동용 `--json` 출력은 프로젝트 표준 JSON 계약(`schema_version: 1`)을 준수하여, 과목별 `notices` 및 `qna` 배열과 게시글 상세 메타데이터(id, title, author, created_at, content, is_answered, replies, attachments, url)를 일관되게 제공한다. — **Reversibility:** costly — JSON_CONTRACT.md 및 에이전트 파싱 계약
@@ -84,7 +84,7 @@ Phase 15 delivers a complete course announcement and Q&A board parsing and brief
    - Atomic writing via temporary file replacement (`.tmp` -> replace).
    - LRU / FIFO capping: limited to recent 200 post IDs per course to prevent unbounded growth.
 5. **CLI & JSON Contract [VERIFIED]:**
-   - Unified command `kau-assistant board` + convenience commands `notices` and `qna`.
+   - Unified command `coursepilot board` + convenience commands `notices` and `qna`.
    - Fully compliant with JSON Contract v1 (`schema_version: 1`).
    - Stderr used for real-time navigation/progress logs; stdout exclusively carries Rich tables or clean JSON.
 
@@ -93,7 +93,7 @@ Phase 15 delivers a complete course announcement and Q&A board parsing and brief
 ## Architectural Responsibility Map
 
 ```
-src/kau_assistant/
+src/coursepilot/
 ├── scraper/
 │   └── board_parser.py          # NEW: Parses course home for boards, parses view.php table, parses article.php
 ├── board/
@@ -129,7 +129,7 @@ src/kau_assistant/
 | **BeautifulSoup4 + lxml** | `beautifulsoup4>=4.12.0`, `lxml>=5.2.0` [VERIFIED: pyproject.toml] | Fast, resilient HTML parsing and AST-based HTML-to-Markdown conversion | Already installed in `pyproject.toml`. Eliminates extra external dependency like `html2text`. Full control over Moodle Atto editor tag sanitization. |
 | **Pydantic** | `pydantic>=2.6.0` [VERIFIED: pyproject.toml] | Domain models and versioned JSON contract (`schema_version: 1`) | Core typing and serialization engine used throughout the project (`ReportItem`, `WatchState`, `MaterialItem`). |
 | **Rich** | `rich>=13.7.0` [VERIFIED: pyproject.toml] | Terminal tables, color badges, Markdown viewer, and stream handling | Established in `reporter.py` and `materials/reporter.py`. Rich Console handles `Console(stderr=True)` for progress and `Console()` for tables. |
-| **Click** | `click>=8.1.0` [VERIFIED: pyproject.toml] | Command-line interface definitions and option validation | Used for all CLI commands in `src/kau_assistant/cli.py`. |
+| **Click** | `click>=8.1.0` [VERIFIED: pyproject.toml] | Command-line interface definitions and option validation | Used for all CLI commands in `src/coursepilot/cli.py`. |
 | **HTTPX** | `httpx>=0.28.0` [VERIFIED: pyproject.toml] | Cookie-authenticated HTTP client for high-speed page and attachment downloads | Reuses `get_authenticated_httpx_client` from Phase 13 for fast, non-blocking requests. |
 | **Playwright** | `playwright>=1.42.0` [VERIFIED: pyproject.toml] | Browser automation for course navigation and session recovery | Reuses `SessionManager` and `CourseNavigator` for safe, authenticated LMS access. |
 
@@ -178,7 +178,7 @@ Coursemos boards vary across LMS versions and course configurations (5 columns v
 
 ### Pattern 3: Network Traffic Optimization (List First, Detail on Demand)
 Following **D-15-16**:
-- **Default Briefing (`kau-assistant board`):** Only fetches `/mod/ubboard/view.php?id=...`. Content previews are derived from title or cached snippet. No requests are made to individual `article.php` pages.
+- **Default Briefing (`coursepilot board`):** Only fetches `/mod/ubboard/view.php?id=...`. Content previews are derived from title or cached snippet. No requests are made to individual `article.php` pages.
 - **Detailed View (`--view <id>` or `--detail`):** Only fetches the specific `/mod/ubboard/article.php?id=...&bwid=...` page requested by the user, updating the LMS view count naturally and extracting the full body, attachments, and answers.
 
 ### Pattern 4: Atomic Local Read State (`board_read_state.json`) with LRU Capping
@@ -222,10 +222,10 @@ The transformation pipeline:
 
 | Component | Don't Hand-Roll | Use Instead | Why |
 |---|---|---|---|
-| **LMS HTTP Session** | Custom cookie handling or raw urllib requests | `get_authenticated_httpx_client(settings, session_manager)` from `src/kau_assistant/materials/downloader.py` | Automatically extracts cached session cookies, handles User-Agent, Referer, and TLS redirects. |
-| **Course Discovery & Filtering** | Custom course title fuzzy matching | `find_target_course(courses, query)` from `src/kau_assistant/player/runner.py` and `extract_courses` from `course_list.py` | Handles Korean course abbreviations (`자구`, `공수2`), campus codes, and fuzzy substring matching. |
-| **File Downloader & Atomic Rename** | Raw socket writes or `open(..., 'w').write()` | `download_material_file` or `Downloader` logic from `src/kau_assistant/materials/downloader.py` | Handles HTTP streaming, content-disposition header parsing, filename sanitization, `.crdownload`/`.tmp` atomic rename, and duplicate skipping. |
-| **Date Parsing** | Regex string hacking for Korean dates | `parse_date` / `format_date` / `get_current_kst_time` from `src/kau_assistant/scraper/date_parser.py` | Handles all Korean time formats (`2026-09-26 15:48`, `2026.09.26`, relative spans). |
+| **LMS HTTP Session** | Custom cookie handling or raw urllib requests | `get_authenticated_httpx_client(settings, session_manager)` from `src/coursepilot/materials/downloader.py` | Automatically extracts cached session cookies, handles User-Agent, Referer, and TLS redirects. |
+| **Course Discovery & Filtering** | Custom course title fuzzy matching | `find_target_course(courses, query)` from `src/coursepilot/player/runner.py` and `extract_courses` from `course_list.py` | Handles Korean course abbreviations (`자구`, `공수2`), campus codes, and fuzzy substring matching. |
+| **File Downloader & Atomic Rename** | Raw socket writes or `open(..., 'w').write()` | `download_material_file` or `Downloader` logic from `src/coursepilot/materials/downloader.py` | Handles HTTP streaming, content-disposition header parsing, filename sanitization, `.crdownload`/`.tmp` atomic rename, and duplicate skipping. |
+| **Date Parsing** | Regex string hacking for Korean dates | `parse_date` / `format_date` / `get_current_kst_time` from `src/coursepilot/scraper/date_parser.py` | Handles all Korean time formats (`2026-09-26 15:48`, `2026.09.26`, relative spans). |
 | **Terminal Formatting** | Manual ANSI escape codes and terminal column counting | Rich `Console`, `Table`, `Panel`, and `Markdown` | Automatically handles terminal width, word wrapping, color markup, and Unicode character alignment. |
 
 ---
@@ -264,12 +264,12 @@ The transformation pipeline:
 
 ### 1. Board Discovery on Main Course Page
 ```python
-# src/kau_assistant/scraper/board_parser.py
+# src/coursepilot/scraper/board_parser.py
 import copy
 import re
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
-from kau_assistant.board.models import BoardModuleInfo, BoardType
+from coursepilot.board.models import BoardModuleInfo, BoardType
 
 def extract_board_modules(html: str, base_url: str) -> list[BoardModuleInfo]:
     """Finds all ubboard and forum module activities from course sections."""
@@ -327,7 +327,7 @@ def extract_board_modules(html: str, base_url: str) -> list[BoardModuleInfo]:
 
 ### 2. Board List Page Parsing (`view.php`)
 ```python
-# src/kau_assistant/scraper/board_parser.py
+# src/coursepilot/scraper/board_parser.py
 def parse_board_list_page(
     html: str,
     base_url: str,
@@ -449,7 +449,7 @@ def parse_board_list_page(
 
 ### 3. Article Detail Page Parsing (`article.php`)
 ```python
-# src/kau_assistant/scraper/board_parser.py
+# src/coursepilot/scraper/board_parser.py
 def parse_board_article_page(html: str, base_url: str) -> BoardArticleDetail:
     """Parses article subject, metadata, attachments, and content from article.php."""
     soup = BeautifulSoup(html, "lxml")
@@ -523,7 +523,7 @@ def parse_board_article_page(html: str, base_url: str) -> BoardArticleDetail:
 
 ### 4. HTML-to-Markdown Text Converter
 ```python
-# src/kau_assistant/board/text_converter.py
+# src/coursepilot/board/text_converter.py
 from bs4 import BeautifulSoup
 import re
 
@@ -593,7 +593,7 @@ def extract_summary_preview(text: str, max_lines: int = 2, max_chars: int = 140)
 
 ### 5. Local Read State Manager (`board_read_state.json`)
 ```python
-# src/kau_assistant/board/read_state.py
+# src/coursepilot/board/read_state.py
 from datetime import datetime
 import json
 import logging
@@ -666,7 +666,7 @@ class BoardReadStateManager:
 
 ### 6. Pydantic Models & Standard JSON Contract (`schema_version: 1`)
 ```python
-# src/kau_assistant/board/models.py
+# src/coursepilot/board/models.py
 from datetime import datetime
 from enum import Enum
 from typing import Literal
@@ -753,7 +753,7 @@ The test harness must validate all core requirements with unit and integration t
 | **HTML Converter** | `tests/test_board_text_converter.py` | 1. Strip `<script>`, `<style>`, `.accesshide`<br>2. Convert links, bold, italics, lists, and linebreaks<br>3. Replace non-breaking space `\xa0`<br>4. Generate 2-line summary previews without breaking words | BRD-01 (D-15-07) |
 | **Read State** | `tests/test_board_read_state.py` | 1. Check `is_read` and `mark_as_read`<br>2. Atomic write with `.tmp` and replace<br>3. LRU cap enforcement (exceeding 200 items trims oldest)<br>4. Corrupted state file recovery | BRD-02 (D-15-14, D-15-15) |
 | **Orchestrator & Runner** | `tests/test_board_runner.py` | 1. Multi-course collection with course-level exception isolation<br>2. Filter by `--limit N` and `--all`<br>3. Filter by `--unread-only`<br>4. Filter by `--unanswered` and `--my`<br>5. Single article `--view <id>` fetch and auto-mark-read<br>6. `--download-attachments` integration | BRD-01, BRD-02 |
-| **CLI & JSON Contract** | `tests/test_cli_board.py` | 1. `kau-assistant board` Rich table output<br>2. `kau-assistant notices` and `kau-assistant qna` aliases<br>3. `kau-assistant board --json` schema validation (`schema_version: 1`)<br>4. `kau-assistant board --view <id>` terminal viewer<br>5. UTF-8 output streams and exit code contracts (0, 1, 2) | BRD-01, BRD-02 (D-15-01, D-15-04) |
+| **CLI & JSON Contract** | `tests/test_cli_board.py` | 1. `coursepilot board` Rich table output<br>2. `coursepilot notices` and `coursepilot qna` aliases<br>3. `coursepilot board --json` schema validation (`schema_version: 1`)<br>4. `coursepilot board --view <id>` terminal viewer<br>5. UTF-8 output streams and exit code contracts (0, 1, 2) | BRD-01, BRD-02 (D-15-01, D-15-04) |
 
 ### Verification Commands
 ```bash
@@ -764,9 +764,9 @@ uv run pytest tests/test_board_parser.py tests/test_board_text_converter.py test
 uv run pytest tests/ -v
 
 # 3. Verify CLI help output
-uv run python -m kau_assistant board --help
-uv run python -m kau_assistant notices --help
-uv run python -m kau_assistant qna --help
+uv run python -m coursepilot board --help
+uv run python -m coursepilot notices --help
+uv run python -m coursepilot qna --help
 ```
 
 ---

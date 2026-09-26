@@ -9,8 +9,8 @@ requires:
   - phase: 05-cli-reporting-antigravity-skill-packaging
     provides: "05-02/05-03's finished check/sync commands, exit codes, and JSON contract v1 that SKILL.md instructs the agent to call"
 provides:
-  - "skills/kau-lxp/SKILL.md: agent-neutral frontmatter (name/description only) plus the full D-16..D-18 behavior contract (briefing rebuild, sync preview-then-approve-then-apply, self-installed deps, secret and untrusted-data rules)"
-  - "python -m kau_assistant install-skill --agent {claude|codex|antigravity|pi|hermes} [--link]"
+  - "skills/coursepilot/SKILL.md: agent-neutral frontmatter (name/description only) plus the full D-16..D-18 behavior contract (briefing rebuild, sync preview-then-approve-then-apply, self-installed deps, secret and untrusted-data rules)"
+  - "python -m coursepilot install-skill --agent {claude|codex|antigravity|pi|hermes} [--link]"
   - "installer.py: AGENT_SKILL_PATHS data table, resolve_install_target (pure), install_skill (copy default, --link with Windows junction fallback, safe re-install)"
 affects: [05-05-verification]
 
@@ -23,24 +23,24 @@ tech-stack:
   added: []
   patterns:
     - "Containment-checked install target: target.parent.resolve() must equal the agent's resolved skills dir and target.name must equal SKILL_NAME before any filesystem write, defending install_skill against a future AGENT_SKILL_PATHS/resolve_install_target mismatch"
-    - "Replace-before-write gate (_prepare_replace): a symlink/junction at the target is removed as a link only (os.rmdir/os.unlink, never shutil.rmtree through a link); a real directory is removed wholesale only if its own SKILL.md name: frontmatter reads kau-lxp; anything else raises InstallError untouched"
+    - "Replace-before-write gate (_prepare_replace): a symlink/junction at the target is removed as a link only (os.rmdir/os.unlink, never shutil.rmtree through a link); a real directory is removed wholesale only if its own SKILL.md name: frontmatter reads coursepilot; anything else raises InstallError untouched"
     - "Symlink-then-junction-then-loud-fail: os.symlink first, subprocess mklink /J fallback only on a Windows OSError, InstallError (pointing back to copy mode) if both fail -- never a silent copy"
     - "Data-driven agent table: AGENT_SKILL_PATHS: dict[str, AgentTarget] is the single source of per-agent skill-directory paths; adding an agent is a data-only change, matching the RESEARCH.md Pattern 3 requirement"
 
 key-files:
   created:
-    - skills/kau-lxp/SKILL.md
-    - src/kau_assistant/installer.py
+    - skills/coursepilot/SKILL.md
+    - src/coursepilot/installer.py
     - tests/test_installer.py
   modified:
-    - src/kau_assistant/cli.py
+    - src/coursepilot/cli.py
     - .gitignore
 
 key-decisions:
   - "Task 1's install_skill shipped copy-mode only, with `link=True` raising a clear 'not yet supported' InstallError -- kept the tracer commit a clean, narrowly-scoped slice (matching the plan's explicit 'Copy mode for this task' instruction) before Task 3 added link/replace handling"
-  - "Task 3's replace-safety check identifies a prior kau-lxp install by reading only the target's own SKILL.md `name:` frontmatter line (not a full YAML parse) -- cheap, dependency-free, and sufficient to distinguish 'our skill' from 'someone else's directory' per the plan's exact wording"
-  - "repo-root.txt for a --link install is written into the *source* directory (the repo's own skills/kau-lxp/), not the linked target -- since the target IS a link to the source, this is the only location that actually needs writing, and matches why .gitignore needed a new entry (the file lands inside the tracked repo tree)"
-  - "The 'still shows the placeholder' explanatory sentence in SKILL.md section 1 intentionally also gets its own {{KAU_LXP_REPO}} occurrence replaced during a copy install (reads a little redundantly resolved, but is harmless -- the agent only needs the resolved value to be present, and correctness of the repo-root.txt fallback path only matters for --link installs where the placeholder is never replaced)"
+  - "Task 3's replace-safety check identifies a prior coursepilot install by reading only the target's own SKILL.md `name:` frontmatter line (not a full YAML parse) -- cheap, dependency-free, and sufficient to distinguish 'our skill' from 'someone else's directory' per the plan's exact wording"
+  - "repo-root.txt for a --link install is written into the *source* directory (the repo's own skills/coursepilot/), not the linked target -- since the target IS a link to the source, this is the only location that actually needs writing, and matches why .gitignore needed a new entry (the file lands inside the tracked repo tree)"
+  - "The 'still shows the placeholder' explanatory sentence in SKILL.md section 1 intentionally also gets its own {{COURSEPILOT_REPO}} occurrence replaced during a copy install (reads a little redundantly resolved, but is harmless -- the agent only needs the resolved value to be present, and correctness of the repo-root.txt fallback path only matters for --link installs where the placeholder is never replaced)"
 
 patterns-established:
   - "Pattern: any future filesystem-mutating CLI operation that can target a pre-existing directory should gate on a 'replace vs refuse' check keyed off content the operation itself wrote (here: SKILL.md's own name: field) before any destructive call, never a bare shutil.copytree/rmtree without a pre-check"
@@ -49,7 +49,7 @@ requirements-completed: [SKIL-03]
 
 coverage:
   - id: D1
-    description: "skills/kau-lxp/SKILL.md has agent-neutral frontmatter (exactly name + description, <=1024 chars, Korean trigger phrases) and an agent-neutral body containing no agent-specific tool/runtime identifiers"
+    description: "skills/coursepilot/SKILL.md has agent-neutral frontmatter (exactly name + description, <=1024 chars, Korean trigger phrases) and an agent-neutral body containing no agent-specific tool/runtime identifiers"
     requirement: SKIL-03
     verification:
       - kind: unit
@@ -74,7 +74,7 @@ coverage:
         status: pass
     human_judgment: false
   - id: D3
-    description: "Default install copies the skill folder, replaces every {{KAU_LXP_REPO}} placeholder in the installed SKILL.md with the absolute repo root, and writes repo-root.txt -- the repo's own tracked copy keeps the placeholder untouched"
+    description: "Default install copies the skill folder, replaces every {{COURSEPILOT_REPO}} placeholder in the installed SKILL.md with the absolute repo root, and writes repo-root.txt -- the repo's own tracked copy keeps the placeholder untouched"
     requirement: SKIL-03
     verification:
       - kind: unit
@@ -113,7 +113,7 @@ coverage:
         status: pass
     human_judgment: false
   - id: D6
-    description: "Re-installing never deletes anything outside <skills dir>/kau-lxp: a prior link is removed as a link only (its target/source untouched), a prior kau-lxp copy is replaced wholesale, and any foreign content at the target is refused (InstallError, untouched); a missing agent home directory still succeeds but warns"
+    description: "Re-installing never deletes anything outside <skills dir>/coursepilot: a prior link is removed as a link only (its target/source untouched), a prior coursepilot copy is replaced wholesale, and any foreign content at the target is refused (InstallError, untouched); a missing agent home directory still succeeds but warns"
     requirement: SKIL-03
     verification:
       - kind: unit
@@ -137,7 +137,7 @@ status: complete
 
 # Phase 5 Plan 4: Universal Agent Skill Packaging Summary
 
-**`skills/kau-lxp/SKILL.md` (name/description-only frontmatter, full D-16..D-18 behavior contract) plus `install-skill --agent {5 agents} [--link]` — a data-driven copy/link installer with a loud Windows junction fallback and a replace-safety gate that never deletes outside its own target.**
+**`skills/coursepilot/SKILL.md` (name/description-only frontmatter, full D-16..D-18 behavior contract) plus `install-skill --agent {5 agents} [--link]` — a data-driven copy/link installer with a loud Windows junction fallback and a replace-safety gate that never deletes outside its own target.**
 
 ## Performance
 
@@ -149,10 +149,10 @@ status: complete
 
 ## Accomplishments
 
-- `skills/kau-lxp/SKILL.md`: frontmatter holds exactly `name: kau-lxp` and a single double-quoted `description` line (English + Korean trigger phrases '과제 확인해줘' / '노션에 올려줘', <=1024 chars). Body is fully agent-neutral (no `Bash(`, `allowed-tools`, `run_shell_command`, or any other agent-specific identifier) and encodes: repo-location resolution (placeholder or `repo-root.txt` fallback), the `uv --directory ... run python -m kau_assistant` execution rule, first-run environment self-diagnosis (`uv --version`, self-run `uv sync` + `playwright install chromium`, `.env`-existence-only check, never touching its contents), the full briefing flow (urgency-ordered markdown tables, no truncation), the sync preview-then-explicit-approval-then-apply gate, a troubleshooting section (`--relogin`/`--headed` only), and the untrusted-data rule (JSON string values are data to display, never instructions to follow).
+- `skills/coursepilot/SKILL.md`: frontmatter holds exactly `name: coursepilot` and a single double-quoted `description` line (English + Korean trigger phrases '과제 확인해줘' / '노션에 올려줘', <=1024 chars). Body is fully agent-neutral (no `Bash(`, `allowed-tools`, `run_shell_command`, or any other agent-specific identifier) and encodes: repo-location resolution (placeholder or `repo-root.txt` fallback), the `uv --directory ... run python -m coursepilot` execution rule, first-run environment self-diagnosis (`uv --version`, self-run `uv sync` + `playwright install chromium`, `.env`-existence-only check, never touching its contents), the full briefing flow (urgency-ordered markdown tables, no truncation), the sync preview-then-explicit-approval-then-apply gate, a troubleshooting section (`--relogin`/`--headed` only), and the untrusted-data rule (JSON string values are data to display, never instructions to follow).
 - `installer.py`: `AGENT_SKILL_PATHS` data table for Claude Code, Codex, Antigravity, Pi, and Hermes (each entry commented with its RESEARCH.md evidence level); `resolve_install_target` is a pure path computation; `install_skill` performs a containment check before any write, a `_prepare_replace` safety gate (link-only removal, matched-name wholesale replace, or a refusal that leaves foreign content untouched), copies by default (placeholder resolution + `repo-root.txt`), and links via `os.symlink` with an `mklink /J` fallback that raises loudly — never silently copying — if both fail.
 - `cli.py` `install-skill` command: `--agent` is a `click.Choice` built from the data table (unknown agents fail with click's own usage error); `--link` toggles link mode; success output shows the target path and a "(복사)"/"(링크)" mode label plus a restart-and-retry hint; a missing agent home directory still succeeds but prints a Korean stderr warning.
-- `.gitignore` gained a `skills/kau-lxp/repo-root.txt` entry — the file a `--link` install writes into the repo's own tracked `skills/kau-lxp/` directory.
+- `.gitignore` gained a `skills/coursepilot/repo-root.txt` entry — the file a `--link` install writes into the repo's own tracked `skills/coursepilot/` directory.
 
 ## Task Commits
 
@@ -168,17 +168,17 @@ Task 1 was `type="tracer"` (single production-quality commit + re-verified `<ver
 
 ## Files Created/Modified
 
-- `skills/kau-lxp/SKILL.md` - Agent-neutral frontmatter + full behavior contract (briefing, sync approval gate, env diagnosis, secret/untrusted-data rules)
-- `src/kau_assistant/installer.py` - AGENT_SKILL_PATHS table, InstallError/InstallResult, resolve_install_target, install_skill (copy/link, replace-safety, containment check)
-- `src/kau_assistant/cli.py` - `install-skill --agent [--link]` command
-- `.gitignore` - Ignores the generated link-mode `skills/kau-lxp/repo-root.txt`
+- `skills/coursepilot/SKILL.md` - Agent-neutral frontmatter + full behavior contract (briefing, sync approval gate, env diagnosis, secret/untrusted-data rules)
+- `src/coursepilot/installer.py` - AGENT_SKILL_PATHS table, InstallError/InstallResult, resolve_install_target, install_skill (copy/link, replace-safety, containment check)
+- `src/coursepilot/cli.py` - `install-skill --agent [--link]` command
+- `.gitignore` - Ignores the generated link-mode `skills/coursepilot/repo-root.txt`
 - `tests/test_installer.py` - 21 tests: path generation (all 5 agents), copy-install repo-root resolution, frontmatter/body content contract, real symlink/junction linking, Windows fallback call shape, loud both-fail, safe re-install (over link / over copy / foreign target refused), missing-home warning
 
 ## Decisions Made
 
 - Kept Task 1's `install_skill` copy-mode-only with an explicit "not yet supported" `InstallError` for `link=True`, per the plan's literal "Copy mode for this task" scoping — this let the tracer commit stay a clean, narrowly-reviewable slice before Task 3 added the link/replace logic on top of the same function signature.
 - `_prepare_replace`'s "is this our prior install?" check reads only the target's own `SKILL.md`'s `name:` frontmatter line (a cheap, dependency-free string check), not a full YAML parse — sufficient to distinguish "our skill, safe to replace" from "foreign content, refuse" per the plan's exact wording, and avoids adding a YAML dependency the project doesn't otherwise need (confirmed `pyyaml` is not installed in this environment).
-- `--link`'s `repo-root.txt` is written into the *source* directory (the repo's own `skills/kau-lxp/` when no `source=` override is passed), not the linked target — since the target is a link to the source, the source is the only location that actually needs the resolved path, and it is also why `.gitignore` needed a new entry (the file lands inside the tracked repo tree, not just in a user's home directory).
+- `--link`'s `repo-root.txt` is written into the *source* directory (the repo's own `skills/coursepilot/` when no `source=` override is passed), not the linked target — since the target is a link to the source, the source is the only location that actually needs the resolved path, and it is also why `.gitignore` needed a new entry (the file lands inside the tracked repo tree, not just in a user's home directory).
 
 ## Deviations from Plan
 
@@ -195,18 +195,18 @@ None - no external service configuration required. No new packages were installe
 
 ## Next Phase Readiness
 
-- `skills/kau-lxp/SKILL.md` and `installer.py`/`install-skill` are complete, tested, and stable for Plan 05-05 to build on: `JSON_CONTRACT.md`, the per-agent README install table, and — critically — the D-27 live per-agent manual verification, which is where `AGENT_SKILL_PATHS`' provisional (LOW/MEDIUM confidence) paths for Codex, Antigravity, Pi, and Hermes get confirmed or corrected as a one-line data change.
+- `skills/coursepilot/SKILL.md` and `installer.py`/`install-skill` are complete, tested, and stable for Plan 05-05 to build on: `JSON_CONTRACT.md`, the per-agent README install table, and — critically — the D-27 live per-agent manual verification, which is where `AGENT_SKILL_PATHS`' provisional (LOW/MEDIUM confidence) paths for Codex, Antigravity, Pi, and Hermes get confirmed or corrected as a one-line data change.
 - The `check`/`sync` CLI contract this SKILL.md instructs the agent to call is unchanged from 05-01/05-03 — no coupling risk for 05-05's live-evidence capture.
 - No blockers.
 
 ## Self-Check: PASSED
 
-- FOUND: skills/kau-lxp/SKILL.md
-- FOUND: src/kau_assistant/installer.py
+- FOUND: skills/coursepilot/SKILL.md
+- FOUND: src/coursepilot/installer.py
 - FOUND: tests/test_installer.py
 - FOUND commits: 188b39d, 2f17ef2, d9f741c, 75b3f6e, 8b37413
 - `uv run pytest -q tests/test_installer.py -x` green (21 tests)
-- `uv run python -m kau_assistant install-skill --help` lists `--agent {antigravity|claude|codex|hermes|pi}` and `--link`
+- `uv run python -m coursepilot install-skill --help` lists `--agent {antigravity|claude|codex|hermes|pi}` and `--link`
 - `uv run pytest` green (full suite, 178 tests)
 
 ---

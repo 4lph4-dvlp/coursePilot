@@ -26,9 +26,9 @@ verified_at: "2026-09-21T16:51:00Z"
 
 | Requirement ID | Description | Source Plan | Verification Evidence | Status |
 |----------------|-------------|-------------|-----------------------|--------|
-| **SCRP-02** | 현재 학기 수강 중인 전체 강좌 목록(과목 ID, 과목명, 강좌 링크) 추출 | 02-01 | `src/kau_assistant/scraper/course_list.py`<br>`tests/test_course_list.py` (4 tests pass) | **Satisfied** |
-| **SCRP-03** | 각 과목의 주차별 온라인 동영상 강의 목록, 수강 진도율(출석/완료 여부), 수강 마감 일시 추출 | 02-02 | `src/kau_assistant/scraper/lecture_parser.py`<br>`src/kau_assistant/scraper/date_parser.py`<br>`tests/test_lecture_parser.py` (3 tests pass)<br>`tests/test_date_parser.py` (5 tests pass) | **Satisfied** |
-| **SCRP-04** | 각 과목의 과제 목록, 과제 제출 상태(제출완료/미제출), 과제 마감 일시 추출 | 02-02 | `src/kau_assistant/scraper/assessment_parser.py`<br>`tests/test_assessment_parser.py` (3 tests pass) | **Satisfied** |
+| **SCRP-02** | 현재 학기 수강 중인 전체 강좌 목록(과목 ID, 과목명, 강좌 링크) 추출 | 02-01 | `src/coursepilot/scraper/course_list.py`<br>`tests/test_course_list.py` (4 tests pass) | **Satisfied** |
+| **SCRP-03** | 각 과목의 주차별 온라인 동영상 강의 목록, 수강 진도율(출석/완료 여부), 수강 마감 일시 추출 | 02-02 | `src/coursepilot/scraper/lecture_parser.py`<br>`src/coursepilot/scraper/date_parser.py`<br>`tests/test_lecture_parser.py` (3 tests pass)<br>`tests/test_date_parser.py` (5 tests pass) | **Satisfied** |
+| **SCRP-04** | 각 과목의 과제 목록, 과제 제출 상태(제출완료/미제출), 과제 마감 일시 추출 | 02-02 | `src/coursepilot/scraper/assessment_parser.py`<br>`tests/test_assessment_parser.py` (3 tests pass) | **Satisfied** |
 
 ---
 
@@ -37,7 +37,7 @@ verified_at: "2026-09-21T16:51:00Z"
 ```text
 ============================= test session starts =============================
 platform win32 -- Python 3.14.0, pytest-9.1.1, pluggy-1.6.0
-rootdir: D:\dev\kau-lxp-assistant
+rootdir: <repository root>
 configfile: pyproject.toml
 testpaths: tests
 plugins: anyio-4.15.1, asyncio-1.4.0, mock-3.15.1

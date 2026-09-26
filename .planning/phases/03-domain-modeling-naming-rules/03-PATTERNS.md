@@ -8,7 +8,7 @@
 
 ## 1. Codebase Status & Architectural Context
 
-Phase 1에서 구축한 기반 시스템(`SessionManager`, `auth.py`, `course_mapping.py`, `config.py`)과 Phase 2에서 구축한 데이터 수집 엔진(`src/kau_assistant/scraper/`)을 토대로, Phase 3는 수집된 원시 데이터(`CourseItem`, `LectureItem`, `AssessmentItem`)를 비즈니스 도메인 모델(`SyncTask`)로 정규화 및 변환하고, 사용자 노션 관례에 맞춘 통일 네이밍 규칙 및 24시간 마감 임박/우선순위 판정 엔진을 구축하는 **순수 도메인 계층(Pure Domain Layer)**입니다.
+Phase 1에서 구축한 기반 시스템(`SessionManager`, `auth.py`, `course_mapping.py`, `config.py`)과 Phase 2에서 구축한 데이터 수집 엔진(`src/coursepilot/scraper/`)을 토대로, Phase 3는 수집된 원시 데이터(`CourseItem`, `LectureItem`, `AssessmentItem`)를 비즈니스 도메인 모델(`SyncTask`)로 정규화 및 변환하고, 사용자 노션 관례에 맞춘 통일 네이밍 규칙 및 24시간 마감 임박/우선순위 판정 엔진을 구축하는 **순수 도메인 계층(Pure Domain Layer)**입니다.
 
 - **완전 격리된 순수 도메인 로직:** 외부 I/O(Playwright 브라우저 제어, Notion HTTP API 호출, 파일 시스템 영속화)를 일절 배제하여 100% 빠르고 결정론적인(deterministic) 단위 테스트가 가능합니다.
 - **기존 노션 스케줄러 DB 관례 준수:** Notion Scheduler DB(`21d53280-64be-80ec-af4e-000b679f03bb`)의 기존 속성(`선택`: 루틴/이벤트, `구분`: ["학업"], `우선순위`: P1~P4, `상태`: 시작 전, `DueDate`: KST)과 네이밍 관례를 엄격히 계승합니다.
@@ -22,11 +22,11 @@ The following table maps every file to be created in Phase 3 to its role, data f
 
 | Target File | Role | Data Flow | Closest Existing Analog | Primary Responsibilities & Locked Decisions |
 |-------------|------|-----------|-------------------------|----------------------------------------------|
-| `src/kau_assistant/domain/__init__.py` | Package Root / Public Facade | Downstream consumers import directly from `kau_assistant.domain` | `src/kau_assistant/scraper/__init__.py` | 도메인 계층 공개 API 일괄 export (`SyncTask`, `Course`, `TaskType`, `TaskPriority`, `TaskSelect`, `TaskStatus`, `clean_task_title`, `format_task_title`, `calculate_priority`, `get_task_selection`, `transform_to_sync_tasks` 등) |
-| `src/kau_assistant/domain/models.py` | Model / Domain Entities | Produced by `transformer.py`; consumed by Phase 4 `NotionSyncEngine` and Phase 5 CLI reporter | `src/kau_assistant/scraper/models.py` | Pydantic v2 기반 도메인 모델 정의 (`SyncTask`, `Course`, `TaskType`, `TaskPriority`, `TaskSelect`, `TaskStatus`). KST 타임존 검증기(`field_validator`), 중복 방지 키(`dedup_key`), 기본값 주입 (D-05, D-06, D-08, D-10, D-15) |
-| `src/kau_assistant/domain/naming.py` | Utility / String Formatter | Ingests course/activity metadata and mappings; outputs canonical Notion task title for `transformer.py` | `src/kau_assistant/course_mapping.py` & `src/kau_assistant/scraper/lecture_parser.py` | 과목 약칭 접두사 결합, 주차/차시 표준 표기, 활동 유형별 동사(`시청`/`제출`/`응시`/`참여`) 분기, HTML 엔티티 정제, 중복 태그 및 접미사 동사 제거 (D-01 ~ D-04) |
-| `src/kau_assistant/domain/priority.py` | Business Logic / Rules Engine | Ingests task metadata, `due_date`, and reference `now`; calculates priority and Notion properties for `transformer.py` | `src/kau_assistant/scraper/date_parser.py` (`is_past_deadline`, `get_current_kst_time`) | KST 기준 잔여 시간 계산, 24시간 마감 임박(`P1`) 판정 (DOMN-02), 과거 지연(`P4`), 기본 우선순위(`P2`/`P3`), 노션 속성(`선택`: 루틴/이벤트, `상태`: "시작 전") 매핑 (D-05, D-06, D-10) |
-| `src/kau_assistant/domain/transformer.py` | Domain Service / DTO Transformer | Ingests Phase 2 DTOs (`CourseItem`, `LectureItem`, `AssessmentItem`); produces filtered and sorted `list[SyncTask]` | `src/kau_assistant/scraper/assessment_parser.py` & `src/kau_assistant/scraper/lecture_parser.py` | Scraper DTO -> `SyncTask` 변환, 상시 열람 영상 필터링, 과제 설명란 텍스트 정규식 분석을 통한 마감일 구출 (D-11), 1500자 안전 절삭 및 단락 구조화 노션 메모 생성 (D-12 ~ D-14), 미완료 항목 필터링 (D-09) |
+| `src/coursepilot/domain/__init__.py` | Package Root / Public Facade | Downstream consumers import directly from `coursepilot.domain` | `src/coursepilot/scraper/__init__.py` | 도메인 계층 공개 API 일괄 export (`SyncTask`, `Course`, `TaskType`, `TaskPriority`, `TaskSelect`, `TaskStatus`, `clean_task_title`, `format_task_title`, `calculate_priority`, `get_task_selection`, `transform_to_sync_tasks` 등) |
+| `src/coursepilot/domain/models.py` | Model / Domain Entities | Produced by `transformer.py`; consumed by Phase 4 `NotionSyncEngine` and Phase 5 CLI reporter | `src/coursepilot/scraper/models.py` | Pydantic v2 기반 도메인 모델 정의 (`SyncTask`, `Course`, `TaskType`, `TaskPriority`, `TaskSelect`, `TaskStatus`). KST 타임존 검증기(`field_validator`), 중복 방지 키(`dedup_key`), 기본값 주입 (D-05, D-06, D-08, D-10, D-15) |
+| `src/coursepilot/domain/naming.py` | Utility / String Formatter | Ingests course/activity metadata and mappings; outputs canonical Notion task title for `transformer.py` | `src/coursepilot/course_mapping.py` & `src/coursepilot/scraper/lecture_parser.py` | 과목 약칭 접두사 결합, 주차/차시 표준 표기, 활동 유형별 동사(`시청`/`제출`/`응시`/`참여`) 분기, HTML 엔티티 정제, 중복 태그 및 접미사 동사 제거 (D-01 ~ D-04) |
+| `src/coursepilot/domain/priority.py` | Business Logic / Rules Engine | Ingests task metadata, `due_date`, and reference `now`; calculates priority and Notion properties for `transformer.py` | `src/coursepilot/scraper/date_parser.py` (`is_past_deadline`, `get_current_kst_time`) | KST 기준 잔여 시간 계산, 24시간 마감 임박(`P1`) 판정 (DOMN-02), 과거 지연(`P4`), 기본 우선순위(`P2`/`P3`), 노션 속성(`선택`: 루틴/이벤트, `상태`: "시작 전") 매핑 (D-05, D-06, D-10) |
+| `src/coursepilot/domain/transformer.py` | Domain Service / DTO Transformer | Ingests Phase 2 DTOs (`CourseItem`, `LectureItem`, `AssessmentItem`); produces filtered and sorted `list[SyncTask]` | `src/coursepilot/scraper/assessment_parser.py` & `src/coursepilot/scraper/lecture_parser.py` | Scraper DTO -> `SyncTask` 변환, 상시 열람 영상 필터링, 과제 설명란 텍스트 정규식 분석을 통한 마감일 구출 (D-11), 1500자 안전 절삭 및 단락 구조화 노션 메모 생성 (D-12 ~ D-14), 미완료 항목 필터링 (D-09) |
 | `tests/test_domain_models.py` | Model Unit Tests | Validates `domain/models.py` schema, defaults, KST enforcement, and dedup key generation | `tests/test_scraper_models.py` | `SyncTask`, `Course`, Enums 유효성 검증, KST 타임존 자동 부착 validator 검증, `dedup_key` 일관성 테스트 |
 | `tests/test_naming.py` | Naming Unit Tests | Validates title cleaning and template formatting for all activity types | `tests/test_course_mapping.py` & `tests/test_date_parser.py` | 강의 고정 차시 네이밍 (D-01), 과제/퀴즈/토론 동사 분기 (D-02), 비주차 과제 폴백 (D-03), HTML 엔티티 및 중복 태그 정제 (D-04), 동사 중복 방지 ("제출 제출" 방지) |
 | `tests/test_priority.py` | Priority Unit Tests | Validates priority ladders and 24-hour urgency boundary conditions | `tests/test_date_parser.py` (`test_is_past_deadline`) | 24시간 마감 임박 판정 (정확히 24h, 24h+1초, 23h59m), 과거 지연 항목(`P4`), 완료 항목(`P4`), 평상시 기본 우선순위(`P2`/`P3`), 노션 `선택` 속성 매핑 검증 |
@@ -36,15 +36,15 @@ The following table maps every file to be created in Phase 3 to its role, data f
 
 ## 3. Detailed Per-File Pattern Blueprints & Code Excerpts to Copy
 
-### 3.1 `src/kau_assistant/domain/__init__.py`
+### 3.1 `src/coursepilot/domain/__init__.py`
 - **Role:** Package Root / Facade
-- **Analog:** [`src/kau_assistant/scraper/__init__.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/scraper/__init__.py)
-- **Data Flow:** Downstream packages (`kau_assistant.notion`, `kau_assistant.cli`) import directly from `kau_assistant.domain`.
+- **Analog:** [`src/coursepilot/scraper/__init__.py`](../../../src/coursepilot/scraper/__init__.py)
+- **Data Flow:** Downstream packages (`coursepilot.notion`, `coursepilot.cli`) import directly from `coursepilot.domain`.
 - **Concrete Imports & Excerpt to Mirror:**
   ```python
-  """KAU Assistant domain modeling and task normalization package."""
+  """CoursePilot domain modeling and task normalization package."""
 
-  from kau_assistant.domain.models import (
+  from coursepilot.domain.models import (
       Course,
       SyncTask,
       TaskPriority,
@@ -52,16 +52,16 @@ The following table maps every file to be created in Phase 3 to its role, data f
       TaskStatus,
       TaskType,
   )
-  from kau_assistant.domain.naming import (
+  from coursepilot.domain.naming import (
       clean_task_title,
       extract_week_and_title,
       format_task_title,
   )
-  from kau_assistant.domain.priority import (
+  from coursepilot.domain.priority import (
       calculate_priority,
       get_task_selection,
   )
-  from kau_assistant.domain.transformer import (
+  from coursepilot.domain.transformer import (
       extract_deadline_from_description,
       format_memo,
       transform_assessment_to_task,
@@ -91,20 +91,20 @@ The following table maps every file to be created in Phase 3 to its role, data f
 
 ---
 
-### 3.2 `src/kau_assistant/domain/models.py`
+### 3.2 `src/coursepilot/domain/models.py`
 - **Role:** Domain Entities & Enums
-- **Analog:** [`src/kau_assistant/scraper/models.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/scraper/models.py)
+- **Analog:** [`src/coursepilot/scraper/models.py`](../../../src/coursepilot/scraper/models.py)
 - **Data Flow:** Instantiated by `transformer.py`; passed to Phase 4 `NotionSyncEngine` and Phase 5 CLI Rich reporter.
 - **Concrete Imports & Excerpt to Mirror:**
   ```python
-  """Domain models for KAU Assistant task synchronization."""
+  """Domain models for CoursePilot task synchronization."""
 
   from datetime import datetime
   from enum import Enum
   from pydantic import BaseModel, Field, field_validator
 
-  from kau_assistant.scraper.date_parser import KST
-  from kau_assistant.scraper.models import AssessmentItem, CourseItem, LectureItem
+  from coursepilot.scraper.date_parser import KST
+  from coursepilot.scraper.models import AssessmentItem, CourseItem, LectureItem
 
 
   class TaskType(str, Enum):
@@ -194,9 +194,9 @@ The following table maps every file to be created in Phase 3 to its role, data f
 
 ---
 
-### 3.3 `src/kau_assistant/domain/naming.py`
+### 3.3 `src/coursepilot/domain/naming.py`
 - **Role:** Utility / String Formatter
-- **Analog:** [`src/kau_assistant/course_mapping.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/course_mapping.py) (`get_abbreviation`) & [`src/kau_assistant/scraper/lecture_parser.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/scraper/lecture_parser.py) (`clean_lecture_title`)
+- **Analog:** [`src/coursepilot/course_mapping.py`](../../../src/coursepilot/course_mapping.py) (`get_abbreviation`) & [`src/coursepilot/scraper/lecture_parser.py`](../../../src/coursepilot/scraper/lecture_parser.py) (`clean_lecture_title`)
 - **Data Flow:** Called by `transformer.py` to format standardized Notion task titles from raw scraped names.
 - **Concrete Imports & Excerpt to Mirror:**
   ```python
@@ -205,8 +205,8 @@ The following table maps every file to be created in Phase 3 to its role, data f
   import html
   import re
 
-  from kau_assistant.course_mapping import get_abbreviation
-  from kau_assistant.domain.models import TaskType
+  from coursepilot.course_mapping import get_abbreviation
+  from coursepilot.domain.models import TaskType
 
 
   def clean_task_title(raw_title: str) -> str:
@@ -299,9 +299,9 @@ The following table maps every file to be created in Phase 3 to its role, data f
 
 ---
 
-### 3.4 `src/kau_assistant/domain/priority.py`
+### 3.4 `src/coursepilot/domain/priority.py`
 - **Role:** Business Logic / Rules Engine
-- **Analog:** [`src/kau_assistant/scraper/date_parser.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/scraper/date_parser.py) (`is_past_deadline`, `get_current_kst_time`, `KST`)
+- **Analog:** [`src/coursepilot/scraper/date_parser.py`](../../../src/coursepilot/scraper/date_parser.py) (`is_past_deadline`, `get_current_kst_time`, `KST`)
 - **Data Flow:** Called by `transformer.py` during task generation to establish urgency and priority tags.
 - **Concrete Imports & Excerpt to Mirror:**
   ```python
@@ -309,8 +309,8 @@ The following table maps every file to be created in Phase 3 to its role, data f
 
   from datetime import datetime, timedelta
 
-  from kau_assistant.domain.models import TaskPriority, TaskSelect, TaskStatus, TaskType
-  from kau_assistant.scraper.date_parser import KST, get_current_kst_time
+  from coursepilot.domain.models import TaskPriority, TaskSelect, TaskStatus, TaskType
+  from coursepilot.scraper.date_parser import KST, get_current_kst_time
 
 
   def calculate_priority(
@@ -372,9 +372,9 @@ The following table maps every file to be created in Phase 3 to its role, data f
 
 ---
 
-### 3.5 `src/kau_assistant/domain/transformer.py`
+### 3.5 `src/coursepilot/domain/transformer.py`
 - **Role:** Domain Service / DTO Transformer
-- **Analog:** [`src/kau_assistant/scraper/assessment_parser.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/scraper/assessment_parser.py) & [`src/kau_assistant/scraper/lecture_parser.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/scraper/lecture_parser.py)
+- **Analog:** [`src/coursepilot/scraper/assessment_parser.py`](../../../src/coursepilot/scraper/assessment_parser.py) & [`src/coursepilot/scraper/lecture_parser.py`](../../../src/coursepilot/scraper/lecture_parser.py)
 - **Data Flow:** Ingests `CourseItem`, `LectureItem`, and `AssessmentItem` collections; outputs clean, sorted, filtered `list[SyncTask]`.
 - **Concrete Imports & Excerpt to Mirror:**
   ```python
@@ -383,12 +383,12 @@ The following table maps every file to be created in Phase 3 to its role, data f
   from datetime import datetime
   import re
 
-  from kau_assistant.course_mapping import load_course_mappings
-  from kau_assistant.domain.models import Course, SyncTask, TaskPriority, TaskSelect, TaskStatus, TaskType
-  from kau_assistant.domain.naming import format_task_title
-  from kau_assistant.domain.priority import calculate_priority, get_task_selection
-  from kau_assistant.scraper.date_parser import parse_lms_date
-  from kau_assistant.scraper.models import (
+  from coursepilot.course_mapping import load_course_mappings
+  from coursepilot.domain.models import Course, SyncTask, TaskPriority, TaskSelect, TaskStatus, TaskType
+  from coursepilot.domain.naming import format_task_title
+  from coursepilot.domain.priority import calculate_priority, get_task_selection
+  from coursepilot.scraper.date_parser import parse_lms_date
+  from coursepilot.scraper.models import (
       AssessmentItem,
       AssessmentType,
       AttendanceStatus,
@@ -630,14 +630,14 @@ The following table maps every file to be created in Phase 3 to its role, data f
 ## 4. Test Suite Blueprints & Verification Map
 
 ### 4.1 `tests/test_domain_models.py`
-- **Analog:** [`tests/test_scraper_models.py`](file:///D:/dev/kau-lxp-assistant/tests/test_scraper_models.py)
+- **Analog:** [`tests/test_scraper_models.py`](../../../tests/test_scraper_models.py)
 - **Key Patterns to Mirror:**
   ```python
   from datetime import datetime, timezone
   import pytest
   from pydantic import ValidationError
 
-  from kau_assistant.domain.models import (
+  from coursepilot.domain.models import (
       Course,
       SyncTask,
       TaskPriority,
@@ -645,7 +645,7 @@ The following table maps every file to be created in Phase 3 to its role, data f
       TaskStatus,
       TaskType,
   )
-  from kau_assistant.scraper.date_parser import KST
+  from coursepilot.scraper.date_parser import KST
 
 
   def test_task_enums():
@@ -697,12 +697,12 @@ The following table maps every file to be created in Phase 3 to its role, data f
 ---
 
 ### 4.2 `tests/test_naming.py`
-- **Analog:** [`tests/test_course_mapping.py`](file:///D:/dev/kau-lxp-assistant/tests/test_course_mapping.py)
+- **Analog:** [`tests/test_course_mapping.py`](../../../tests/test_course_mapping.py)
 - **Key Patterns to Mirror:**
   ```python
   import pytest
-  from kau_assistant.domain.models import TaskType
-  from kau_assistant.domain.naming import clean_task_title, extract_week_and_title, format_task_title
+  from coursepilot.domain.models import TaskType
+  from coursepilot.domain.naming import clean_task_title, extract_week_and_title, format_task_title
 
   MAPPINGS = {"공학수학2": "공수2", "자료구조": "자구"}
 
@@ -748,13 +748,13 @@ The following table maps every file to be created in Phase 3 to its role, data f
 ---
 
 ### 4.3 `tests/test_priority.py`
-- **Analog:** [`tests/test_date_parser.py`](file:///D:/dev/kau-lxp-assistant/tests/test_date_parser.py) (`test_is_past_deadline`)
+- **Analog:** [`tests/test_date_parser.py`](../../../tests/test_date_parser.py) (`test_is_past_deadline`)
 - **Key Patterns to Mirror:**
   ```python
   from datetime import datetime, timedelta
-  from kau_assistant.domain.models import TaskPriority, TaskSelect, TaskType
-  from kau_assistant.domain.priority import calculate_priority, get_task_selection
-  from kau_assistant.scraper.date_parser import KST
+  from coursepilot.domain.models import TaskPriority, TaskSelect, TaskType
+  from coursepilot.domain.priority import calculate_priority, get_task_selection
+  from coursepilot.scraper.date_parser import KST
 
 
   def test_urgent_24h_boundary():
@@ -806,22 +806,22 @@ The following table maps every file to be created in Phase 3 to its role, data f
 ---
 
 ### 4.4 `tests/test_transformer.py`
-- **Analog:** [`tests/test_assessment_parser.py`](file:///D:/dev/kau-lxp-assistant/tests/test_assessment_parser.py) & [`tests/test_lecture_parser.py`](file:///D:/dev/kau-lxp-assistant/tests/test_lecture_parser.py)
+- **Analog:** [`tests/test_assessment_parser.py`](../../../tests/test_assessment_parser.py) & [`tests/test_lecture_parser.py`](../../../tests/test_lecture_parser.py)
 - **Key Patterns to Mirror:**
   ```python
   from datetime import datetime
   import pytest
 
-  from kau_assistant.domain.models import TaskPriority, TaskSelect, TaskStatus, TaskType
-  from kau_assistant.domain.transformer import (
+  from coursepilot.domain.models import TaskPriority, TaskSelect, TaskStatus, TaskType
+  from coursepilot.domain.transformer import (
       extract_deadline_from_description,
       format_memo,
       transform_assessment_to_task,
       transform_lecture_to_task,
       transform_to_sync_tasks,
   )
-  from kau_assistant.scraper.date_parser import KST
-  from kau_assistant.scraper.models import (
+  from coursepilot.scraper.date_parser import KST
+  from coursepilot.scraper.models import (
       AssessmentItem,
       AssessmentType,
       AttachmentMeta,
@@ -922,9 +922,9 @@ The following table maps every file to be created in Phase 3 to its role, data f
 ## 5. Architectural Invariants & Don't Hand-Roll Rules
 
 1. **No Direct `os.environ` or Hardcoded Paths:**
-   - Configuration and mappings must always go through `kau_assistant.course_mapping.load_course_mappings()`.
+   - Configuration and mappings must always go through `coursepilot.course_mapping.load_course_mappings()`.
 2. **Pure Domain Isolation:**
-   - Modules in `src/kau_assistant/domain/` must **never** import `playwright`, `httpx`, or any networking libraries.
+   - Modules in `src/coursepilot/domain/` must **never** import `playwright`, `httpx`, or any networking libraries.
    - Any external dependency is restricted to standard library (`datetime`, `re`, `html`, `enum`, `zoneinfo`) and `pydantic` / `beautifulsoup4`.
 3. **Double-Verb & Double-Bracket Prevention:**
    - Always run raw titles through `clean_task_title()` before formatting.

@@ -50,7 +50,7 @@ Phase 3는 수집된 원시 데이터(`CourseItem`, `LectureItem`, `AssessmentIt
 - **D-12:** 동영상 강의의 노션 `메모` 필드는 `LMS 바로가기: {link}` 형태로 단독/간결하게 구성하여 원클릭 학습 이동 지원. — **Reversibility:** reversible
 - **D-13:** 과제/평가 항목의 노션 `메모` 필드는 단락을 나누어 구조화: LMS 바로가기 링크, 지각 제출 마감일(있을 시), 첨부파일 목록, 교수자 과제 설명/제출 안내 요약을 단락별로 구분하여 기록. — **Reversibility:** reversible
 - **D-14:** 교수자 과제 설명문이 긴 경우 노션 API의 단일 텍스트 2000자 제한을 고려하여 1500자 초과 시 안전하게 절삭하고 말줄임표 및 `... [이하 생략 - 전체 내용은 LMS 페이지 참조]` 안내 문구를 자동 추가. — **Reversibility:** reversible
-- **D-15:** Phase 3 코드는 `src/kau_assistant/domain/` 서브패키지로 모듈화하여 `models.py`(도메인 엔티티), `naming.py`(작업명 규칙 포매터), `priority.py`(긴급도/우선순위/속성 매핑), `transformer.py`(원시 DTO -> SyncTask 변환기)로 명확히 역할 분리. — **Reversibility:** costly — 패키지 구조 및 임포트 경로 의존
+- **D-15:** Phase 3 코드는 `src/coursepilot/domain/` 서브패키지로 모듈화하여 `models.py`(도메인 엔티티), `naming.py`(작업명 규칙 포매터), `priority.py`(긴급도/우선순위/속성 매핑), `transformer.py`(원시 DTO -> SyncTask 변환기)로 명확히 역할 분리. — **Reversibility:** costly — 패키지 구조 및 임포트 경로 의존
 
 ### the agent's Discretion
 - 세부적인 과제 설명문 정규식 패턴 및 불필요한 HTML 태그 제거 로직
@@ -71,9 +71,9 @@ Phase 3는 수집된 원시 데이터(`CourseItem`, `LectureItem`, `AssessmentIt
 - `.planning/phases/02-lms-scraper-core/02-CONTEXT.md` — Phase 2 결정사항 (D-06: 과거 지연 강의 보존, D-07: 차시 분할, D-10: 미제출 판정, D-12: 지각 마감 보존)
 
 ### Source Code References
-- `src/kau_assistant/scraper/models.py` — 원시 추출 DTO (`CourseItem`, `LectureItem`, `AssessmentItem`, `AttendanceStatus`, `SubmissionStatus`, `AssessmentType`)
-- `src/kau_assistant/course_mapping.py` — 과목 약칭 매핑 로더 (`get_abbreviation`, `load_course_mappings`)
-- `src/kau_assistant/scraper/date_parser.py` — KST 기준 일시 파싱, `is_past_deadline`, `get_current_kst_time`
+- `src/coursepilot/scraper/models.py` — 원시 추출 DTO (`CourseItem`, `LectureItem`, `AssessmentItem`, `AttendanceStatus`, `SubmissionStatus`, `AssessmentType`)
+- `src/coursepilot/course_mapping.py` — 과목 약칭 매핑 로더 (`get_abbreviation`, `load_course_mappings`)
+- `src/coursepilot/scraper/date_parser.py` — KST 기준 일시 파싱, `is_past_deadline`, `get_current_kst_time`
 
 </canonical_refs>
 
@@ -81,9 +81,9 @@ Phase 3는 수집된 원시 데이터(`CourseItem`, `LectureItem`, `AssessmentIt
 ## Existing Code Insights
 
 ### Reusable Assets
-- `src/kau_assistant/course_mapping.py`: 과목명 약칭 변환 함수(`get_abbreviation`)를 네이밍 포매터(`naming.py`)에서 직접 호출하여 과목 접두사(`[{과목약어}]`) 생성.
-- `src/kau_assistant/scraper/date_parser.py`: KST 시간대(`KST`), 현재 KST 시간 반환(`get_current_kst_time`), 마감 여부 판별(`is_past_deadline`), 날짜 파서(`parse_lms_date`)를 우선순위 판정 및 본문 설명 마감일 추출에 재사용.
-- `src/kau_assistant/scraper/models.py`: 입력 DTO로 활용되며, 이를 기반으로 Phase 3의 `transformer.py`가 `SyncTask`로 변환.
+- `src/coursepilot/course_mapping.py`: 과목명 약칭 변환 함수(`get_abbreviation`)를 네이밍 포매터(`naming.py`)에서 직접 호출하여 과목 접두사(`[{과목약어}]`) 생성.
+- `src/coursepilot/scraper/date_parser.py`: KST 시간대(`KST`), 현재 KST 시간 반환(`get_current_kst_time`), 마감 여부 판별(`is_past_deadline`), 날짜 파서(`parse_lms_date`)를 우선순위 판정 및 본문 설명 마감일 추출에 재사용.
+- `src/coursepilot/scraper/models.py`: 입력 DTO로 활용되며, 이를 기반으로 Phase 3의 `transformer.py`가 `SyncTask`로 변환.
 
 ### Established Patterns
 - Pydantic BaseModel 기반 엄격한 타입 정의
@@ -91,7 +91,7 @@ Phase 3는 수집된 원시 데이터(`CourseItem`, `LectureItem`, `AssessmentIt
 - 불완전 데이터 발생 시 안전한 폴백(Fallback) 보장
 
 ### Integration Points
-- `src/kau_assistant/domain/`: 이번 단계에서 구축되는 비즈니스 로직 계층.
+- `src/coursepilot/domain/`: 이번 단계에서 구축되는 비즈니스 로직 계층.
 - Phase 4 노션 동기화 엔진(`NotionSyncEngine`)이 `SyncTask` 컬렉션을 입력받아 노션 API와 비교/생성하게 됨.
 
 </code_context>

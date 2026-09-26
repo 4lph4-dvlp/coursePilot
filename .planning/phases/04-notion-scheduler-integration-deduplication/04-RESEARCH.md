@@ -67,7 +67,7 @@ Implement Phase 4 as a synchronous integration layer with five separable respons
 
 Notion API version `2025-09-03` changed the model from “database ID is queryable” to “database is a container; data source is queryable.” The locked explicit database UUID therefore must first go through `databases.retrieve` to discover its child `data_source_id`; name-based search should filter for `data_source` objects and return both the data-source ID and its parent database ID. Schema comes from `data_sources.retrieve`, entries from `data_sources.query`, and new pages should use a `data_source_id` parent. [CITED: https://developers.notion.com/guides/get-started/upgrade-guide-2025-09-03] [CITED: https://developers.notion.com/reference/retrieve-database]
 
-The primary codebase hazard is the existing `SyncTask.dedup_key`, which currently combines title and due time. That contradicts D-02, under which a deadline change must update the same page. The Notion deduplicator must key on `SyncTask.title` alone, and the plan should either redefine/remove the misleading property or explicitly ban its use in Phase 4 tests. [VERIFIED: src/kau_assistant/domain/models.py:80-84]
+The primary codebase hazard is the existing `SyncTask.dedup_key`, which currently combines title and due time. That contradicts D-02, under which a deadline change must update the same page. The Notion deduplicator must key on `SyncTask.title` alone, and the plan should either redefine/remove the misleading property or explicitly ban its use in Phase 4 tests. [VERIFIED: src/coursepilot/domain/models.py:80-84]
 
 **Primary recommendation:** implement a pure `plan_sync` stage and a narrow write executor; configure the official SDK for three 429 retries, keep the locked 0.35-second request spacing, and make target/schema validation mandatory before either dry-run or live writes. [CITED: https://github.com/ramnes/notion-sdk-py] [CITED: https://developers.notion.com/reference/request-limits]
 
@@ -75,10 +75,10 @@ The primary codebase hazard is the existing `SyncTask.dedup_key`, which currentl
 
 | Capability | Primary Tier | Secondary Tier | Rationale |
 |------------|-------------|----------------|-----------|
-| Configuration gate and safe fallback | Application / API backend | — | The local application decides whether the external integration is enabled; no Notion call should be constructed when token or target is absent. [VERIFIED: src/kau_assistant/config.py:26-31] |
+| Configuration gate and safe fallback | Application / API backend | — | The local application decides whether the external integration is enabled; no Notion call should be constructed when token or target is absent. [VERIFIED: src/coursepilot/config.py:26-31] |
 | Database/data-source discovery | API / Backend | Notion external service | Search/retrieve are transport concerns and must remain outside pure domain logic. [CITED: https://developers.notion.com/reference/post-search] |
 | Scheduler schema validation | API / Backend | Notion data source | The live data-source schema is authoritative for property names/types/options. [CITED: https://developers.notion.com/reference/retrieve-a-data-source] |
-| Title-key deduplication and diff planning | Domain / Application | — | Given SyncTasks and parsed existing pages, classification is deterministic and requires no I/O. [VERIFIED: src/kau_assistant/domain/models.py:46-68] |
+| Title-key deduplication and diff planning | Domain / Application | — | Given SyncTasks and parsed existing pages, classification is deterministic and requires no I/O. [VERIFIED: src/coursepilot/domain/models.py:46-68] |
 | Page create/update | API / Backend | Notion external service | Only the client wrapper owns SDK writes, throttling, retries, and error translation. [CITED: https://github.com/ramnes/notion-sdk-py] |
 | User-owned Status/Plan preservation | Domain / Application | Notion external service | The planner enforces an update allowlist; the transport sends only that prepared partial payload. [CITED: https://developers.notion.com/reference/patch-page] |
 | Dry-run result reporting | Application / API backend | Phase 5 CLI | Phase 4 returns DTOs; Phase 5 renders them and owns CLI parsing/output. [VERIFIED: .planning/phases/04-notion-scheduler-integration-deduplication/04-CONTEXT.md:7-18] |
@@ -92,7 +92,7 @@ The live mapper must use the following property names/types and option values ve
 >   - 필드: `이름`(Title), `선택`(Select: 루틴/이벤트), `구분`(Multi-select: 학업 등), `DueDate`(Date), `Plan`(Date), `우선순위`(Select: P1~P4), `상태`(Status: 시작 전/진행 중/완료/폐기), `메모`(Text)
 <!-- DATA_6B1D94E3_END -->
 
-The enum values consumed by the mapper are quoted verbatim below. [VERIFIED: src/kau_assistant/domain/models.py:21-43]
+The enum values consumed by the mapper are quoted verbatim below. [VERIFIED: src/coursepilot/domain/models.py:21-43]
 
 <!-- DATA_A83F5C20_START -->
 > P1 = "P1"
@@ -109,7 +109,7 @@ The enum values consumed by the mapper are quoted verbatim below. [VERIFIED: src
 > DISCARDED = "폐기"
 <!-- DATA_A83F5C20_END -->
 
-The source model already fixes category, optional dates, default status, memo, and title fields as follows. [VERIFIED: src/kau_assistant/domain/models.py:46-66]
+The source model already fixes category, optional dates, default status, memo, and title fields as follows. [VERIFIED: src/coursepilot/domain/models.py:46-66]
 
 <!-- DATA_2F70C4B9_START -->
 > title: str
@@ -122,7 +122,7 @@ The source model already fixes category, optional dates, default status, memo, a
 > memo: str = ""
 <!-- DATA_2F70C4B9_END -->
 
-Current configuration uses a different token name from D-09, has no database-name field, and gives the personal database ID a non-empty default. These exact definitions make “name only” and “DB setting missing” impossible to distinguish without a config change. [VERIFIED: src/kau_assistant/config.py:26-31]
+Current configuration uses a different token name from D-09, has no database-name field, and gives the personal database ID a non-empty default. These exact definitions make “name only” and “DB setting missing” impossible to distinguish without a config change. [VERIFIED: src/coursepilot/config.py:26-31]
 
 <!-- DATA_D49A31B8_START -->
 > notion_api_key: str = Field(default="", description="Notion Integration API Key")
@@ -132,7 +132,7 @@ Current configuration uses a different token name from D-09, has no database-nam
 > )
 <!-- DATA_D49A31B8_END -->
 
-The existing due-date-bearing key is quoted because it must not be reused for D-02. [VERIFIED: src/kau_assistant/domain/models.py:80-84]
+The existing due-date-bearing key is quoted because it must not be reused for D-02. [VERIFIED: src/coursepilot/domain/models.py:80-84]
 
 <!-- DATA_F5127E6C_START -->
 > def dedup_key(self) -> str:
@@ -148,7 +148,7 @@ The existing due-date-bearing key is quoted because it must not be reused for D-
 | Library | Version / publish date | Purpose | Why Standard |
 |---------|------------------------|---------|--------------|
 | `notion-client` **[WARNING: flagged as suspicious — verify before using.]** | 3.1.0, 2026-05-12 | Official-style synchronous Notion SDK surface for search, database/data-source retrieval/query, and page create/update. | Locked by D-06 and already resolved in `uv.lock`; the warning is solely the legitimacy seam’s `SUS` result caused by unavailable download-count telemetry. [CITED: https://github.com/ramnes/notion-sdk-py] [VERIFIED: uv.lock:397-405] |
-| Pydantic | 2.13.5, 2026-08-28 | `ExistingPage`, action DTOs, `SyncResult`, error and stats models. | Matches the established project model pattern and installed environment. [VERIFIED: src/kau_assistant/domain/models.py:5-5] [VERIFIED: environment probe 2026-09-22] |
+| Pydantic | 2.13.5, 2026-08-28 | `ExistingPage`, action DTOs, `SyncResult`, error and stats models. | Matches the established project model pattern and installed environment. [VERIFIED: src/coursepilot/domain/models.py:5-5] [VERIFIED: environment probe 2026-09-22] |
 | Python | 3.11+ project floor; 3.14.7 available | Synchronous application runtime. | The repository declares ≥3.11 and the current environment satisfies it. [VERIFIED: pyproject.toml:6-6] [VERIFIED: environment probe 2026-09-22] |
 
 ### Supporting
@@ -221,7 +221,7 @@ This flow keeps Notion as an external service boundary and makes every dry-run d
 
 ### Recommended Project Structure
 
-    src/kau_assistant/
+    src/coursepilot/
     ├── config.py                 # add token alias, database name, empty-ID semantics
     └── notion/
         ├── __init__.py           # stable public facade
@@ -236,7 +236,7 @@ This flow keeps Notion as an external service boundary and makes every dry-run d
     ├── test_notion_deduplicator.py
     └── test_notion_engine.py
 
-This preserves the project’s existing “models + pure transformation + orchestrator” shape and keeps SDK dictionaries from leaking into Phase 3 domain models or Phase 5 reporting. [VERIFIED: src/kau_assistant/domain/models.py:1-97] [VERIFIED: src/kau_assistant/domain/transformer.py:215-254]
+This preserves the project’s existing “models + pure transformation + orchestrator” shape and keeps SDK dictionaries from leaking into Phase 3 domain models or Phase 5 reporting. [VERIFIED: src/coursepilot/domain/models.py:1-97] [VERIFIED: src/coursepilot/domain/transformer.py:215-254]
 
 ### Pattern 1: Resolve Both Database and Data-Source IDs
 
@@ -264,7 +264,7 @@ Before querying or writing, retrieve the data source and compare exact names, ty
 | 상태 | status | 시작 전, 진행 중, 완료, 폐기 |
 | 메모 | rich_text | one text segment, ≤1950 project cap |
 
-The names/options are the in-repo contract quoted above; the API types are the official page/data-source property types. [VERIFIED: .planning/PROJECT.md:38-40] [VERIFIED: src/kau_assistant/domain/models.py:21-62] [CITED: https://developers.notion.com/reference/property-object]
+The names/options are the in-repo contract quoted above; the API types are the official page/data-source property types. [VERIFIED: .planning/PROJECT.md:38-40] [VERIFIED: src/coursepilot/domain/models.py:21-62] [CITED: https://developers.notion.com/reference/property-object]
 
 Fail the Notion stage safely with a structured schema error listing missing/mismatched fields; do not mutate the user’s database schema or silently create new select options. [ASSUMED]
 
@@ -311,13 +311,13 @@ Dry-run executes discovery/schema/query/planning and then returns with `executed
 
 ### Pattern 6: Safe Configuration Gate
 
-Support `NOTION_TOKEN` while retaining `NOTION_API_KEY` as a legacy validation alias; prefer `NOTION_TOKEN` when both exist. Add `notion_database_name`. Change the database-ID default to empty and keep the personal UUID in `.env.example`, otherwise “name only” can never be selected because the current default ID is always non-empty. [VERIFIED: src/kau_assistant/config.py:26-31] [VERIFIED: .env.example:6-8] [VERIFIED: .planning/phases/04-notion-scheduler-integration-deduplication/04-CONTEXT.md:35-46]
+Support `NOTION_TOKEN` while retaining `NOTION_API_KEY` as a legacy validation alias; prefer `NOTION_TOKEN` when both exist. Add `notion_database_name`. Change the database-ID default to empty and keep the personal UUID in `.env.example`, otherwise “name only” can never be selected because the current default ID is always non-empty. [VERIFIED: src/coursepilot/config.py:26-31] [VERIFIED: .env.example:6-8] [VERIFIED: .planning/phases/04-notion-scheduler-integration-deduplication/04-CONTEXT.md:35-46]
 
 When the token or both target selectors are absent, return a successful disabled/skipped `SyncResult` without constructing a client. Invalid configured credentials or a configured-but-inaccessible target should instead become structured errors with Korean recovery guidance; the outer LXP workflow must continue. [VERIFIED: .planning/phases/04-notion-scheduler-integration-deduplication/04-CONTEXT.md:41-46]
 
 ### Anti-Patterns to Avoid
 
-- **Using `SyncTask.dedup_key`:** it includes due time and breaks deadline-extension matching. [VERIFIED: src/kau_assistant/domain/models.py:80-84]
+- **Using `SyncTask.dedup_key`:** it includes due time and breaks deadline-extension matching. [VERIFIED: src/coursepilot/domain/models.py:80-84]
 - **Calling `databases.query` or creating with only a database parent:** current 2025-09-03+ data operations are data-source scoped. [CITED: https://developers.notion.com/guides/get-started/upgrade-guide-2025-09-03]
 - **Selecting `search["results"][0]`:** search is substring-based, paginated, permission-scoped, and eventually consistent. [CITED: https://developers.notion.com/reference/post-search] [CITED: https://developers.notion.com/reference/search-optimizations-and-limitations]
 - **Sending all properties on update:** this would overwrite Plan/Status and violate D-01. [VERIFIED: .planning/phases/04-notion-scheduler-integration-deduplication/04-CONTEXT.md:25-26]
@@ -366,12 +366,12 @@ Current Notion docs also require handling 529 `service_overload` like 429, but n
 **Warning sign:** 400 validation errors or 404s despite a visible database.
 
 ### Pitfall 2: Due Date Sneaks Back Into Identity
-**What goes wrong:** an extended deadline becomes a new page instead of an update. [VERIFIED: src/kau_assistant/domain/models.py:80-84]
+**What goes wrong:** an extended deadline becomes a new page instead of an update. [VERIFIED: src/coursepilot/domain/models.py:80-84]
 **How to avoid:** assert matching is title-only, with a regression test where identical title/different due date yields one UpdateAction.
 **Warning sign:** code references `task.dedup_key` in `notion/`.
 
 ### Pitfall 3: Protected Fields Are Serialized Before Diffing
-**What goes wrong:** `SyncTask.status` defaults to “시작 전” and `plan_date` defaults to null, so generic model serialization overwrites user changes. [VERIFIED: src/kau_assistant/domain/models.py:57-62]
+**What goes wrong:** `SyncTask.status` defaults to “시작 전” and `plan_date` defaults to null, so generic model serialization overwrites user changes. [VERIFIED: src/coursepilot/domain/models.py:57-62]
 **How to avoid:** the update mapper must construct an explicit three-field allowlist; never call `model_dump()` to produce update properties.
 **Warning sign:** update payload snapshots contain `상태` or `Plan`.
 
@@ -422,7 +422,7 @@ Current Notion docs also require handling 529 `service_overload` like 429, but n
             }
         return properties
 
-`Plan` is intentionally absent and no `children` argument is passed to `pages.create`. D-08’s 1950-character cap is already enforced by `format_memo`, below the official 2000-character `text.content` limit. [VERIFIED: src/kau_assistant/domain/transformer.py:82-95] [CITED: https://developers.notion.com/reference/request-limits]
+`Plan` is intentionally absent and no `children` argument is passed to `pages.create`. D-08’s 1950-character cap is already enforced by `format_memo`, below the official 2000-character `text.content` limit. [VERIFIED: src/coursepilot/domain/transformer.py:82-95] [CITED: https://developers.notion.com/reference/request-limits]
 
 ### Partial Diff Payload
 
@@ -499,7 +499,7 @@ The existing suite passes 81 tests in 1.37 seconds before Phase 4 changes. [VERI
    - **Disposition: RESOLVED — accepted as an execution-time credentialed uncertainty.** Plan 04-02 Task 3 is a blocking human checkpoint and may approve only after its redacted live evidence proves unique target resolution, all eight schema properties/options, full read/planning behavior, and zero writes. Lack of credentials stops at that gate; it does not permit an inferred pass.
 
 2. **The current config default conflicts with name-only discovery semantics.**
-   - What we know: `notion_database_id` defaults to the personal UUID and `notion_database_name` does not exist. [VERIFIED: src/kau_assistant/config.py:26-31]
+   - What we know: `notion_database_id` defaults to the personal UUID and `notion_database_name` does not exist. [VERIFIED: src/coursepilot/config.py:26-31]
    - Plan response: make ID empty by default, retain the personal UUID in `.env.example`, add database name, and update config tests.
    - **Disposition: RESOLVED — implement and test the configuration contract in Plan 04-01 Task 2.** An explicit ID remains highest priority, name-only configuration becomes reachable, and missing credential/target remains D-09's successful disabled state.
 
@@ -509,7 +509,7 @@ The existing suite passes 81 tests in 1.37 seconds before Phase 4 changes. [VERI
    - **Disposition: RESOLVED — implement the bounded read-only 529 wrapper in Plan 04-01 Task 3.** Retain SDK-owned `RetryOptions(max_retries=3)` for 429, cap 529 attempts separately, and never replay an uncertain write.
 
 4. **D-03 intentionally limits historical dedup coverage.**
-   - What we know: completed pages older than 90 days are excluded, while titles do not contain a term identifier. [VERIFIED: D-03 in CONTEXT.md] [VERIFIED: src/kau_assistant/domain/naming.py:48-97]
+   - What we know: completed pages older than 90 days are excluded, while titles do not contain a term identifier. [VERIFIED: D-03 in CONTEXT.md] [VERIFIED: src/coursepilot/domain/naming.py:48-97]
    - Plan response: preserve the locked filter and document the cross-semester collision risk for future discussion rather than silently changing identity/scope.
    - **Disposition: RESOLVED — accept the documented blind spot as the explicit D-03 boundary.** Plan 04-01 Task 3 asserts the exact 90-day-or-incomplete filter and does not widen history or alter D-02 title identity; any cross-semester identity change requires a later user decision.
 
@@ -522,7 +522,7 @@ The existing suite passes 81 tests in 1.37 seconds before Phase 4 changes. [VERI
 | notion-client | Notion transport | ✓ | 3.1.0 | None; D-06 locks it. [VERIFIED: environment probe 2026-09-22] |
 | Notion API network | Official-doc reachability | ✓ | HTTPS reachable | Unit tests use mocks; credentialed acceptance still required. [VERIFIED: official docs fetch 2026-09-22] |
 | Notion token | Live Scheduler read/write | ✗ | — | Unit tests and safe fallback; cannot complete live acceptance here. [VERIFIED: environment probe 2026-09-22] |
-| Database ID | Target configuration | nominal only | personal UUID is a model default | Name discovery after config change; default does not prove access. [VERIFIED: src/kau_assistant/config.py:26-31] |
+| Database ID | Target configuration | nominal only | personal UUID is a model default | Name discovery after config change; default does not prove access. [VERIFIED: src/coursepilot/config.py:26-31] |
 | Database name setting | D-07 discovery | ✗ | field absent | Add in Wave 0/implementation. [VERIFIED: environment probe 2026-09-22] |
 
 **Missing dependency with no fallback:** a real token/shared Scheduler is required only for credentialed dry-run/live acceptance; it does not block implementation or automated tests. [VERIFIED: environment probe 2026-09-22]
@@ -570,7 +570,7 @@ The existing suite passes 81 tests in 1.37 seconds before Phase 4 changes. [VERI
 
 | ASVS Category | Applies | Standard Control |
 |---------------|---------|-----------------|
-| V2 Authentication | yes | Bearer token loaded through Pydantic Settings; never hardcode or serialize token. [VERIFIED: src/kau_assistant/config.py:8-31] |
+| V2 Authentication | yes | Bearer token loaded through Pydantic Settings; never hardcode or serialize token. [VERIFIED: src/coursepilot/config.py:8-31] |
 | V3 Session Management | no | Phase 4 has no user session; LMS session management remains outside this phase. [VERIFIED: phase boundary in CONTEXT.md] |
 | V4 Access Control | yes | Least-privilege Notion connection capabilities and explicit sharing of Scheduler; distinguish permission errors from missing objects. [CITED: https://developers.notion.com/reference/capabilities] |
 | V5 Input Validation | yes | Validate config, target uniqueness, live schema/property types/options, API response shapes, and memo size before writes. [CITED: https://developers.notion.com/reference/request-limits] |
@@ -580,11 +580,11 @@ The existing suite passes 81 tests in 1.37 seconds before Phase 4 changes. [VERI
 
 | Pattern | STRIDE | Standard Mitigation |
 |---------|--------|---------------------|
-| Token exposure in logs/repr/errors | Information Disclosure | Reuse masking pattern, never include auth headers/request bodies in user results, test secret absence. [VERIFIED: src/kau_assistant/config.py:43-54] |
+| Token exposure in logs/repr/errors | Information Disclosure | Reuse masking pattern, never include auth headers/request bodies in user results, test secret absence. [VERIFIED: src/coursepilot/config.py:43-54] |
 | Wrong similarly named Scheduler selected | Tampering | Exact unique local match; explicit ID priority; fail closed on ambiguity. [CITED: https://developers.notion.com/reference/post-search] |
 | Schema drift writes to unintended fields | Tampering | Retrieve/validate data-source schema before planning writes; explicit property allowlists. [CITED: https://developers.notion.com/reference/retrieve-a-data-source] |
 | Duplicate writes after uncertain failure/concurrency | Tampering / Repudiation | Never replay ambiguous write failures; include request ID/page/task context; assume single writer. [CITED: https://developers.notion.com/reference/request-limits] |
-| Untrusted Notion/LMS text entering output | Injection / Information Disclosure | Treat text as data only, never evaluate it, escape at the Phase 5 renderer, and cap memo content. [VERIFIED: src/kau_assistant/domain/transformer.py:51-95] |
+| Untrusted Notion/LMS text entering output | Injection / Information Disclosure | Treat text as data only, never evaluate it, escape at the Phase 5 renderer, and cap memo content. [VERIFIED: src/coursepilot/domain/transformer.py:51-95] |
 
 ## Sources
 
@@ -603,9 +603,9 @@ The existing suite passes 81 tests in 1.37 seconds before Phase 4 changes. [VERI
 
 - `.planning/phases/04-notion-scheduler-integration-deduplication/04-CONTEXT.md` — D-01 through D-09.
 - `.planning/PROJECT.md` — exact Scheduler schema.
-- `src/kau_assistant/domain/models.py` — exact enum/model values and current conflicting dedup key.
-- `src/kau_assistant/domain/transformer.py` — memo cap and SyncTask construction.
-- `src/kau_assistant/config.py` and `.env.example` — current settings behavior.
+- `src/coursepilot/domain/models.py` — exact enum/model values and current conflicting dedup key.
+- `src/coursepilot/domain/transformer.py` — memo cap and SyncTask construction.
+- `src/coursepilot/config.py` and `.env.example` — current settings behavior.
 - `pyproject.toml` and `uv.lock` — dependency/test/runtime versions.
 
 ### Tertiary

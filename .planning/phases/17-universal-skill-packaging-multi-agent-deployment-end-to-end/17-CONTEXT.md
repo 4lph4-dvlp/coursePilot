@@ -7,8 +7,8 @@
 ## Phase Boundary
 
 Phase 17은 이전 단계(Phase 12~16)에서 구현된 전체 신규 기능(`progress`, `board`/`notices`/`qna`, `materials`/`files`, `download-vod`, `watch` 고급 제어 옵션)을 범용 Agent Skill 규격에 완벽히 통합·패키징하고, 지원되는 5개 AI 코딩 에이전트에 일괄 재배포하며, 실제 KAU LXP 사이트 대상 E2E 통합 검증을 완수합니다:
-1. `skills/kau-lxp/SKILL.md` 업데이트: 프론트매터 description 확장, 대표 한국어 발화 엄선 및 인텐트 매핑, 기능별 독립 섹션(§7 종합 진도율 대시보드, §8 공지 및 Q&A 게시판, §9 학습자료 다운로드/열람, §10 VOD 스트림 다운로드) 구성, 마크다운 표준 템플릿 명시, 비동기/동기 실행 모드 분리 지침 수록.
-2. `skills/kau-lxp/JSON_CONTRACT.md` 확장: `ProgressReport`, `BoardReport`, `MaterialReport`, `DownloadVodReport` 등 신규 4대 서브커맨드 모델 및 필드 전수 명세, 가상 예시 JSON 페이로드 수록, 공통 envelope(`schema_version: 1`) 정책 명시.
+1. `skills/coursepilot/SKILL.md` 업데이트: 프론트매터 description 확장, 대표 한국어 발화 엄선 및 인텐트 매핑, 기능별 독립 섹션(§7 종합 진도율 대시보드, §8 공지 및 Q&A 게시판, §9 학습자료 다운로드/열람, §10 VOD 스트림 다운로드) 구성, 마크다운 표준 템플릿 명시, 비동기/동기 실행 모드 분리 지침 수록.
+2. `skills/coursepilot/JSON_CONTRACT.md` 확장: `ProgressReport`, `BoardReport`, `MaterialReport`, `DownloadVodReport` 등 신규 4대 서브커맨드 모델 및 필드 전수 명세, 가상 예시 JSON 페이로드 수록, 공통 envelope(`schema_version: 1`) 정책 명시.
 3. `tests/test_contract_doc.py` 및 `tests/test_installer.py` 자동 검증 확장: 모든 신규 모델의 필드 백틱 누락 검사, 예시 JSON 모델 유효성 검증, 5개 에이전트 경로 배포 무결성 검증 pytest 추가.
 4. `install-skill --agent all --link` CLI 옵션 확장 및 5개 에이전트(Claude Code, Codex, Antigravity, Pi, Hermes) 선제 배포/심볼릭 링크 갱신.
 5. 실제 KAU LXP 사이트 대상 E2E 검증: 7개 수강 과목 전수 읽기/브리핑 검증(`check`, `progress`, `notices`, `qna`), 1개 과목 핀포인트 다운로드 스모크 테스트(`materials`, `download-vod`), `watch` 라이프사이클(dry-run -> 백그라운드 시작 -> `status` -> `stop` 안전 중단), Notion 실데이터 조회 및 순수 드라이런(0건 쓰기 보장) 검증.
@@ -32,7 +32,7 @@ Phase 17은 이전 단계(Phase 12~16)에서 구현된 전체 신규 기능(`pro
 
 ### 3. 5개 에이전트 배포 및 링크 무결성 검증
 - **D-17-09:** --link 심볼릭 링크 유지 및 5개 에이전트 링크 무결성 검증: 개발 저장소의 소스 변경이 즉시 모든 에이전트에 반영되도록 심볼릭 링크/정션 배포 방식을 유지하고 상태를 점검 및 갱신한다.
-- **D-17-10:** --agent all 일괄 배포 옵션 추가: `python -m kau_assistant install-skill --agent all --link`를 지원하도록 `installer.py`와 `cli.py`를 확장하여 5개 에이전트에 한 번에 설치/링크할 수 있게 한다. — **Reversibility:** costly — CLI 시그니처 및 installer API
+- **D-17-10:** --agent all 일괄 배포 옵션 추가: `python -m coursepilot install-skill --agent all --link`를 지원하도록 `installer.py`와 `cli.py`를 확장하여 5개 에이전트에 한 번에 설치/링크할 수 있게 한다. — **Reversibility:** costly — CLI 시그니처 및 installer API
 - **D-17-11:** 부모 홈 폴더 자동 생성 및 5개 에이전트 선제 배포: 머신에 특정 에이전트의 홈 디렉터리가 아직 없더라도 부모 폴더를 생성하여 링크를 선제 배포함으로써 향후 에이전트 도구 설치 시 즉시 활성화되도록 한다.
 - **D-17-12:** pytest 에이전트 배포 무결성 검증 테스트 추가: `tests/test_installer.py`에 5개 에이전트 전체 경로의 `SKILL.md`, `JSON_CONTRACT.md`, `repo-root.txt` 유효성을 검증하는 테스트 케이스를 추가한다.
 
@@ -59,21 +59,21 @@ Phase 17은 이전 단계(Phase 12~16)에서 구현된 전체 신규 기능(`pro
 - `.planning/REQUIREMENTS.md` § SKIL-04, VERIF-03 — Skill packaging and end-to-end verification requirements
 
 ### Universal Skill & Contract Specifications
-- `skills/kau-lxp/SKILL.md` — Universal Agent Skill specification and execution rules
-- `skills/kau-lxp/JSON_CONTRACT.md` — Machine-readable CLI JSON contract specification
+- `skills/coursepilot/SKILL.md` — Universal Agent Skill specification and execution rules
+- `skills/coursepilot/JSON_CONTRACT.md` — Machine-readable CLI JSON contract specification
 - `README.md` — Project overview and agent installation guide table
 
 ### Agent Installer & CLI Entrypoints
-- `src/kau_assistant/installer.py` — `AGENT_SKILL_PATHS`, `install_skill`, and home resolution logic
-- `src/kau_assistant/cli.py` — Click CLI commands (`install-skill`, `progress`, `board`, `materials`, `download-vod`, `check`, `sync`, `watch`)
+- `src/coursepilot/installer.py` — `AGENT_SKILL_PATHS`, `install_skill`, and home resolution logic
+- `src/coursepilot/cli.py` — Click CLI commands (`install-skill`, `progress`, `board`, `materials`, `download-vod`, `check`, `sync`, `watch`)
 
 ### Report Models & Pipelines
-- `src/kau_assistant/report_models.py` — Core report models (CheckReport, SyncReport, ErrorItem, ReportNotice)
-- `src/kau_assistant/progress/models.py` — ProgressReport, CourseProgress, DashboardSummary DTOs
-- `src/kau_assistant/board/models.py` — BoardReport, BoardPostItem, BoardCommentItem DTOs
-- `src/kau_assistant/materials/models.py` — MaterialReport, DownloadedMaterialItem DTOs
-- `src/kau_assistant/stream/downloader.py` — DownloadVodReport and HLS downloader models
-- `src/kau_assistant/player/runner.py` — WatchResult and PlaybackProgress models
+- `src/coursepilot/report_models.py` — Core report models (CheckReport, SyncReport, ErrorItem, ReportNotice)
+- `src/coursepilot/progress/models.py` — ProgressReport, CourseProgress, DashboardSummary DTOs
+- `src/coursepilot/board/models.py` — BoardReport, BoardPostItem, BoardCommentItem DTOs
+- `src/coursepilot/materials/models.py` — MaterialReport, DownloadedMaterialItem DTOs
+- `src/coursepilot/stream/downloader.py` — DownloadVodReport and HLS downloader models
+- `src/coursepilot/player/runner.py` — WatchResult and PlaybackProgress models
 
 ### Test Suites
 - `tests/test_installer.py` — Agent skill installer unit and contract tests
@@ -89,8 +89,8 @@ Phase 17은 이전 단계(Phase 12~16)에서 구현된 전체 신규 기능(`pro
 ## Existing Code Insights
 
 ### Reusable Assets
-- `AGENT_SKILL_PATHS` (`src/kau_assistant/installer.py`): 5개 지원 에이전트(Claude Code, Codex, Antigravity, Pi, Hermes)의 홈 마커 및 스킬 폴더 경로 정의 테이블.
-- `install_skill()` (`src/kau_assistant/installer.py`): `--link` 심볼릭 링크 및 복사 모드 설치 엔진.
+- `AGENT_SKILL_PATHS` (`src/coursepilot/installer.py`): 5개 지원 에이전트(Claude Code, Codex, Antigravity, Pi, Hermes)의 홈 마커 및 스킬 폴더 경로 정의 테이블.
+- `install_skill()` (`src/coursepilot/installer.py`): `--link` 심볼릭 링크 및 복사 모드 설치 엔진.
 - `_collect_model_field_names()` (`tests/test_contract_doc.py`): Pydantic 모델의 모든 필드를 재귀적으로 추출하여 문서 백틱 존재 여부를 검사하는 도구.
 - `_extract_json_blocks()` (`tests/test_contract_doc.py`): 마크다운 문서 내 JSON 코드 블록 추출 및 Pydantic 검증 유틸리티.
 
@@ -101,10 +101,10 @@ Phase 17은 이전 단계(Phase 12~16)에서 구현된 전체 신규 기능(`pro
 - 에이전트 중립성 (`_AGENT_SPECIFIC_DENYLIST`): `SKILL.md` 본문에 특정 에이전트 전용 도구명을 언급하지 않는 원칙.
 
 ### Integration Points
-- `src/kau_assistant/installer.py`: `install_skill(agent="all", ...)` 지원 추가.
-- `src/kau_assistant/cli.py`: `@cli.command("install-skill")`의 `--agent` 옵션에 `all` 허용.
-- `skills/kau-lxp/SKILL.md`: 신규 5개 커맨드 문서화 및 발화 매핑.
-- `skills/kau-lxp/JSON_CONTRACT.md`: 신규 모델 및 예시 JSON 페이로드 추가.
+- `src/coursepilot/installer.py`: `install_skill(agent="all", ...)` 지원 추가.
+- `src/coursepilot/cli.py`: `@cli.command("install-skill")`의 `--agent` 옵션에 `all` 허용.
+- `skills/coursepilot/SKILL.md`: 신규 5개 커맨드 문서화 및 발화 매핑.
+- `skills/coursepilot/JSON_CONTRACT.md`: 신규 모델 및 예시 JSON 페이로드 추가.
 - `tests/test_installer.py`: `test_install_skill_all_agents()` 추가.
 - `tests/test_contract_doc.py`: `ProgressReport`, `BoardReport`, `MaterialReport`, `DownloadVodReport` 검증 로직 추가.
 
@@ -118,7 +118,7 @@ Phase 17은 이전 단계(Phase 12~16)에서 구현된 전체 신규 기능(`pro
 - 사용자가 "공지사항 새로 올라온 거 있어?"라고 질문 시:
   "에이전트가 `notices --json`을 호출하고, 과목별 최신 공지 목록 및 링크를 마크다운 표로 깔끔하게 렌더링."
 - 사용자가 "5개 에이전트에 스킬 배포해줘"라고 요청 시:
-  "CLI에서 `python -m kau_assistant install-skill --agent all --link`를 실행하여 5개 에이전트 경로에 심볼릭 링크를 일괄 생성/검증."
+  "CLI에서 `python -m coursepilot install-skill --agent all --link`를 실행하여 5개 에이전트 경로에 심볼릭 링크를 일괄 생성/검증."
 - 실사이트 검증 시:
   "7개 전 과목 대상 `check`, `progress`, `notices`, `qna` 전수 조회로 0-defect 확인 및 기전실 1개 항목 대상 핀포인트 다운로드/재생 라이프사이클 스모크 테스트."
 

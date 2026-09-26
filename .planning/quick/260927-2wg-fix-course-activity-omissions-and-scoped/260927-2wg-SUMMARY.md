@@ -32,7 +32,7 @@ Existing pi changes in materials/runner.py (CourseNavigator configuration and Co
 - Fresh Notion dry-run for the identical scope: **13 create, 4 update, 1 skip, 0 errors**; `dry_run=true`, `applied=false`, exit 0. Skip reason: lms_completed for material 2847.
 - Fresh `progress --refresh --json`: all seven courses status ok, zero collection errors, all 18 baseline source modules present. Overall status success. Existing exit 1 is caused by 15 missed-past activities, not collection failure; documented without changing that policy.
 - Fresh `materials --dry-run --week all --json`: 43 planned materials, no failures, baseline five material IDs present, exit 0. The existing dry-run DTO labels plans downloaded; this is not evidence of actual download/view completion (view_success=false).
-- Git diff whitespace check passed. Codex, Hermes and pi skill junctions point to skills/kau-lxp. No Notion mutations, lecture watching, material viewing or downloads were performed.
+- Git diff whitespace check passed. Codex, Hermes and pi skill junctions point to skills/coursepilot. No Notion mutations, lecture watching, material viewing or downloads were performed.
 
 ## Scope and resume
 

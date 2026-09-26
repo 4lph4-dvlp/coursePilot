@@ -62,7 +62,7 @@ created: "2026-09-26"
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| Live LXP Interactive Dashboard | PROG-02 | Requires live student session with real registered courses | Run `kau-assistant progress` in terminal and visually check 3-section layout and color progress bars |
+| Live LXP Interactive Dashboard | PROG-02 | Requires live student session with real registered courses | Run `coursepilot progress` in terminal and visually check 3-section layout and color progress bars |
 
 ---
 

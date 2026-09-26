@@ -17,20 +17,20 @@ Plan 14-01 established the pure-Python streaming, decryption, and segment assemb
 
 ## Key Accomplishments
 
-1. **Domain Models (`src/kau_assistant/stream/models.py`)**:
+1. **Domain Models (`src/coursepilot/stream/models.py`)**:
    - Defined `StreamVariant`, `StreamKeyInfo`, `StreamSegment`, and `StreamInfo` representing HLS playlist structures.
    - Defined telemetry schemas `DownloadProgress` and result structures `VodDownloadItemResult`, `CourseVodDownloadResult`, `VodDownloadRunResult`, and `VodDownloadStatus`.
 
-2. **RFC 8216 Crypto Engine (`src/kau_assistant/stream/crypto.py`)**:
+2. **RFC 8216 Crypto Engine (`src/coursepilot/stream/crypto.py`)**:
    - Implemented `derive_implicit_iv(sequence_number)` returning 16-byte big-endian IVs per RFC 8216 §5.2.
    - Implemented `decrypt_aes_128_segment` with PKCS7 unpadding and graceful raw-byte fallback for block-aligned TS chunks.
 
-3. **Playlist & Variant Parser (`src/kau_assistant/stream/parser.py`)**:
+3. **Playlist & Variant Parser (`src/coursepilot/stream/parser.py`)**:
    - Implemented `resolve_media_playlist_url` parsing master playlists and selecting variant playlists matching quality strings.
    - Implemented `parse_media_playlist` extracting segments, sequence numbers, durations, and `#EXT-X-KEY` definitions.
    - Implemented `parse_stream_manifest` distinguishing variant playlists, media playlists, and direct MP4 URLs.
 
-4. **Multi-Threaded Downloader & Assembly (`src/kau_assistant/stream/downloader.py`, `src/kau_assistant/exceptions.py`)**:
+4. **Multi-Threaded Downloader & Assembly (`src/coursepilot/stream/downloader.py`, `src/coursepilot/exceptions.py`)**:
    - Implemented `VodDownloadError` custom exception for stream downloader failures.
    - Implemented `SegmentDownloader` executing parallel downloads via `ThreadPoolExecutor` (default 6 workers).
    - Thread-safe key cache (`_key_cache` + `threading.Lock`) preventing redundant key queries across segments.

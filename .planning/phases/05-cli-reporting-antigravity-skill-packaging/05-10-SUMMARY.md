@@ -14,16 +14,16 @@ Plan 05-10 closed gaps G-05-4 (Hermes skill installation path) and G-05-2 (LMS_U
 
 ## Key Changes
 
-1. **Installer Dynamic Home Resolution (`src/kau_assistant/installer.py`)**:
+1. **Installer Dynamic Home Resolution (`src/coursepilot/installer.py`)**:
    - Added `home_env_var` and `windows_localappdata_home` fields to `AgentTarget`.
    - Configured `hermes` to check `HERMES_HOME` first, then `%LOCALAPPDATA%\hermes` on Windows, falling back to `~/.hermes`.
    - Added pure helpers `resolve_agent_home` and `resolve_skills_dir` supporting keyword-only `env` and `platform` overrides.
    - Forwarded `env` and `platform` through `resolve_install_target` and `install_skill`.
 
-2. **CLI Skill Installation Hint (`src/kau_assistant/cli.py`)**:
+2. **CLI Skill Installation Hint (`src/coursepilot/cli.py`)**:
    - Added a static guidance message to `install_skill_command` displaying `DEFAULT_LMS_URL` (`https://lxp.kau.ac.kr`) and explaining how students of other Coursemos-based institutions can set `LMS_URL` in `.env`.
 
-3. **SKILL.md Guidance (`skills/kau-lxp/SKILL.md`)**:
+3. **SKILL.md Guidance (`skills/coursepilot/SKILL.md`)**:
    - Updated description to document Coursemos/Moodle support and the default KAU LXP address while keeping trigger phrases and length restrictions.
    - Enforced rule in Section 2 to always execute a fresh CLI run and answer only from stdout JSON, never reusing stale result files.
    - Documented LMS_URL in Section 3, noting Coursemos compatibility and that Canvas/Blackboard are unsupported.

@@ -110,12 +110,12 @@
 ### Q1: CLI 서브커맨드 명칭 및 동작 방식
 | Option | Description | Selected |
 |--------|-------------|:--------:|
-| `kau-assistant progress` 단일 진입점 | 옵션 없이 실행 시 전체 수강 과목의 종합 대시보드를 일괄 브리핑 | ✓ |
-| `kau-assistant progress` 기본 + 주차별 전용 옵션 강조 | 기본 전체 요약과 함께 `--current` 또는 `--week <N>` 집중 모드 제공 | |
-| 기존 `check`에 대시보드 모드로 흡수 통합 | `kau-assistant check --dashboard` | |
+| `coursepilot progress` 단일 진입점 | 옵션 없이 실행 시 전체 수강 과목의 종합 대시보드를 일괄 브리핑 | ✓ |
+| `coursepilot progress` 기본 + 주차별 전용 옵션 강조 | 기본 전체 요약과 함께 `--current` 또는 `--week <N>` 집중 모드 제공 | |
+| 기존 `check`에 대시보드 모드로 흡수 통합 | `coursepilot check --dashboard` | |
 | 에이전트 판단 | You decide | |
 
-**User's choice:** `kau-assistant progress` 단일 진입점
+**User's choice:** `coursepilot progress` 단일 진입점
 **Notes:** 명확한 신규 진입점을 제공하여 기존 `check`(스케줄 동기화 중심)와 역할 분리.
 
 ### Q2: 과목/주차 필터링 동작

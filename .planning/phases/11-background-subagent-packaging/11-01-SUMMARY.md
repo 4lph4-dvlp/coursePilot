@@ -9,11 +9,11 @@ date: 2026-09-25
 
 ## Overview
 
-Plan 11-01 completed the packaging and multi-agent deployment of the automated VOD attendance player skill (`kau-lxp`). It equips all 5 supported AI coding agents (Claude Code, Codex, Antigravity, Pi, Hermes) with natural language triggers for automated lecture viewing, establishes a non-blocking background execution pattern for long-running video playbacks, updates the JSON contract with `WatchResult` specifications, and redeploys the live skill across all agents.
+Plan 11-01 completed the packaging and multi-agent deployment of the automated VOD attendance player skill (`coursepilot`). It equips all 5 supported AI coding agents (Claude Code, Codex, Antigravity, Pi, Hermes) with natural language triggers for automated lecture viewing, establishes a non-blocking background execution pattern for long-running video playbacks, updates the JSON contract with `WatchResult` specifications, and redeploys the live skill across all agents.
 
 ## Key Accomplishments
 
-1. **Updated Universal Skill Definition (`skills/kau-lxp/SKILL.md`)**:
+1. **Updated Universal Skill Definition (`skills/coursepilot/SKILL.md`)**:
    - Expanded frontmatter description and intent recognition to include lecture viewing queries (e.g. `"기초전자실험 이번주 영상 시청해줘"`, `"디시설 4주차 강의 들어줘"`, `"영상 시청하고 노션 완료 처리해줘"`).
    - Added Section 6: "동영상 강의 자동 시청" detailing:
      - Asynchronous non-blocking background task/subagent execution rule.
@@ -21,17 +21,17 @@ Plan 11-01 completed the packaging and multi-agent deployment of the automated V
      - Parameter usage rules: `--course`, `--week` (`current`/`all`/`N`), `--update-notion`, `--dry-run`, `--json`.
      - Structured completion summary reporting.
 
-2. **JSON Contract Update (`skills/kau-lxp/JSON_CONTRACT.md`)**:
+2. **JSON Contract Update (`skills/coursepilot/JSON_CONTRACT.md`)**:
    - Documented the `WatchResult` and `PlaybackProgress` models.
    - Provided full example JSON payload for `watch --json`.
 
 3. **Multi-Agent Skill Re-deployment**:
-   - Re-linked and updated skill across 5 agents via `python -m kau_assistant install-skill --agent <agent> --link`:
-     - Claude Code: `~/.claude/skills/kau-lxp`
-     - Codex: `~/.codex/skills/kau-lxp`
-     - Antigravity: `~/.gemini/antigravity/skills/kau-lxp`
-     - Pi: `~/.pi/agent/skills/kau-lxp`
-     - Hermes: `~/%LOCALAPPDATA%/hermes/skills/kau-lxp`
+   - Re-linked and updated skill across 5 agents via `python -m coursepilot install-skill --agent <agent> --link`:
+     - Claude Code: `~/.claude/skills/coursepilot`
+     - Codex: `~/.codex/skills/coursepilot`
+     - Antigravity: `~/.gemini/antigravity/skills/coursepilot`
+     - Pi: `~/.pi/agent/skills/coursepilot`
+     - Hermes: `~/%LOCALAPPDATA%/hermes/skills/coursepilot`
    - Verified symlink integrity and file contents directly.
 
 4. **Test Verification**:

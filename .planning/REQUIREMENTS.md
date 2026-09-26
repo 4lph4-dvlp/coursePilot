@@ -1,4 +1,4 @@
-# Requirements: KAU LXP Assistant & Notion Scheduler Sync Skill
+# Requirements: CoursePilot
 
 **Defined:** 2026-09-21
 **Core Value:** 학생이 수강 중인 모든 강의의 미완료 인강 및 과제 마감 기한을 빠짐없이 확인하고, 중복 없이 정형화된 이름 규칙으로 개인 노션 스케줄러에 동기화하여 학업 누락을 원천 방지하는 것.
@@ -51,7 +51,7 @@
 ### Pure-Python VOD Stream Downloader Integration (VDL)
 
 - [x] **VDL-01**: 시스템에 `ffmpeg` 설치가 없어도 동작하는 순수 파이썬 HLS/m3u8 세그먼트 파서 및 다운로더/병합기를 구현하고 AES-128 복호화 및 원자적 저장을 지원한다.
-- [x] **VDL-02**: VOD 시청(`watch`) 시 네트워크 감시를 통해 미디어 스트림을 감지하여 다운로드를 병행하고, 단독 서브커맨드 `kau-assistant download-vod`를 제공한다.
+- [x] **VDL-02**: VOD 시청(`watch`) 시 네트워크 감시를 통해 미디어 스트림을 감지하여 다운로드를 병행하고, 단독 서브커맨드 `coursepilot download-vod`를 제공한다.
 
 ### Course Announcements & Q&A Board Briefing (BRD)
 

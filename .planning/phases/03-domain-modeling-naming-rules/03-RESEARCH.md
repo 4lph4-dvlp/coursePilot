@@ -35,7 +35,7 @@
 - **D-12:** 동영상 강의의 노션 `메모` 필드는 `LMS 바로가기: {link}` 형태로 단독/간결하게 구성하여 원클릭 학습 이동 지원. — *Reversibility: reversible*
 - **D-13:** 과제/평가 항목의 노션 `메모` 필드는 단락을 나누어 구조화: LMS 바로가기 링크, 지각 제출 마감일(있을 시), 첨부파일 목록, 교수자 과제 설명/제출 안내 요약을 단락별로 구분하여 기록. — *Reversibility: reversible*
 - **D-14:** 교수자 과제 설명문이 긴 경우 노션 API의 단일 텍스트 2000자 제한을 고려하여 1500자 초과 시 안전하게 절삭하고 말줄임표 및 `... [이하 생략 - 전체 내용은 LMS 페이지 참조]` 안내 문구를 자동 추가. — *Reversibility: reversible*
-- **D-15:** Phase 3 코드는 `src/kau_assistant/domain/` 서브패키지로 모듈화하여 `models.py`(도메인 엔티티), `naming.py`(작업명 규칙 포매터), `priority.py`(긴급도/우선순위/속성 매핑), `transformer.py`(원시 DTO -> SyncTask 변환기)로 명확히 역할 분리. — *Reversibility: costly*
+- **D-15:** Phase 3 코드는 `src/coursepilot/domain/` 서브패키지로 모듈화하여 `models.py`(도메인 엔티티), `naming.py`(작업명 규칙 포매터), `priority.py`(긴급도/우선순위/속성 매핑), `transformer.py`(원시 DTO -> SyncTask 변환기)로 명확히 역할 분리. — *Reversibility: costly*
 
 ### The Agent's Discretion
 
@@ -90,7 +90,7 @@ graph TD
         DP[date_parser.py<br/>KST / get_current_kst_time]
     end
 
-    subgraph "Phase 3: Domain Core (src/kau_assistant/domain/)"
+    subgraph "Phase 3: Domain Core (src/coursepilot/domain/)"
         direction TB
         M[models.py<br/>SyncTask, Course, Enums]
         N[naming.py<br/>clean_task_title<br/>format_task_title]
@@ -120,10 +120,10 @@ graph TD
 
 | Module | Primary Responsibility | Key Inputs | Key Outputs / Types |
 |---|---|---|---|
-| [`models.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/domain/models.py) | Pydantic v2 기반 도메인 모델 및 상태/우선순위/선택 Enum 정의 | 필드 값 (타이틀, 마감일, 우선순위 등) | `SyncTask`, `Course`, `TaskType`, `TaskPriority`, `TaskSelect`, `TaskStatus` |
-| [`naming.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/domain/naming.py) | 작업명 정규화, 주차/차시 번호 추출, HTML 엔티티 제거, 중복 태그 정제 | 과목명, 원본 제목, 주차, 차시, 활동유형, 약칭 매핑 | 정규화된 작업명 문자열 (e.g. `[공수2] 3주차 1차시 강의 시청`) |
-| [`priority.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/domain/priority.py) | 잔여 마감 기한 계산, 24시간 마감 임박(`P1`) 판정, 노션 속성 매핑 | `TaskType`, `due_date`, `is_completed`, `now (KST)` | `TaskPriority`, `TaskSelect`, `TaskStatus`, `is_urgent`, `is_overdue` |
-| [`transformer.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/domain/transformer.py) | 스크래퍼 DTO -> `SyncTask` 변환, 설명란 기한 구출, 메모 페이로드 구성 및 1500자 절삭 | `CourseItem`, `LectureItem`, `AssessmentItem` 목록 | `list[SyncTask]` (정렬 및 필터링 완료) |
+| [`models.py`](../../../src/coursepilot/domain/models.py) | Pydantic v2 기반 도메인 모델 및 상태/우선순위/선택 Enum 정의 | 필드 값 (타이틀, 마감일, 우선순위 등) | `SyncTask`, `Course`, `TaskType`, `TaskPriority`, `TaskSelect`, `TaskStatus` |
+| [`naming.py`](../../../src/coursepilot/domain/naming.py) | 작업명 정규화, 주차/차시 번호 추출, HTML 엔티티 제거, 중복 태그 정제 | 과목명, 원본 제목, 주차, 차시, 활동유형, 약칭 매핑 | 정규화된 작업명 문자열 (e.g. `[공수2] 3주차 1차시 강의 시청`) |
+| [`priority.py`](../../../src/coursepilot/domain/priority.py) | 잔여 마감 기한 계산, 24시간 마감 임박(`P1`) 판정, 노션 속성 매핑 | `TaskType`, `due_date`, `is_completed`, `now (KST)` | `TaskPriority`, `TaskSelect`, `TaskStatus`, `is_urgent`, `is_overdue` |
+| [`transformer.py`](../../../src/coursepilot/domain/transformer.py) | 스크래퍼 DTO -> `SyncTask` 변환, 설명란 기한 구출, 메모 페이로드 구성 및 1500자 절삭 | `CourseItem`, `LectureItem`, `AssessmentItem` 목록 | `list[SyncTask]` (정렬 및 필터링 완료) |
 
 ---
 
@@ -141,9 +141,9 @@ graph TD
 
 | Module | Location | Reusable Functionality |
 |---|---|---|
-| `course_mapping.py` | `src/kau_assistant/course_mapping.py` | `get_abbreviation(course_name, mappings)`: 노션 관례에 맞는 축약 과목 접두사 생성 |
-| `date_parser.py` | `src/kau_assistant/scraper/date_parser.py` | `KST`, `get_current_kst_time()`, `parse_lms_date()`, `is_past_deadline()`: 시간 연산 및 설명란 날짜 파싱 |
-| `models.py` (Scraper) | `src/kau_assistant/scraper/models.py` | `CourseItem`, `LectureItem`, `AssessmentItem`, `AttendanceStatus`, `SubmissionStatus`, `AssessmentType`: 입력 DTO 계층 |
+| `course_mapping.py` | `src/coursepilot/course_mapping.py` | `get_abbreviation(course_name, mappings)`: 노션 관례에 맞는 축약 과목 접두사 생성 |
+| `date_parser.py` | `src/coursepilot/scraper/date_parser.py` | `KST`, `get_current_kst_time()`, `parse_lms_date()`, `is_past_deadline()`: 시간 연산 및 설명란 날짜 파싱 |
+| `models.py` (Scraper) | `src/coursepilot/scraper/models.py` | `CourseItem`, `LectureItem`, `AssessmentItem`, `AttendanceStatus`, `SubmissionStatus`, `AssessmentType`: 입력 DTO 계층 |
 
 ### Package Legitimacy & Alternatives Considered
 
@@ -156,7 +156,7 @@ graph TD
 
 ### Pattern 1: Pure Domain Model Pattern (격리된 순수 도메인 계층)
 
-도메인 모델 계층(`src/kau_assistant/domain/`)은 네트워크 I/O(Playwright 브라우저, Notion HTTP API, DB 연결)를 일절 포함하지 않는 **순수 함수 및 데이터 모델**로만 작성됩니다.
+도메인 모델 계층(`src/coursepilot/domain/`)은 네트워크 I/O(Playwright 브라우저, Notion HTTP API, DB 연결)를 일절 포함하지 않는 **순수 함수 및 데이터 모델**로만 작성됩니다.
 - 입력: 원시 데이터 객체(`CourseItem`, `LectureItem`, `AssessmentItem`) 및 현재 시간(`datetime`)
 - 출력: 정규화된 `SyncTask` 컬렉션
 - 이점: 브라우저나 외부 노션 API 모킹 없이 100% 빠르고 결정론적인(deterministic) 단위 테스트 수행 가능.
@@ -215,9 +215,9 @@ Decision Ladder:
 |---|---|---|---|
 | HTML 엔티티 디코딩 | 문자열 단순 `.replace("&amp;", "&")` 수동 나열 | `html.unescape()` (표준 라이브러리) | `&quot;`, `&#39;`, `&lt;`, `&gt;`, `&nbsp;` 등 수백 종의 HTML 엔티티를 한 번에 안전하게 변환 |
 | HTML 태그 제거 | 복잡하고 취약한 regex `<.*?>` | `BeautifulSoup.get_text(separator="\n", strip=True)` | 깨진 마크업, 중첩된 `<script>`나 `<style>` 태그, 줄바꿈 서식을 자연스럽게 처리 |
-| 타임존 비교 | 로컬 머신 시각 `datetime.now()` 단순 사용 | `src/kau_assistant/scraper/date_parser.py`의 `KST` 및 `get_current_kst_time()` | 로컬 머신의 타임존(UTC 등)과 KST(UTC+9)가 다를 경우 9시간의 마감 시차 오류 발생 |
-| 날짜 문자열 파싱 | 커스텀 날짜 파싱 재구현 | `src/kau_assistant/scraper/date_parser.py`의 `parse_lms_date()` | Phase 2에서 이미 검증된 다양한 한국 대학 LMS 날짜 포맷 및 범위(`~`) 파싱 로직 내장 |
-| 과목 축약어 매핑 | 딕셔너리 하드코딩 | `src/kau_assistant/course_mapping.py`의 `get_abbreviation()` | 사용자 정의 설정(`config/course_mappings.json`) 로드 및 미등록 과목 안전 폴백 지원 |
+| 타임존 비교 | 로컬 머신 시각 `datetime.now()` 단순 사용 | `src/coursepilot/scraper/date_parser.py`의 `KST` 및 `get_current_kst_time()` | 로컬 머신의 타임존(UTC 등)과 KST(UTC+9)가 다를 경우 9시간의 마감 시차 오류 발생 |
+| 날짜 문자열 파싱 | 커스텀 날짜 파싱 재구현 | `src/coursepilot/scraper/date_parser.py`의 `parse_lms_date()` | Phase 2에서 이미 검증된 다양한 한국 대학 LMS 날짜 포맷 및 범위(`~`) 파싱 로직 내장 |
+| 과목 축약어 매핑 | 딕셔너리 하드코딩 | `src/coursepilot/course_mapping.py`의 `get_abbreviation()` | 사용자 정의 설정(`config/course_mappings.json`) 로드 및 미등록 과목 안전 폴백 지원 |
 
 ---
 
@@ -252,17 +252,17 @@ Decision Ladder:
 
 ## Code Examples
 
-### 1. Domain Entities (`src/kau_assistant/domain/models.py`)
+### 1. Domain Entities (`src/coursepilot/domain/models.py`)
 
 ```python
-"""Domain models for KAU Assistant task synchronization."""
+"""Domain models for CoursePilot task synchronization."""
 
 from datetime import datetime
 from enum import Enum
 from pydantic import BaseModel, Field, field_validator
 
-from kau_assistant.scraper.date_parser import KST
-from kau_assistant.scraper.models import AssessmentItem, CourseItem, LectureItem
+from coursepilot.scraper.date_parser import KST
+from coursepilot.scraper.models import AssessmentItem, CourseItem, LectureItem
 
 
 class TaskType(str, Enum):
@@ -346,7 +346,7 @@ class Course(BaseModel):
     tasks: list[SyncTask] = Field(default_factory=list)
 ```
 
-### 2. Task Naming Formatter (`src/kau_assistant/domain/naming.py`)
+### 2. Task Naming Formatter (`src/coursepilot/domain/naming.py`)
 
 ```python
 """Task naming rules and smart title cleaning engine (D-01 ~ D-04)."""
@@ -354,8 +354,8 @@ class Course(BaseModel):
 import html
 import re
 
-from kau_assistant.course_mapping import get_abbreviation
-from kau_assistant.domain.models import TaskType
+from coursepilot.course_mapping import get_abbreviation
+from coursepilot.domain.models import TaskType
 
 
 def clean_task_title(raw_title: str) -> str:
@@ -444,15 +444,15 @@ def format_task_title(
         return f"[{abbr}] {week_prefix}{clean_name} 제출"
 ```
 
-### 3. Priority and Property Mapping (`src/kau_assistant/domain/priority.py`)
+### 3. Priority and Property Mapping (`src/coursepilot/domain/priority.py`)
 
 ```python
 """Urgency, priority determination, and Notion property mapper (D-05 ~ D-08)."""
 
 from datetime import datetime, timedelta
 
-from kau_assistant.domain.models import TaskPriority, TaskSelect, TaskStatus, TaskType
-from kau_assistant.scraper.date_parser import KST, get_current_kst_time
+from coursepilot.domain.models import TaskPriority, TaskSelect, TaskStatus, TaskType
+from coursepilot.scraper.date_parser import KST, get_current_kst_time
 
 
 def calculate_priority(
@@ -502,7 +502,7 @@ def get_task_selection(task_type: TaskType) -> TaskSelect:
     return TaskSelect.EVENT
 ```
 
-### 4. DTO Transformer & Memo Formatter (`src/kau_assistant/domain/transformer.py`)
+### 4. DTO Transformer & Memo Formatter (`src/coursepilot/domain/transformer.py`)
 
 ```python
 """Scraper DTO to domain SyncTask transformer with memo building and deadline rescue (D-09 ~ D-15)."""
@@ -512,12 +512,12 @@ import re
 
 from bs4 import BeautifulSoup
 
-from kau_assistant.course_mapping import load_course_mappings
-from kau_assistant.domain.models import Course, SyncTask, TaskPriority, TaskSelect, TaskStatus, TaskType
-from kau_assistant.domain.naming import format_task_title
-from kau_assistant.domain.priority import calculate_priority, get_task_selection
-from kau_assistant.scraper.date_parser import parse_lms_date
-from kau_assistant.scraper.models import (
+from coursepilot.course_mapping import load_course_mappings
+from coursepilot.domain.models import Course, SyncTask, TaskPriority, TaskSelect, TaskStatus, TaskType
+from coursepilot.domain.naming import format_task_title
+from coursepilot.domain.priority import calculate_priority, get_task_selection
+from coursepilot.scraper.date_parser import parse_lms_date
+from coursepilot.scraper.models import (
     AssessmentItem,
     AssessmentType,
     AttendanceStatus,

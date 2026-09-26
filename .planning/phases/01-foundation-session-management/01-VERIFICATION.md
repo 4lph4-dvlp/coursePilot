@@ -27,10 +27,10 @@ verified_at: "2026-09-21T08:14:00Z"
 
 | Requirement ID | Description | Source Plan | Verification Evidence | Status |
 |----------------|-------------|-------------|-----------------------|--------|
-| **CONF-01** | `.env` 및 환경변수 기반 설정 관리 (학번, 비밀번호, LMS URL, Notion 키/DB ID) | 01-01 | `src/kau_assistant/config.py`<br>`tests/test_config.py` (5 tests pass) | **Satisfied** |
-| **CONF-02** | 과목명 축약 매핑 독립 관리 및 미등록 과목 비침습적 Fallback | 01-01 | `config/course_mappings.json`<br>`src/kau_assistant/course_mapping.py`<br>`tests/test_course_mapping.py` (7 tests pass) | **Satisfied** |
-| **CONF-03** | Playwright 세션 캐싱(`.cache/session.json`), 만료 감지 및 자동 재로그인 | 01-02 | `src/kau_assistant/session_manager.py`<br>`tests/test_session_manager.py` (7 tests pass) | **Satisfied** |
-| **SCRP-01** | Coursemos/Moodle 및 Canvas 대응 다중 셀렉터 LMS 자동 인증 엔진 | 01-02 | `src/kau_assistant/auth.py`<br>`tests/test_auth.py` (8 tests pass) | **Satisfied** |
+| **CONF-01** | `.env` 및 환경변수 기반 설정 관리 (학번, 비밀번호, LMS URL, Notion 키/DB ID) | 01-01 | `src/coursepilot/config.py`<br>`tests/test_config.py` (5 tests pass) | **Satisfied** |
+| **CONF-02** | 과목명 축약 매핑 독립 관리 및 미등록 과목 비침습적 Fallback | 01-01 | `config/course_mappings.json`<br>`src/coursepilot/course_mapping.py`<br>`tests/test_course_mapping.py` (7 tests pass) | **Satisfied** |
+| **CONF-03** | Playwright 세션 캐싱(`.cache/session.json`), 만료 감지 및 자동 재로그인 | 01-02 | `src/coursepilot/session_manager.py`<br>`tests/test_session_manager.py` (7 tests pass) | **Satisfied** |
+| **SCRP-01** | Coursemos/Moodle 및 Canvas 대응 다중 셀렉터 LMS 자동 인증 엔진 | 01-02 | `src/coursepilot/auth.py`<br>`tests/test_auth.py` (8 tests pass) | **Satisfied** |
 
 ---
 
@@ -39,7 +39,7 @@ verified_at: "2026-09-21T08:14:00Z"
 ```text
 ============================= test session starts =============================
 platform win32 -- Python 3.14.0, pytest-9.1.1, pluggy-1.6.0
-rootdir: D:\dev\kau-lxp-assistant
+rootdir: <repository root>
 configfile: pyproject.toml
 testpaths: tests
 plugins: anyio-4.15.1, asyncio-1.4.0, mock-3.15.1

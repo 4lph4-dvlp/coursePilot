@@ -24,11 +24,11 @@ patterns:
   - Atomic temp file replacement
   - LRU FIFO eviction
 key-files.created:
-  - src/kau_assistant/board/__init__.py
-  - src/kau_assistant/board/models.py
-  - src/kau_assistant/scraper/board_parser.py
-  - src/kau_assistant/board/text_converter.py
-  - src/kau_assistant/board/read_state.py
+  - src/coursepilot/board/__init__.py
+  - src/coursepilot/board/models.py
+  - src/coursepilot/scraper/board_parser.py
+  - src/coursepilot/board/text_converter.py
+  - src/coursepilot/board/read_state.py
   - tests/test_board_parser.py
   - tests/test_board_text_converter.py
   - tests/test_board_read_state.py

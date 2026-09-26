@@ -56,7 +56,7 @@ created: "2026-09-25"
 - [ ] `tests/test_filename_utils.py` — Stubs for RFC 5987/6266 parsing and filesystem sanitization
 - [ ] `tests/test_material_downloader.py` — Stubs and mock responses for streaming downloader
 - [ ] `tests/test_materials_runner.py` — Stubs for course/week filtering and runner orchestration
-- [ ] `tests/test_cli_materials.py` — Stubs for `kau-assistant materials` / `files` CLI invocation
+- [ ] `tests/test_cli_materials.py` — Stubs for `coursepilot materials` / `files` CLI invocation
 
 ---
 
@@ -64,8 +64,8 @@ created: "2026-09-25"
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| Real LMS `ubfile` view completion | RES-01 | Requires active student LMS credentials and unpublished/unviewed material | Run `python -m kau_assistant materials --course <과목> --no-download`, verify 100% completion in LXP web UI |
-| Real LMS binary file download | RES-02 | Requires live LMS network access and active course attachments | Run `python -m kau_assistant materials --course <과목> --week current`, verify files saved in `downloads/<과목>/W{주차}/` |
+| Real LMS `ubfile` view completion | RES-01 | Requires active student LMS credentials and unpublished/unviewed material | Run `python -m coursepilot materials --course <과목> --no-download`, verify 100% completion in LXP web UI |
+| Real LMS binary file download | RES-02 | Requires live LMS network access and active course attachments | Run `python -m coursepilot materials --course <과목> --week current`, verify files saved in `downloads/<과목>/W{주차}/` |
 
 ---
 

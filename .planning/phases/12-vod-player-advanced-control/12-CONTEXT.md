@@ -11,8 +11,8 @@ Phase 12 builds upon the Phase 09-11 VOD player and CLI runner to deliver precis
 1. **정밀 타겟팅 (`--video-index`)**: 특정 주차의 N번째 영상만 지정하여 시청할 수 있는 인덱스 필터링.
 2. **과목명 퍼지 매칭**: `기초전자정보실험`과 같은 유사어/약칭을 공식 과목명으로 유연하게 매핑.
 3. **실시간 상태 파일 기반 진행률 추적**: `watch_state.json`을 통한 5초 단위 상태 기록 (상태, 과목, 주차, 영상 제목, 인덱스/전체, 시간, 진행률, 남은 시간, PID).
-4. **진행률 조회 및 중단 명령어**: `kau-assistant watch status`, `kau-assistant watch stop`.
-5. **사후 Notion 완료 처리**: `kau-assistant watch sync-notion`을 통해 시청 완료 후 나중에 요청해도 최근 시청 영상을 노션에 '완료'로 동기화.
+4. **진행률 조회 및 중단 명령어**: `coursepilot watch status`, `coursepilot watch stop`.
+5. **사후 Notion 완료 처리**: `coursepilot watch sync-notion`을 통해 시청 완료 후 나중에 요청해도 최근 시청 영상을 노션에 '완료'로 동기화.
 
 </domain>
 
@@ -27,13 +27,13 @@ Phase 12 builds upon the Phase 09-11 VOD player and CLI runner to deliver precis
 - **D-12-03:** 과목명 해석기(`find_target_course`)에 퍼지/부분 토큰 매칭 알고리즘을 강화하여, `기초전자정보실험`처럼 사용자가 부정확한 명칭을 입력해도 공식 과목명(`기초전자실험`)으로 안정적으로 해석한다.
 
 ### 3. 실시간 상태 추적 및 수명 주기 제어
-- **D-12-04:** 재생 중 5초 간격으로 캐시 디렉터리(`~/.cache/kau_assistant/watch_state.json`)에 현재 재생 스냅샷(status: `idle`|`running`|`completed`|`stopped`|`error`, course_name, target_week, video_title, video_index, total_videos, duration, current_time, progress_percent, remaining_seconds, pid)을 원자적으로 기록한다.
-- **D-12-05:** `kau-assistant watch status [--json]` 서브커맨드를 추가한다. 다른 대화 세션이나 에이전트가 백그라운드 프로세스를 방해하지 않고 현재 진행률과 남은 시간을 즉시 확인할 수 있다.
-- **D-12-06:** `kau-assistant watch stop [--json]` 서브커맨드를 추가한다. 상태 파일의 PID를 읽어 백그라운드 재생 프로세스에 종료 신호를 전달하고, 브라우저를 안전하게 닫고 상태를 `stopped`로 갱신한다.
+- **D-12-04:** 재생 중 5초 간격으로 캐시 디렉터리(`~/.cache/coursepilot/watch_state.json`)에 현재 재생 스냅샷(status: `idle`|`running`|`completed`|`stopped`|`error`, course_name, target_week, video_title, video_index, total_videos, duration, current_time, progress_percent, remaining_seconds, pid)을 원자적으로 기록한다.
+- **D-12-05:** `coursepilot watch status [--json]` 서브커맨드를 추가한다. 다른 대화 세션이나 에이전트가 백그라운드 프로세스를 방해하지 않고 현재 진행률과 남은 시간을 즉시 확인할 수 있다.
+- **D-12-06:** `coursepilot watch stop [--json]` 서브커맨드를 추가한다. 상태 파일의 PID를 읽어 백그라운드 재생 프로세스에 종료 신호를 전달하고, 브라우저를 안전하게 닫고 상태를 `stopped`로 갱신한다.
 
 ### 4. 사후 Notion 완료 처리
 - **D-12-07:** 시청이 완료된 영상들의 메타데이터(과목명, 주차, 영상 제목, 완료 시각)를 `watch_history.json`에 보관한다.
-- **D-12-08:** `kau-assistant watch sync-notion [--course <name>] [--json]` 서브커맨드를 구현한다. 처음에 `--update-notion` 없이 시청했더라도, 나중에 사용자가 "방금 본 영상 노션 완료해줘"라고 요청하면 최근 시청된 영상들을 Notion Scheduler DB에서 찾아 `상태 = "완료"`로 업데이트한다.
+- **D-12-08:** `coursepilot watch sync-notion [--course <name>] [--json]` 서브커맨드를 구현한다. 처음에 `--update-notion` 없이 시청했더라도, 나중에 사용자가 "방금 본 영상 노션 완료해줘"라고 요청하면 최근 시청된 영상들을 Notion Scheduler DB에서 찾아 `상태 = "완료"`로 업데이트한다.
 
 ### 5. 엣지 케이스 복원력 (Resilience)
 - **D-12-09:** 버퍼링/네트워크 멈춤 시 15초 이상 진도 미진행 감지 시 `video.play()` 재시도(최대 3회), 해결 불가 시 `page.reload()` 후 이어보기(Resume) 다이얼로그 자동 승인.

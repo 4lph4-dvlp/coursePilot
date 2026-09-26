@@ -17,28 +17,28 @@ Plan 12-01 delivered comprehensive enhancements for interactive VOD playback con
 
 ## Key Accomplishments
 
-1. **WatchStateManager & Models (`src/kau_assistant/player/models.py`, `src/kau_assistant/player/state.py`)**:
+1. **WatchStateManager & Models (`src/coursepilot/player/models.py`, `src/coursepilot/player/state.py`)**:
    - Defined `WatchState` capturing real-time playback metadata: status (`idle`, `running`, `completed`, `stopped`, `error`), course name/ID, week, video index, total videos, title, duration, current time, progress percent, remaining seconds, PID, and updated timestamp.
    - Defined `WatchHistoryRecord` recording completed video title, formatted Notion task title, timestamp, and Notion sync status.
    - Implemented `WatchStateManager` providing atomic writes (temp file + replace), state reads, history appending, recent history queries with course filters, batch sync marking, and PID-targeted clean process termination.
 
-2. **Playback Resilience in `VodPlayer` (`src/kau_assistant/player/vod_player.py`)**:
+2. **Playback Resilience in `VodPlayer` (`src/coursepilot/player/vod_player.py`)**:
    - Enforced 1.0x playback rate standard (D-12-01).
    - Implemented 15s stall detection that issues up to 3 `video.play()` retries at 2s intervals, falling back to full page reload with automatic Coursemos resume dialog acceptance (D-12-09).
    - Implemented sleep/wake recovery adjusting elapsed timers using DOM `currentTime` rather than monotonic wall-clock drift (D-12-10).
    - Implemented session expiry redirect detection (`/login/`, `/user/login.php`), auto-reauthenticating via `SessionManager.ensure_authenticated(page)` and re-navigating to the VOD (D-12-11).
 
-3. **Fuzzy Course Matching & Precision Index Filtering (`src/kau_assistant/player/runner.py`)**:
+3. **Fuzzy Course Matching & Precision Index Filtering (`src/coursepilot/player/runner.py`)**:
    - Enhanced `find_target_course` with multi-tier fuzzy matching: normalized filler stripping (`'정보'`, `'실험'`, `'강의'`, `'교과'`), subsequence containment, and token overlap (e.g. `'기초전자정보실험'` -> `'기초전자실험'`) (D-12-03).
    - Extended `resolve_candidate_vods` with `video_index: int | None = None` to isolate a single specified video in the week's queue (D-12-02).
    - Integrated live `watch_state.json` updates every polling interval (default 5s) and automated completion recording in `watch_history.json`.
 
-4. **CLI Control Commands (`src/kau_assistant/cli.py`)**:
+4. **CLI Control Commands (`src/coursepilot/cli.py`)**:
    - Refactored `watch` command into a Click group supporting root execution (`invoke_without_command=True`) and new subcommands.
    - Added `--video-index` to root `watch` command.
-   - Added `kau-assistant watch status [--json]` for non-intrusive live progress inspection (D-12-05).
-   - Added `kau-assistant watch stop [--json]` for safe process termination and state cleanup (D-12-06).
-   - Added `kau-assistant watch sync-notion [--course <name>] [--json]` for retroactive Notion task completion (D-12-08).
+   - Added `coursepilot watch status [--json]` for non-intrusive live progress inspection (D-12-05).
+   - Added `coursepilot watch stop [--json]` for safe process termination and state cleanup (D-12-06).
+   - Added `coursepilot watch sync-notion [--course <name>] [--json]` for retroactive Notion task completion (D-12-08).
 
 5. **Testing & Verification**:
    - Created `tests/test_watch_state.py` covering state and history persistence lifecycles and process stop signaling.
@@ -50,4 +50,4 @@ Plan 12-01 delivered comprehensive enhancements for interactive VOD playback con
 
 - Automated tests: `tests/test_watch_state.py`, `tests/test_watch_runner.py`, `tests/test_vod_player.py` (22 passed)
 - Full project test suite: 266 passed
-- CLI help check: `python -m kau_assistant watch --help`
+- CLI help check: `python -m coursepilot watch --help`

@@ -30,7 +30,7 @@
    - D-14: No output (Rich, JSON, or error text) may contain student ID, password, Notion token, or session cookies. Item LMS links and Notion page URLs are included. Apply the existing `_safe_error` masking approach to CLI error output as well.
 
 4. **Skill invocation experience (스킬 호출 경험)**
-   - D-15: Skill folder lives at `skills/kau-lxp/` in the repo (`SKILL.md` + support docs such as JSON schema reference).
+   - D-15: Skill folder lives at `skills/coursepilot/` in the repo (`SKILL.md` + support docs such as JSON schema reference).
    - D-16: For requests like "노션에 올려줘", the agent runs `sync` (dry-run) first, shows create/update/skip lists, and runs `sync --apply` only after user approval in conversation.
    - D-17: In chat, the agent parses `--json` and rebuilds the briefing as markdown tables following D-01–D-04. It does not paste the Rich/ANSI output.
    - D-18: On first run, the agent diagnoses the environment and installs dependencies itself (`uv sync`, `playwright install chromium`). For secrets, it only tells the user to put them in `.env`. The agent never asks for secrets in conversation.
@@ -38,7 +38,7 @@
 5. **Universal agent skill packaging (범용 에이전트 스킬)**
    - D-19: `SKILL.md` uses only fields common to the Agent Skills format (`name`, `description`) plus agent-neutral body instructions. No agent-specific tool names or frontmatter extensions. — Reversibility: costly.
    - D-20: README includes per-agent install guidance for Claude Code, Codex, Antigravity, and Pi/Hermes.
-   - D-21: Install command is `python -m kau_assistant install-skill --agent {claude|codex|antigravity|pi|hermes}`. One Python implementation for every OS, testable.
+   - D-21: Install command is `python -m coursepilot install-skill --agent {claude|codex|antigravity|pi|hermes}`. One Python implementation for every OS, testable.
    - D-22: Supported install targets from day one: Claude Code, Codex, Antigravity, Pi, Hermes. Agent → skill-path mappings kept as data. Exact paths confirmed in research (see `## Skill Install Path Matrix` below).
    - D-23: Install copies the folder by default. `--link` creates a symlink or junction for development. The installed SKILL.md must resolve the repo/CLI location so it works from any working directory.
    - D-24: Update ROADMAP.md, REQUIREMENTS.md (SKIL-03), and PROJECT.md to say "universal Agent Skill (SKILL.md)" instead of "Antigravity Skill".
@@ -74,7 +74,7 @@ Phase 5 has no new external package needs — `click` (installed 8.1.8), `rich` 
 
 The cross-agent SKILL.md packaging goal (D-19–D-22) is achievable with a single small `SKILL.md` (frontmatter: `name` + `description` only) because that is the entire *portable* surface of the Agent Skills format — every agent-specific extension (Claude Code's `allowed-tools`, Antigravity's tool bindings, etc.) is additive and ignored by agents that don't recognize it, so omitting them is what makes the file agent-neutral. This is empirically confirmed by a skill folder **already present in this exact repository** (`.claude/skills/inherit-legacy-style/SKILL.md`, `.agents/skills/inherit-legacy-style/`, `.pi/skills/inherit-legacy-style/`) which uses exactly this shape. Per-agent install *paths*, however, could not be verified from any single authoritative cross-agent spec — they were gathered per-agent from each vendor's own docs/blog posts (MEDIUM confidence for Claude Code's own docs, LOW confidence for Codex/Antigravity/Pi/Hermes since no official page was fetched for the latter three within this session beyond search snippets) and one path family (`.agents/skills/`) is independently corroborated by the in-repo evidence above.
 
-**Primary recommendation:** Build `pipeline.py` (orchestrator) → `reporter.py` (pure function, Rich + JSON) → `cli.py` (click group calling both) → `skills/kau-lxp/SKILL.md` + `installer.py` (data-driven agent→path table, copy-by-default/`--link`-optional). Keep the agent→path table isolated in one module so `install-skill` unit tests can assert path generation without touching the filesystem for every agent.
+**Primary recommendation:** Build `pipeline.py` (orchestrator) → `reporter.py` (pure function, Rich + JSON) → `cli.py` (click group calling both) → `skills/coursepilot/SKILL.md` + `installer.py` (data-driven agent→path table, copy-by-default/`--link`-optional). Keep the agent→path table isolated in one module so `install-skill` unit tests can assert path generation without touching the filesystem for every agent.
 
 ## Architectural Responsibility Map
 
@@ -93,7 +93,7 @@ The cross-agent SKILL.md packaging goal (D-19–D-22) is achievable with a singl
 ### Core
 | Library | Version | Purpose | Why Standard |
 |---------|---------|---------|--------------|
-| `click` | 8.1.8 installed (8.5.0 latest on PyPI) [VERIFIED: pip index versions click, run this session] | CLI command group, options, exit codes | Already a project dependency (`pyproject.toml`); de facto standard for composable Python CLIs; supports `python -m kau_assistant` entry via `__main__.py` |
+| `click` | 8.1.8 installed (8.5.0 latest on PyPI) [VERIFIED: pip index versions click, run this session] | CLI command group, options, exit codes | Already a project dependency (`pyproject.toml`); de facto standard for composable Python CLIs; supports `python -m coursepilot` entry via `__main__.py` |
 | `rich` | 14.3.3 installed (15.0.0 latest on PyPI) [VERIFIED: pip index versions rich, run this session] | Console tables, spinners/status, colored output | Already a project dependency; explicitly required by D-01/D-09/D-11 ("Rich 기반 콘솔 브리핑") |
 | `pydantic` | 2.13.4 installed (2.13.5 latest on PyPI) [VERIFIED: pip index versions pydantic, run this session] | JSON contract DTOs (`schema_version`-tagged envelope) | Already used for every DTO in the codebase (`SyncTask`, `SyncResult`, etc.); D-13 requires "explicit Pydantic output models, not raw dumps" per 05-CONTEXT.md code_context |
 
@@ -129,7 +129,7 @@ No new packages required. Existing `pyproject.toml` dependencies (`click>=8.1.0`
 
 ```
                          ┌─────────────────────────────────────────┐
-                         │   python -m kau_assistant <cmd> [opts]   │
+                         │   python -m coursepilot <cmd> [opts]   │
                          │        (cli.py — click.group)            │
                          └───────────────┬───────────────────────────┘
                                          │
@@ -147,7 +147,7 @@ No new packages required. Existing `pyproject.toml` dependencies (`click>=8.1.0`
    ┌─────────────┼───────────┐          │                └───────────┬────────────┘
    │             │           │          │                            │
    ▼             ▼           ▼          ▼                            ▼
-SessionManager  extract_  per-course:   NotionSyncEngine     skills/kau-lxp/*
+SessionManager  extract_  per-course:   NotionSyncEngine     skills/coursepilot/*
 (login/session) courses   navigate_*,   .sync(tasks,         copied/symlinked to
                           parse_*       dry_run=not apply)   the agent's skill dir
    │             │           │          │
@@ -172,8 +172,8 @@ A reader can trace `check`: `cli.py` → `pipeline.run_pipeline()` → scrape/tr
 
 ### Recommended Project Structure
 ```
-src/kau_assistant/
-├── __main__.py          # `python -m kau_assistant` entry -> cli.cli()
+src/coursepilot/
+├── __main__.py          # `python -m coursepilot` entry -> cli.cli()
 ├── cli.py                # click.group() with check/sync/install-skill subcommands
 ├── pipeline.py            # NEW: orchestrates SessionManager -> scraper -> transformer -> (NotionSyncEngine)
 ├── reporter.py            # NEW: pure functions, SyncTask/SyncResult -> BriefingReport (pydantic) -> Rich or JSON
@@ -181,7 +181,7 @@ src/kau_assistant/
 ├── installer.py           # NEW: AGENT_SKILL_PATHS table + copy/link logic for install-skill
 ├── ... (existing Phase 1-4 modules unchanged)
 skills/
-└── kau-lxp/
+└── coursepilot/
     ├── SKILL.md            # NEW: name + description only, agent-neutral body (D-19)
     ├── JSON_CONTRACT.md     # NEW: documents schema_version 1 fields (D-13, referenced by SKILL.md)
     └── README.md            # NEW: per-agent install table (D-20)
@@ -233,7 +233,7 @@ from rich.console import Console
 
 @click.group()
 def cli() -> None:
-    """KAU LXP Assistant CLI."""
+    """CoursePilot CLI."""
 
 @cli.command()
 @click.option("--json", "as_json", is_flag=True)
@@ -288,7 +288,7 @@ AGENT_SKILL_PATHS: dict[str, dict[str, Path]] = {
 ```
 
 ### Anti-Patterns to Avoid
-- **Embedding agent-specific frontmatter in `SKILL.md`:** The in-repo `inherit-legacy-style` skill demonstrates the temptation — it adds `metadata.origin` and `allowed-tools` (Claude Code-specific) fields. D-19 explicitly forbids this for `skills/kau-lxp/SKILL.md`: only `name` and `description` are guaranteed portable across Claude Code, Codex, Antigravity, Pi, and Hermes. Extra fields don't break agents that ignore unknown YAML keys, but they invite exactly the "Antigravity-only" scope creep the user already rejected once (see CONTEXT.md `<specifics>`).
+- **Embedding agent-specific frontmatter in `SKILL.md`:** The in-repo `inherit-legacy-style` skill demonstrates the temptation — it adds `metadata.origin` and `allowed-tools` (Claude Code-specific) fields. D-19 explicitly forbids this for `skills/coursepilot/SKILL.md`: only `name` and `description` are guaranteed portable across Claude Code, Codex, Antigravity, Pi, and Hermes. Extra fields don't break agents that ignore unknown YAML keys, but they invite exactly the "Antigravity-only" scope creep the user already rejected once (see CONTEXT.md `<specifics>`).
 - **Rendering the Rich table directly to a string and pasting it into chat:** D-17 explicitly requires the agent to rebuild markdown tables from `--json`, not paste ANSI. The reporter must therefore expose data (Pydantic model), not a pre-rendered Rich string, as the thing that crosses into the JSON contract.
 - **Doing I/O inside the reporter:** Any `reporter.py` function that calls Playwright, Notion, or the filesystem cannot be tested with fixtures alone (violates D-25's "using fixtures and mocks" testability goal).
 - **Hardcoding one OS's path separator in `AGENT_SKILL_PATHS`:** always build with `pathlib.Path`, never string concatenation, since the CLI must run correctly on the Windows dev machine (`win32`, confirmed by this session's environment) as well as macOS/Linux where the other agents commonly run.
@@ -315,7 +315,7 @@ AGENT_SKILL_PATHS: dict[str, dict[str, Path]] = {
 ### Pitfall 2: Treating "existing Notion `_safe_error` masking" as covering the whole CLI
 **What goes wrong:** D-14 requires no LMS credentials, Notion token, or session cookies leak through *any* CLI output — but `_safe_error` in `notion/engine.py` only masks `NotionIntegrationError`-family exceptions. A raw `AuthenticationError` or Playwright exception (which can embed the LMS URL with query params, or even echo back input) could leak `lms_username`/`lms_password` if printed via `str(error)` unfiltered.
 **Why it happens:** Reusing one module's error-safety pattern without auditing every exception type that can reach the CLI boundary (auth failures, navigation timeouts, config errors all originate outside `notion/`).
-**How to avoid:** Build a single top-level `_safe_cli_error()` in `cli.py`/`pipeline.py` that applies the same typed-allowlist approach across *all* of `kau_assistant.exceptions`, not just the Notion subtree; add a fixture-based test that raises each exception type with a fake secret in the message and asserts the secret does not appear in captured stdout/stderr (this operationalizes D-14 and D-25 together).
+**How to avoid:** Build a single top-level `_safe_cli_error()` in `cli.py`/`pipeline.py` that applies the same typed-allowlist approach across *all* of `coursepilot.exceptions`, not just the Notion subtree; add a fixture-based test that raises each exception type with a fake secret in the message and asserts the secret does not appear in captured stdout/stderr (this operationalizes D-14 and D-25 together).
 **Warning signs:** A test only checks Notion-path errors for redaction; LMS-path errors (bad login, `NavigationTimeoutError` messages that might embed a URL with credentials in some LMS configurations) are untested.
 
 ### Pitfall 3: `--json` output escaping Korean text
@@ -328,7 +328,7 @@ AGENT_SKILL_PATHS: dict[str, dict[str, Path]] = {
 **What goes wrong:** If the fallback to `mklink /J` is missing or the `OSError` from `os.symlink` is swallowed too broadly, `--link` silently degrades to a full copy on a Windows dev machine without Developer Mode enabled, and repo edits stop showing up in the installed skill — defeating the entire purpose of D-23's `--link` flag.
 **Why it happens:** `os.symlink(..., target_is_directory=True)` raises `OSError: [WinError 1314] A required privilege is not held by the client` rather than a more specific/catchable error; a broad `except Exception: copy_tree()` fallback hides this distinction from the user.
 **How to avoid:** Catch the specific privilege error on Windows, attempt the `mklink /J` fallback explicitly, and only fall back to a plain copy (with a visible warning printed to stderr) if *both* fail; add a test asserting that on a platform where symlinks are unavailable, the installer either produces a working junction or an explicit warning — never a silent copy.
-**Warning signs:** A developer edits `skills/kau-lxp/SKILL.md` in the repo and the agent-installed copy doesn't change.
+**Warning signs:** A developer edits `skills/coursepilot/SKILL.md` in the repo and the agent-installed copy doesn't change.
 
 ## Code Examples
 
@@ -357,7 +357,7 @@ with err_console.status("[3/7] 자료구조 수집 중..."):
 ```python
 # Source: click.palletsprojects.com/en/stable/testing (Context7: /websites/click_palletsprojects_en_stable)
 from click.testing import CliRunner
-from kau_assistant.cli import cli
+from coursepilot.cli import cli
 
 def test_check_json_is_valid_json(monkeypatch):
     runner = CliRunner()
@@ -374,13 +374,13 @@ def test_check_json_is_valid_json(monkeypatch):
      Cross-checked against the in-repo .claude/skills/inherit-legacy-style/SKILL.md,
      which is read this session: name/description present; extra fields
      (metadata.origin, allowed-tools) are Claude-Code-specific and are the
-     pattern D-19 says NOT to copy for skills/kau-lxp/SKILL.md. -->
+     pattern D-19 says NOT to copy for skills/coursepilot/SKILL.md. -->
 ---
-name: kau-lxp
+name: coursepilot
 description: Checks KAU LMS for incomplete lectures/assignments and can sync deadlines to the user's Notion Scheduler. Use when the user asks to check LMS status, list assignments/lectures, or sync/upload deadlines to Notion (e.g. "과제 확인해줘", "노션에 올려줘").
 ---
 
-# KAU LXP Assistant
+# CoursePilot
 
 ## When to activate
 ...
@@ -393,7 +393,7 @@ description: Checks KAU LMS for incomplete lectures/assignments and can sync dea
 | No CLI entry point; each Phase 1-4 module tested/used in isolation | Phase 5 introduces the first `__main__.py`/`cli.py` chaining every prior module | This phase | First point where a full login→scrape→sync run can fail end-to-end; increases the value of D-08's per-course error isolation |
 | Ad hoc `print()`/`logger` calls throughout scraper/session modules (existing `logging.getLogger(...)` calls in `session_manager.py`, `navigator.py`, `auth.py`) | CLI-level stderr/stdout separation (D-11) sits *on top of* existing logging — existing `logger.info(...)` calls already go to Python's logging (typically stderr by default `basicConfig`), so no rework of Phase 1-4 modules is strictly required, only confirming the CLI's own root logger config sends to stderr | This phase | Plans should configure `logging.basicConfig(stream=sys.stderr, ...)` once in `cli.py` rather than reworking existing `logger.info` calls in scraper modules |
 
-**Deprecated/outdated:** Nothing in this phase deprecates prior-phase code; Phase 5 is purely additive (new `pipeline.py`, `reporter.py`, `cli.py`, `installer.py`, `skills/kau-lxp/`).
+**Deprecated/outdated:** Nothing in this phase deprecates prior-phase code; Phase 5 is purely additive (new `pipeline.py`, `reporter.py`, `cli.py`, `installer.py`, `skills/coursepilot/`).
 
 ## Assumptions Log
 
@@ -415,7 +415,7 @@ description: Checks KAU LMS for incomplete lectures/assignments and can sync dea
    - What's unclear: The *user-level* paths for Codex, Antigravity, and Hermes, and Codex's project-level path, rest on WebSearch snippets only (LOW confidence, no official page fully fetched).
    - Recommendation: D-27's manual per-agent install-and-invoke checkpoint is the natural place to falsify or confirm each path; the plan should treat `AGENT_SKILL_PATHS` as provisional until that checkpoint passes for each agent, and should NOT hardcode these paths as unverified "facts" in `SKILL.md`'s own body (only in `installer.py` and the README table, both easy to correct later per D-22's "data change" design).
 
-2. **Does `python -m kau_assistant install-skill` need to support installing to a *running* agent's already-open session, or is a static file copy always sufficient?**
+2. **Does `python -m coursepilot install-skill` need to support installing to a *running* agent's already-open session, or is a static file copy always sufficient?**
    - What we know: All five agents auto-discover skills either at startup or by scanning a directory (per the research above); none of the search results indicated a "live reload" API.
    - What's unclear: Whether Claude Code (or others) require a session restart to pick up a newly installed skill, which matters for the D-27 manual verification script's exact steps.
    - Recommendation: Document "restart the agent session after install" as a note in the installed README; this is a low-risk assumption to state explicitly rather than silently omit.
@@ -474,13 +474,13 @@ description: Checks KAU LMS for incomplete lectures/assignments and can sync dea
 |---------|--------|-----------------------|
 | Secret leakage via exception messages (LMS password/Notion token appearing in a stack trace or `str(error)`) | Information Disclosure | Extend `_safe_error`'s typed-allowlist pattern (D-14); test with fixtures that inject known secret strings into mocked exceptions and assert absence in captured output |
 | Path traversal / unintended overwrite via `--agent`/`--link` writing outside the intended skill directory | Tampering | `installer.py` should resolve all target paths through `Path(...).resolve()` and assert the resolved path's parent matches the expected `AGENT_SKILL_PATHS` entry before any write; reject unexpected `..` components |
-| Symlink/junction misuse (linking to an unintended or attacker-controlled directory) | Tampering / Elevation of Privilege | `--link` always targets the *repo's own* `skills/kau-lxp/` directory as source (never a user-supplied path — D-10 confirms no extra CLI flags beyond the documented ones), so there is no user-controlled link target to sanitize; still validate the source path exists and is inside the repo root before linking |
+| Symlink/junction misuse (linking to an unintended or attacker-controlled directory) | Tampering / Elevation of Privilege | `--link` always targets the *repo's own* `skills/coursepilot/` directory as source (never a user-supplied path — D-10 confirms no extra CLI flags beyond the documented ones), so there is no user-controlled link target to sanitize; still validate the source path exists and is inside the repo root before linking |
 | JSON injection / malformed `--json` output breaking an agent's parser | Tampering (of the agent-CLI contract) | Always serialize through the versioned Pydantic model (`model_dump_json()`), never string-concatenate JSON; add a fixture test that round-trips `json.loads(cli_output)` for every `--json` code path |
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- In-repo source files read this session: `src/kau_assistant/notion/engine.py`, `notion/models.py`, `notion/__init__.py`, `domain/models.py`, `domain/transformer.py`, `domain/priority.py`, `domain/naming.py`, `session_manager.py`, `config.py`, `exceptions.py`, `scraper/course_list.py`, `scraper/navigator.py`, `scraper/models.py`, `scraper/assessment_parser.py`, `scraper/lecture_parser.py`, `auth.py`, `tests/conftest.py`, `pyproject.toml` — used for every claim about existing code shape, reuse points, and the integration gap (no orchestrator yet)
+- In-repo source files read this session: `src/coursepilot/notion/engine.py`, `notion/models.py`, `notion/__init__.py`, `domain/models.py`, `domain/transformer.py`, `domain/priority.py`, `domain/naming.py`, `session_manager.py`, `config.py`, `exceptions.py`, `scraper/course_list.py`, `scraper/navigator.py`, `scraper/models.py`, `scraper/assessment_parser.py`, `scraper/lecture_parser.py`, `auth.py`, `tests/conftest.py`, `pyproject.toml` — used for every claim about existing code shape, reuse points, and the integration gap (no orchestrator yet)
 - `.claude/skills/inherit-legacy-style/SKILL.md` (read this session, lines 1-15 quoted above) — direct in-repo evidence of the Agent Skills frontmatter shape and of what NOT to copy (agent-specific extensions)
 - `.agents/skills/inherit-legacy-style/`, `.pi/skills/inherit-legacy-style/`, `.claude/skills/inherit-legacy-style/` directory existence (confirmed via `find` this session) — in-repo evidence for the project-level path segment of Claude Code, Antigravity(`.agents`), and Pi
 - Context7 `/websites/platform_claude_en_agents-and-tools_agent-skills` — official Claude Agent Skills frontmatter spec (`name`/`description` required fields, validation rules, three-level loading model)

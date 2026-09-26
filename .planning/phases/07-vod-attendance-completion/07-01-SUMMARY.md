@@ -13,19 +13,19 @@ Plan 07-01 resolved the issue where VOD video lectures lacked completion trackin
 
 ## Key Accomplishments
 
-1. **Ublogs Completion Navigation (`src/kau_assistant/scraper/navigator.py`)**:
+1. **Ublogs Completion Navigation (`src/coursepilot/scraper/navigator.py`)**:
    - Updated `CourseNavigator.navigate_progress_page` to try `/report/ublogs/completion.php?id={course.course_id}` first with detection of `table-learning-student-activity`, `학습활동`, or `완료 상태`.
    - Kept fallback to `/report/ubcompletion/progress.php?id={course.course_id}` for environments using the alternative Coursemos completion plugin.
 
-2. **Ublogs Activity Completion Parser & Merger (`src/kau_assistant/scraper/lecture_parser.py`)**:
+2. **Ublogs Activity Completion Parser & Merger (`src/coursepilot/scraper/lecture_parser.py`)**:
    - Implemented `UblogsActivityStatus` Pydantic model.
    - Implemented `parse_ublogs_completion(html: str) -> list[UblogsActivityStatus]` to parse multi-column activity completion tables.
    - Implemented `merge_ublogs_completion(lectures, ublogs_records, now)` with multi-tier matching (exact/normalized title within same week, across weeks, and order fallback). Completed activities become `AttendanceStatus.COMPLETED` (100% progress), while incomplete activities remain `INCOMPLETE` (0% progress).
 
-3. **Pipeline Integration (`src/kau_assistant/pipeline.py`)**:
+3. **Pipeline Integration (`src/coursepilot/pipeline.py`)**:
    - Connected `scrape_course` to detect ublogs activity completion tables and merge records into course lectures.
 
-4. **Transformer Handling for Undated Lectures (`src/kau_assistant/domain/transformer.py`)**:
+4. **Transformer Handling for Undated Lectures (`src/coursepilot/domain/transformer.py`)**:
    - Retained regular incomplete lectures without explicit deadlines (`week_number >= 1`) as `SyncTask` items with `due_date=None` and Priority `P3`, allowing them to appear in the `later` section.
    - Correctly excluded undated OT/introductory lectures (`week_number == 0` or matching orientation/overview keywords) per rule D-11.
    - Excluded completed undated lectures by default.

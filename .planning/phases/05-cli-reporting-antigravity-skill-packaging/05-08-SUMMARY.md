@@ -14,25 +14,25 @@ Plan 05-08 closed the reporting and configuration half of gap G-05-2. It changed
 
 ## Key Changes
 
-1. **Configuration (`src/kau_assistant/config.py`)**:
+1. **Configuration (`src/coursepilot/config.py`)**:
    - Defined `DEFAULT_LMS_URL = "https://lxp.kau.ac.kr"`.
    - Updated `Settings.lms_url` default from `https://lms.kau.ac.kr` to `DEFAULT_LMS_URL`.
 
-2. **Error Handling (`src/kau_assistant/exceptions.py`, `src/kau_assistant/errors.py`)**:
-   - Added `UnsupportedLmsError` exception subclassing `KauAssistantError`.
+2. **Error Handling (`src/coursepilot/exceptions.py`, `src/coursepilot/errors.py`)**:
+   - Added `UnsupportedLmsError` exception subclassing `CoursePilotError`.
    - Added static safe CLI error conversion for `UnsupportedLmsError` with code `"UnsupportedLmsError"`, exit code 2 (fatal), and instructions to check `LMS_URL`.
    - Enhanced `_AUTH_MESSAGE` to remind users to verify that `LMS_URL` matches the institution's Coursemos LXP/LMS address.
 
-3. **Report Models (`src/kau_assistant/report_models.py`)**:
+3. **Report Models (`src/coursepilot/report_models.py`)**:
    - Created `ReportNotice(BaseModel)` with `code: str` and `message: str` (`extra="forbid"`).
    - Added `notices: list[ReportNotice] = Field(default_factory=list)` to `CheckReport` and `SyncReport` (v1 additive non-breaking field).
 
-4. **Reporter (`src/kau_assistant/reporter.py`)**:
+4. **Reporter (`src/coursepilot/reporter.py`)**:
    - Added `NO_COURSES_NOTICE_CODE = "no_courses_found"` and a static Korean notice message instructing the user to check `LMS_URL` and term enrollment.
    - Built helper to attach `no_courses_found` notice to check and sync reports when `course_count == 0` and no fatal error occurred.
    - Updated `render_check_report` and `render_sync_report` to print a bold yellow "안내" notice section right after the summary panel.
 
-5. **JSON Contract (`skills/kau-lxp/JSON_CONTRACT.md`)**:
+5. **JSON Contract (`skills/coursepilot/JSON_CONTRACT.md`)**:
    - Documented `notices` field on `CheckReport` and `SyncReport`.
    - Added `ReportNotice` model documentation and `no_courses_found` notice code specification.
    - Documented `UnsupportedLmsError` under the error reference.

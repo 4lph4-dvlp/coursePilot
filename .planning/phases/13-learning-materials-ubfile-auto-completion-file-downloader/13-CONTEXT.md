@@ -9,7 +9,7 @@
 Phase 13 delivers automated completion of unviewed course materials (`ubfile`) on Coursemos LXP and an organized local hierarchical downloader for lecture documents (PDF, PPT, ZIP, HWP, etc.):
 1. 미열람 상태의 `ubfile` 학습자료 페이지를 방문(열람)하여 LXP 진도율을 100% 완료 상태로 자동 갱신.
 2. 첨부 파일을 과목명 및 주차별 계층 폴더(`downloads/<과목명>/W{주차}/`) 구조로 로컬에 다운로드 및 정리.
-3. CLI 명령어 `kau-assistant materials` (별칭 `files`) 및 `--course`, `--week`, `--output-dir`, `--no-download`, `--dry-run`, `--json` 옵션 지원.
+3. CLI 명령어 `coursepilot materials` (별칭 `files`) 및 `--course`, `--week`, `--output-dir`, `--no-download`, `--dry-run`, `--json` 옵션 지원.
 4. LXP 세션 인증 쿠키를 재사용하는 안전한 스트림/파일 다운로드 파이프라인 구축.
 
 </domain>
@@ -26,7 +26,7 @@ Phase 13 delivers automated completion of unviewed course materials (`ubfile`) o
 - **D-13-04:** 스마트 처리 정책을 적용하여, LXP 열람(방문) 처리는 '미열람' 상태인 자료만 방문하여 불필요한 반복 트래픽을 방지하고, 파일 다운로드는 로컬에 파일이 없는 모든 자료를 빠짐없이 받아준다.
 
 ### 3. CLI 명령어 인터페이스 및 Notion 연동 정책
-- **D-13-05:** CLI 명령어는 `kau-assistant materials`를 표준으로 제공하며, 사용자 편의를 위해 `files` 별칭도 함께 지원한다.
+- **D-13-05:** CLI 명령어는 `coursepilot materials`를 표준으로 제공하며, 사용자 편의를 위해 `files` 별칭도 함께 지원한다.
 - **D-13-06:** `--course` 옵션 생략 시 전체 수강 과목을 순차적으로 처리하고, 특정 과목 지정 시 해당 과목만 처리한다(기존 `check` 명령어와 일관된 패턴). 주차 필터링은 `--week` ('current', 'all', 또는 주차 번호)를 지원한다.
 - **D-13-07:** 학습자료는 과제나 시험과 달리 마감 일정이 없으므로, 개인 스케줄러 DB 오염 방지를 위해 Notion 연동 대상에서 제외하고 LXP 진도 100% 이수 및 로컬 다운로드로 범위를 한정한다.
 - **D-13-08:** 실제 네트워크 다운로드나 페이지 방문 없이 대상 자료 목록, 파일명, 예상 저장 경로를 미리 확인할 수 있는 `--dry-run` 모드 및 에이전트 연동용 `--json` 출력을 지원한다.
@@ -47,10 +47,10 @@ Phase 13 delivers automated completion of unviewed course materials (`ubfile`) o
 - `.planning/REQUIREMENTS.md` § RES-01, RES-02 — Learning materials requirements
 
 ### Existing Scraper & Session Core
-- `src/kau_assistant/scraper/navigator.py` — Course navigation and page fetching patterns
-- `src/kau_assistant/scraper/course_list.py` — Course extraction and clean_name resolution
-- `src/kau_assistant/session_manager.py` — Playwright session caching and authentication cookies
-- `src/kau_assistant/config.py` — Configuration loading and `.env` settings
+- `src/coursepilot/scraper/navigator.py` — Course navigation and page fetching patterns
+- `src/coursepilot/scraper/course_list.py` — Course extraction and clean_name resolution
+- `src/coursepilot/session_manager.py` — Playwright session caching and authentication cookies
+- `src/coursepilot/config.py` — Configuration loading and `.env` settings
 
 </canonical_refs>
 
@@ -68,9 +68,9 @@ Phase 13 delivers automated completion of unviewed course materials (`ubfile`) o
 - `Console(stderr=True)`로 진행 상태 출력, stdout은 최종 결과 리포트 또는 JSON만 출력하는 스트림 분리 패턴.
 
 ### Integration Points
-- `src/kau_assistant/scraper/materials_parser.py` (또는 기존 scraper 확장): `ubfile` 학습자료 링크 및 첨부파일 정보 추출.
-- `src/kau_assistant/materials/downloader.py` (신규): 세션 쿠키 기반 파일 다운로드 및 로컬 디렉터리 저장 관리.
-- `src/kau_assistant/cli.py`: `@cli.command("materials")` 등록.
+- `src/coursepilot/scraper/materials_parser.py` (또는 기존 scraper 확장): `ubfile` 학습자료 링크 및 첨부파일 정보 추출.
+- `src/coursepilot/materials/downloader.py` (신규): 세션 쿠키 기반 파일 다운로드 및 로컬 디렉터리 저장 관리.
+- `src/coursepilot/cli.py`: `@cli.command("materials")` 등록.
 
 </code_context>
 

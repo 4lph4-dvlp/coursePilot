@@ -62,7 +62,7 @@ created: "2026-09-21"
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| Real LMS Login with live credentials | SCRP-01 | Requires active student KAU LMS credentials not stored in test repo | Run `uv run python -m kau_lxp.cli login --headful` and verify browser navigates to dashboard |
+| Real LMS Login with live credentials | SCRP-01 | Requires active student LMS credentials not stored in test repo | Run `uv run python -m coursepilot check --headed` and verify browser navigates to dashboard |
 
 ---
 

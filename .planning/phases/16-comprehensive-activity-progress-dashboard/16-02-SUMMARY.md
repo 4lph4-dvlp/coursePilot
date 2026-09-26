@@ -24,20 +24,20 @@ patterns:
   - 3-tier Rich terminal dashboard (Summary Table, To-Do Actions, Alert/All-Clear Panel)
   - Strict stdout/stderr stream separation for clean JSON output
 key-files.created:
-  - src/kau_assistant/progress/runner.py
-  - src/kau_assistant/progress/reporter.py
+  - src/coursepilot/progress/runner.py
+  - src/coursepilot/progress/reporter.py
   - tests/test_progress_runner.py
   - tests/test_progress_reporter.py
   - tests/test_cli_progress.py
 key-files.modified:
-  - src/kau_assistant/reporter.py
-  - src/kau_assistant/cli.py
+  - src/coursepilot/reporter.py
+  - src/coursepilot/cli.py
 key-decisions:
   - "D-16-05: 3-tier visual hierarchy with [1] summary table, [2] this week action items, [3] past weeks alert or all-clear panel."
   - "D-16-06: Color-coded progress bar and percentage style (100% green, 80-99% blue, 50-79% yellow, <50% red)."
   - "D-16-07: Prioritized To-Do activities with [VOD], [과제], [퀴즈], [자료] color tags and completed items trailing."
   - "D-16-08: Conditional rendering of red warning panel on missed past items vs green All Clear badge when 0 missed."
-  - "D-16-09: Single entry point `kau-assistant progress` CLI command with flags."
+  - "D-16-09: Single entry point `coursepilot progress` CLI command with flags."
   - "D-16-10: 1~16 week matrix roadmap table when querying specific course (--course)."
   - "D-16-11: Expanded individual activity details on --detail."
   - "D-16-12: Standard JSON contract output with schema_version: 1 on --json."
@@ -100,7 +100,7 @@ coverage:
    - Tier 3: Conditional Alert panel (`⚠️`) on past missed items vs green All-Clear badge (`🎉`) when zero missed items exist.
    - 1~16 week matrix roadmap table when specifying `--course`.
 3. **CLI Integration (`cli.py`)**:
-   - Registered `kau-assistant progress` command with `--course`, `--week`, `--detail`, `--cached`, `--refresh`, `--json`, `--relogin`, and `--headed`.
+   - Registered `coursepilot progress` command with `--course`, `--week`, `--detail`, `--cached`, `--refresh`, `--json`, `--relogin`, and `--headed`.
    - Strict stdout/stderr separation guaranteeing zero spinner noise in stdout JSON contract.
    - Exit codes aligned with assistant standard (0 for clean, 1 for missed items or errors, 2 for fatal exceptions).
 

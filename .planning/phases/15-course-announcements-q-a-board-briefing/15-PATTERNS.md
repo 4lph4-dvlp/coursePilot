@@ -1,7 +1,7 @@
 # Phase 15: Course Announcements & Q&A Board Briefing - Pattern Map
 
 **Mapped:** 2026-09-26  
-**Phase Directory:** `file:///D:/dev/kau-lxp-assistant/.planning/phases/15-course-announcements-q-a-board-briefing`  
+**Phase Directory:** `.planning/phases/15-course-announcements-q-a-board-briefing`
 **Files Analyzed:** 14  
 **Analogs Found:** 14 (Established codebase patterns directly reused)
 
@@ -11,32 +11,32 @@
 
 | File Path | Action | Role | Data Flow |
 |---|---|---|---|
-| [`src/kau_assistant/board/__init__.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/board/__init__.py) | Create | Package Init & Exports | Internal modules -> `__all__` export table -> External callers & CLI |
-| [`src/kau_assistant/board/models.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/board/models.py) | Create | Domain Models & JSON Contract | Raw parser/state dicts -> Pydantic Schema (`schema_version: 1`) -> Validated typed objects / JSON |
-| [`src/kau_assistant/scraper/board_parser.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/scraper/board_parser.py) | Create | Service / Pure HTML Scraper | Raw LMS HTML (`course/view.php`, `ubboard/view.php`, `article.php`) -> BeautifulSoup AST -> Typed DTOs |
-| [`src/kau_assistant/board/text_converter.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/board/text_converter.py) | Create | HTML-to-Markdown Utility | Raw Moodle Atto HTML -> DOM cleaning & AST tag transformation -> Clean Markdown & 2-line previews |
-| [`src/kau_assistant/board/read_state.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/board/read_state.py) | Create | Model / Service (Atomic State) | `.cache/board_read_state.json` <-> Atomic `.tmp` rename + per-course LRU 200 capping |
-| [`src/kau_assistant/board/runner.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/board/runner.py) | Create | Controller / Orchestrator | CLI options -> Course discovery -> Board parsing -> State check -> Report builder / Article viewer |
-| [`src/kau_assistant/board/reporter.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/board/reporter.py) | Create | View / Presentation | `BoardReport` / `BoardPostItem` -> Rich Console tables, color badges, Markdown panels |
-| [`src/kau_assistant/reporter.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/reporter.py) | Modify | Reporter Re-export & Integration | Re-export board reporter functions for unified reporting access |
-| [`src/kau_assistant/cli.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/cli.py) | Modify | Route / CLI Commands | `@cli.command("board")`, `@cli.command("notices")`, `@cli.command("qna")` -> Runner -> Rich/JSON output |
-| [`tests/test_board_parser.py`](file:///D:/dev/kau-lxp-assistant/tests/test_board_parser.py) | Create | Unit Test (Scraper) | HTML fixtures -> `board_parser` functions -> Assert board classification, table columns, replies, secrets |
-| [`tests/test_board_text_converter.py`](file:///D:/dev/kau-lxp-assistant/tests/test_board_text_converter.py) | Create | Unit Test (Text Converter) | Sample Moodle HTML -> `html_to_markdown` / `extract_summary_preview` -> Assert markdown formatting & CP949 safety |
-| [`tests/test_board_read_state.py`](file:///D:/dev/kau-lxp-assistant/tests/test_board_read_state.py) | Create | Unit Test (Read State) | `tmp_path` -> `BoardReadStateManager` -> Assert persistence, atomic replacement, LRU cap, corrupted file recovery |
-| [`tests/test_board_runner.py`](file:///D:/dev/kau-lxp-assistant/tests/test_board_runner.py) | Create | Integration Test (Runner) | Mocked session/HTTP clients -> `run_board_pipeline` -> Assert course error isolation, filters, auto-mark-read |
-| [`tests/test_cli_board.py`](file:///D:/dev/kau-lxp-assistant/tests/test_cli_board.py) | Create | CLI Test (Click Runner) | CLI args -> Click `CliRunner` -> Assert exit codes, Rich table stdout, JSON contract `schema_version: 1` |
+| [`src/coursepilot/board/__init__.py`](../../../src/coursepilot/board/__init__.py) | Create | Package Init & Exports | Internal modules -> `__all__` export table -> External callers & CLI |
+| [`src/coursepilot/board/models.py`](../../../src/coursepilot/board/models.py) | Create | Domain Models & JSON Contract | Raw parser/state dicts -> Pydantic Schema (`schema_version: 1`) -> Validated typed objects / JSON |
+| [`src/coursepilot/scraper/board_parser.py`](../../../src/coursepilot/scraper/board_parser.py) | Create | Service / Pure HTML Scraper | Raw LMS HTML (`course/view.php`, `ubboard/view.php`, `article.php`) -> BeautifulSoup AST -> Typed DTOs |
+| [`src/coursepilot/board/text_converter.py`](../../../src/coursepilot/board/text_converter.py) | Create | HTML-to-Markdown Utility | Raw Moodle Atto HTML -> DOM cleaning & AST tag transformation -> Clean Markdown & 2-line previews |
+| [`src/coursepilot/board/read_state.py`](../../../src/coursepilot/board/read_state.py) | Create | Model / Service (Atomic State) | `.cache/board_read_state.json` <-> Atomic `.tmp` rename + per-course LRU 200 capping |
+| [`src/coursepilot/board/runner.py`](../../../src/coursepilot/board/runner.py) | Create | Controller / Orchestrator | CLI options -> Course discovery -> Board parsing -> State check -> Report builder / Article viewer |
+| [`src/coursepilot/board/reporter.py`](../../../src/coursepilot/board/reporter.py) | Create | View / Presentation | `BoardReport` / `BoardPostItem` -> Rich Console tables, color badges, Markdown panels |
+| [`src/coursepilot/reporter.py`](../../../src/coursepilot/reporter.py) | Modify | Reporter Re-export & Integration | Re-export board reporter functions for unified reporting access |
+| [`src/coursepilot/cli.py`](../../../src/coursepilot/cli.py) | Modify | Route / CLI Commands | `@cli.command("board")`, `@cli.command("notices")`, `@cli.command("qna")` -> Runner -> Rich/JSON output |
+| [`tests/test_board_parser.py`](../../../tests/test_board_parser.py) | Create | Unit Test (Scraper) | HTML fixtures -> `board_parser` functions -> Assert board classification, table columns, replies, secrets |
+| [`tests/test_board_text_converter.py`](../../../tests/test_board_text_converter.py) | Create | Unit Test (Text Converter) | Sample Moodle HTML -> `html_to_markdown` / `extract_summary_preview` -> Assert markdown formatting & CP949 safety |
+| [`tests/test_board_read_state.py`](../../../tests/test_board_read_state.py) | Create | Unit Test (Read State) | `tmp_path` -> `BoardReadStateManager` -> Assert persistence, atomic replacement, LRU cap, corrupted file recovery |
+| [`tests/test_board_runner.py`](../../../tests/test_board_runner.py) | Create | Integration Test (Runner) | Mocked session/HTTP clients -> `run_board_pipeline` -> Assert course error isolation, filters, auto-mark-read |
+| [`tests/test_cli_board.py`](../../../tests/test_cli_board.py) | Create | CLI Test (Click Runner) | CLI args -> Click `CliRunner` -> Assert exit codes, Rich table stdout, JSON contract `schema_version: 1` |
 
 ---
 
 ## Pattern Assignments
 
-### 1. `src/kau_assistant/board/models.py`
+### 1. `src/coursepilot/board/models.py`
 - **Role:** Domain models and versioned JSON contract schemas (`schema_version: 1`).
-- **Closest Analog:** [`src/kau_assistant/materials/models.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/materials/models.py#L7-L63) & [`src/kau_assistant/report_models.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/report_models.py#L6-L97)
+- **Closest Analog:** [`src/coursepilot/materials/models.py`](../../../src/coursepilot/materials/models.py#L7-L63) & [`src/coursepilot/report_models.py`](../../../src/coursepilot/report_models.py#L6-L97)
 - **Rationale:** `report_models.py` defines the canonical pattern for versioned envelopes (`SCHEMA_VERSION = 1`, `model_config = ConfigDict(extra="forbid")`, strong literal tags), while `materials/models.py` demonstrates per-item results and aggregate container structures.
 - **Concrete Code Excerpt:**
   ```python
-  # src/kau_assistant/report_models.py (lines 6-8, 85-97)
+  # src/coursepilot/report_models.py (lines 6-8, 85-97)
   SCHEMA_VERSION = 1
 
   class CheckReport(BaseModel):
@@ -69,13 +69,13 @@
 
 ---
 
-### 2. `src/kau_assistant/scraper/board_parser.py`
+### 2. `src/coursepilot/scraper/board_parser.py`
 - **Role:** Pure HTML parsing and AST inspection for Coursemos `ubboard` and `forum` modules.
-- **Closest Analog:** [`src/kau_assistant/scraper/material_parser.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/scraper/material_parser.py#L13-L131)
+- **Closest Analog:** [`src/coursepilot/scraper/material_parser.py`](../../../src/coursepilot/scraper/material_parser.py#L13-L131)
 - **Rationale:** `material_parser.py` demonstrates BeautifulSoup AST traversal, accesshide decomposition with `copy.deepcopy`, regex extraction of module IDs, and `urljoin` resolution.
 - **Concrete Code Excerpt:**
   ```python
-  # src/kau_assistant/scraper/material_parser.py (lines 76-113)
+  # src/coursepilot/scraper/material_parser.py (lines 76-113)
   activities = sec.find_all(
       lambda tag: tag.name == "li"
       and any(cls == "activity" for cls in tag.get("class", []))
@@ -115,13 +115,13 @@
 
 ---
 
-### 3. `src/kau_assistant/board/text_converter.py`
+### 3. `src/coursepilot/board/text_converter.py`
 - **Role:** Pure HTML-to-Markdown transformer and table summary preview generator.
-- **Closest Analog:** [`src/kau_assistant/materials/filename_utils.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/materials/filename_utils.py#L9-L44)
+- **Closest Analog:** [`src/coursepilot/materials/filename_utils.py`](../../../src/coursepilot/materials/filename_utils.py#L9-L44)
 - **Rationale:** Self-contained string sanitization utility with zero external CLI/network dependencies, ensuring safe terminal display and CP949 encoding compatibility.
 - **Concrete Code Excerpt:**
   ```python
-  # src/kau_assistant/materials/filename_utils.py (lines 20-30)
+  # src/coursepilot/materials/filename_utils.py (lines 20-30)
   def sanitize_filename(name: str, max_length: int = 200) -> str:
       if not name or not name.strip():
           return "unnamed_file"
@@ -144,13 +144,13 @@
 
 ---
 
-### 4. `src/kau_assistant/board/read_state.py`
+### 4. `src/coursepilot/board/read_state.py`
 - **Role:** Local read state manager tracking viewed post IDs per course with atomic writes and LRU capping.
-- **Closest Analog:** [`src/kau_assistant/player/state.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/player/state.py#L19-L67)
+- **Closest Analog:** [`src/coursepilot/player/state.py`](../../../src/coursepilot/player/state.py#L19-L67)
 - **Rationale:** `WatchStateManager` demonstrates atomic file writes via `.tmp` and `replace`, safe corrupted JSON handling, and default cache directory path resolution.
 - **Concrete Code Excerpt:**
   ```python
-  # src/kau_assistant/player/state.py (lines 19-46)
+  # src/coursepilot/player/state.py (lines 19-46)
   class WatchStateManager:
       """Manages atomic state tracking, stop signals, and completed watch history."""
 
@@ -183,13 +183,13 @@
 
 ---
 
-### 5. `src/kau_assistant/board/runner.py`
+### 5. `src/coursepilot/board/runner.py`
 - **Role:** Execution orchestrator for multi-course collection, filtering, attachment downloading, and single article viewer.
-- **Closest Analog:** [`src/kau_assistant/materials/runner.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/materials/runner.py#L171-L268) & [`src/kau_assistant/player/runner.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/player/runner.py#L32-L75)
+- **Closest Analog:** [`src/coursepilot/materials/runner.py`](../../../src/coursepilot/materials/runner.py#L171-L268) & [`src/coursepilot/player/runner.py`](../../../src/coursepilot/player/runner.py#L32-L75)
 - **Rationale:** `materials/runner.py` orchestrates browser session initialization via `SessionManager`, course extraction, course filtering via `find_target_course`, `httpx.Client` cookie authentication, progress reporting, and course-level error isolation.
 - **Concrete Code Excerpt:**
   ```python
-  # src/kau_assistant/materials/runner.py (lines 202-243)
+  # src/coursepilot/materials/runner.py (lines 202-243)
   try:
       with SessionManager(settings=cfg, headful=headful) as sm:
           page = sm.get_authenticated_page()
@@ -241,13 +241,13 @@
 
 ---
 
-### 6. `src/kau_assistant/board/reporter.py` (and re-exported via `src/kau_assistant/reporter.py`)
+### 6. `src/coursepilot/board/reporter.py` (and re-exported via `src/coursepilot/reporter.py`)
 - **Role:** Rich Console formatting for board tables, status badges, and single article viewer.
-- **Closest Analog:** [`src/kau_assistant/materials/reporter.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/materials/reporter.py#L22-L85) & [`src/kau_assistant/reporter.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/reporter.py#L350-L420)
+- **Closest Analog:** [`src/coursepilot/materials/reporter.py`](../../../src/coursepilot/materials/reporter.py#L22-L85) & [`src/coursepilot/reporter.py`](../../../src/coursepilot/reporter.py#L350-L420)
 - **Rationale:** Established Rich formatting conventions: color palette, table column layout, Panel wrapping, and separation of stdout (final output) from stderr (progress).
 - **Concrete Code Excerpt:**
   ```python
-  # src/kau_assistant/materials/reporter.py (lines 29-35, 71-79)
+  # src/coursepilot/materials/reporter.py (lines 29-35, 71-79)
   table = Table(title="학습 자료 처리 현황", show_lines=True)
   table.add_column("과목", style="bold cyan")
   table.add_column("주차", style="magenta")
@@ -275,13 +275,13 @@
 
 ---
 
-### 7. `src/kau_assistant/cli.py`
+### 7. `src/coursepilot/cli.py`
 - **Role:** Click CLI command registration, parameter validation, stream configuration, and exit code handling.
-- **Closest Analog:** [`src/kau_assistant/cli.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/cli.py#L505-L600) & [`src/kau_assistant/cli.py#L720-L741`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/cli.py#L720-L741)
+- **Closest Analog:** [`src/coursepilot/cli.py`](../../../src/coursepilot/cli.py#L505-L600) & [`src/coursepilot/cli.py#L720-L741`](../../../src/coursepilot/cli.py#L720-L741)
 - **Rationale:** Existing commands (`check`, `sync`, `materials`, `download-vod`) follow uniform Click decorator patterns, stream setup (`_configure_streams`), `Console(stderr=True)` for progress, and exit code mapping.
 - **Concrete Code Excerpt:**
   ```python
-  # src/kau_assistant/cli.py (lines 505-599)
+  # src/coursepilot/cli.py (lines 505-599)
   @cli.command("materials")
   @click.option("--course", "course_query", type=str, default=None, help="과목 이름, 약칭, 또는 과목 ID (생략 시 전체 과목)")
   @click.option("--json", "as_json", is_flag=True, help="결과를 JSON 형식으로 출력합니다.")
@@ -314,13 +314,13 @@
 
 ### 8. `tests/test_board_parser.py`
 - **Role:** Unit tests for Coursemos HTML parsing (course home board discovery, table parsing, article detail extraction).
-- **Closest Analog:** [`tests/test_material_parser.py`](file:///D:/dev/kau-lxp-assistant/tests/test_material_parser.py#L11-L64)
+- **Closest Analog:** [`tests/test_material_parser.py`](../../../tests/test_material_parser.py#L11-L64)
 - **Rationale:** Uses realistic HTML fixtures (`lxp_board_course.html`, `lxp_board_list.html`, `lxp_board_article.html`) to verify AST parsing, `.accesshide` removal, column index mapping, and badge detection.
 - **Concrete Code Excerpt:**
   ```python
   # tests/test_material_parser.py (lines 11-35)
   def test_parse_materials_from_course_sections():
-      fixture_path = Path(__file__).parent / "fixtures" / "lxp_course_materials.html"
+      fixture_path = Path(__file__).parent / "fixtures" / "lms_course_materials.html"
       html = fixture_path.read_text(encoding="utf-8")
       course = CourseItem(...)
       materials = parse_materials_from_course_sections(html, course)
@@ -338,7 +338,7 @@
 
 ### 9. `tests/test_board_text_converter.py`
 - **Role:** Unit tests for HTML-to-Markdown conversion and summary preview generation.
-- **Closest Analog:** [`tests/test_filename_utils.py`](file:///D:/dev/kau-lxp-assistant/tests/test_filename_utils.py#L1-L30)
+- **Closest Analog:** [`tests/test_filename_utils.py`](../../../tests/test_filename_utils.py#L1-L30)
 - **Rationale:** Pure input-output transformation unit tests verifying text formatting, tag sanitization, and Unicode handling.
 - **Application:**
   - `test_html_to_markdown_tags`: Verifies conversion of `<br>`, `<p>`, `<a>`, `<strong>`, `<em>`, `<ul><li>`.
@@ -350,7 +350,7 @@
 
 ### 10. `tests/test_board_read_state.py`
 - **Role:** Unit tests for atomic state persistence and LRU capping.
-- **Closest Analog:** [`tests/test_watch_state.py`](file:///D:/dev/kau-lxp-assistant/tests/test_watch_state.py#L13-L57)
+- **Closest Analog:** [`tests/test_watch_state.py`](../../../tests/test_watch_state.py#L13-L57)
 - **Rationale:** `test_watch_state.py` validates `tmp_path` isolation, initial empty state, write/read lifecycle, and corrupted JSON file recovery.
 - **Concrete Code Excerpt:**
   ```python
@@ -374,7 +374,7 @@
 
 ### 11. `tests/test_board_runner.py`
 - **Role:** Integration tests for the board runner orchestrator with mocked session/HTTP clients.
-- **Closest Analog:** [`tests/test_materials_runner.py`](file:///D:/dev/kau-lxp-assistant/tests/test_materials_runner.py#L61-L160)
+- **Closest Analog:** [`tests/test_materials_runner.py`](../../../tests/test_materials_runner.py#L61-L160)
 - **Rationale:** `test_materials_runner.py` demonstrates mocking `SessionManager`, `CourseNavigator`, `extract_courses`, and validating option filtering and course-level error isolation.
 - **Application:**
   - `test_run_board_pipeline_multi_course`: Verifies discovery and parsing across multiple courses.
@@ -386,7 +386,7 @@
 
 ### 12. `tests/test_cli_board.py`
 - **Role:** Click CLI command testing with `CliRunner`.
-- **Closest Analog:** [`tests/test_cli_materials.py`](file:///D:/dev/kau-lxp-assistant/tests/test_cli_materials.py#L17-L75)
+- **Closest Analog:** [`tests/test_cli_materials.py`](../../../tests/test_cli_materials.py#L17-L75)
 - **Rationale:** Demonstrates CLI option parsing validation, mock return verification, `--json` schema conformance testing (`schema_version: 1`), and exit code checking.
 - **Concrete Code Excerpt:**
   ```python
@@ -397,7 +397,7 @@
       assert res.exit_code == 0
       assert "--course" in res.output
 
-  @patch("kau_assistant.materials.runner.run_materials_pipeline")
+  @patch("coursepilot.materials.runner.run_materials_pipeline")
   def test_materials_dry_run_json(mock_run_pipeline):
       mock_run_pipeline.return_value = MaterialsRunResult(...)
       runner = CliRunner()
@@ -408,8 +408,8 @@
   ```
 - **Application:**
   - `test_cli_board_help`: Verifies `--help` on `board`, `notices`, and `qna`.
-  - `test_cli_board_json_contract`: Verifies `kau-assistant board --json` output conforms to JSON contract v1 (`schema_version: 1`).
-  - `test_cli_board_view_command`: Verifies `kau-assistant board --view 101` invokes viewer and outputs article detail.
+  - `test_cli_board_json_contract`: Verifies `coursepilot board --json` output conforms to JSON contract v1 (`schema_version: 1`).
+  - `test_cli_board_view_command`: Verifies `coursepilot board --view 101` invokes viewer and outputs article detail.
   - `test_cli_board_exit_codes`: Verifies exit code 0 on success, exit code 1 on collection warnings/errors, exit code 2 on fatal crash.
 
 ---

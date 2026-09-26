@@ -50,11 +50,11 @@ Phase 1은 후속 단계(LMS 크롤링, 도메인 정규화, 노션 동기화, C
 
 | Module | Location | Responsibilities |
 |--------|----------|------------------|
-| `config` | `src/kau_assistant/config.py` | `Settings` 모델(LMS URL, 자격증명, Notion 키, DB ID, 브라우저 옵션, 경로 등) 로드 및 검증 |
-| `course_mapping` | `src/kau_assistant/course_mapping.py` | `config/course_mappings.json` 로드, 과목명 축약어 변환, 미매핑 과목 폴백 및 안내 로그 |
-| `exceptions` | `src/kau_assistant/exceptions.py` | 프로젝트 공통 커스텀 예외 계층(`KauAssistantError`, `AuthenticationError`, `NavigationTimeoutError`, `ConfigError` 등) |
-| `auth` | `src/kau_assistant/auth.py` | LMS 로그인 폼 탐색, ID/PW 입력, 제출, 로그인 성공/실패 판별 및 오류 메시지 추출 |
-| `session_manager` | `src/kau_assistant/session_manager.py` | Playwright 브라우저 라이프사이클(`headless`/`headful`), `storage_state` 캐시 로드/저장, 세션 만료 검증, 자동 재로그인 및 30초 타임아웃/1회 재시도 오케스트레이션 |
+| `config` | `src/coursepilot/config.py` | `Settings` 모델(LMS URL, 자격증명, Notion 키, DB ID, 브라우저 옵션, 경로 등) 로드 및 검증 |
+| `course_mapping` | `src/coursepilot/course_mapping.py` | `config/course_mappings.json` 로드, 과목명 축약어 변환, 미매핑 과목 폴백 및 안내 로그 |
+| `exceptions` | `src/coursepilot/exceptions.py` | 프로젝트 공통 커스텀 예외 계층(`CoursePilotError`, `AuthenticationError`, `NavigationTimeoutError`, `ConfigError` 등) |
+| `auth` | `src/coursepilot/auth.py` | LMS 로그인 폼 탐색, ID/PW 입력, 제출, 로그인 성공/실패 판별 및 오류 메시지 추출 |
+| `session_manager` | `src/coursepilot/session_manager.py` | Playwright 브라우저 라이프사이클(`headless`/`headful`), `storage_state` 캐시 로드/저장, 세션 만료 검증, 자동 재로그인 및 30초 타임아웃/1회 재시도 오케스트레이션 |
 
 ## Standard Stack
 
@@ -187,7 +187,7 @@ class SessionManager:
 
 ## Code Examples
 
-### 1. Configuration Model (`src/kau_assistant/config.py`)
+### 1. Configuration Model (`src/coursepilot/config.py`)
 ```python
 from pathlib import Path
 from pydantic import Field, SecretStr
@@ -238,13 +238,13 @@ def get_settings() -> Settings:
     return _settings_instance
 ```
 
-### 2. Course Mapping Loader (`src/kau_assistant/course_mapping.py`)
+### 2. Course Mapping Loader (`src/coursepilot/course_mapping.py`)
 ```python
 import json
 import logging
 from pathlib import Path
 
-logger = logging.getLogger("kau_assistant.course_mapping")
+logger = logging.getLogger("coursepilot.course_mapping")
 
 DEFAULT_MAPPINGS = {
     "공학수학2": "공수2",
@@ -286,13 +286,13 @@ def get_abbreviation(course_name: str, mappings: dict[str, str]) -> str:
     return cleaned
 ```
 
-### 3. Auth & Login Flow (`src/kau_assistant/auth.py`)
+### 3. Auth & Login Flow (`src/coursepilot/auth.py`)
 ```python
 import logging
 from playwright.sync_api import Page, TimeoutError
-from kau_assistant.exceptions import AuthenticationError
+from coursepilot.exceptions import AuthenticationError
 
-logger = logging.getLogger("kau_assistant.auth")
+logger = logging.getLogger("coursepilot.auth")
 
 USERNAME_SELECTORS = [
     "#input-username",
@@ -376,17 +376,17 @@ def perform_login(page: Page, username: str, password: str, lms_url: str, timeou
     logger.info("로그인 성공 및 대시보드 진입 확인 완료.")
 ```
 
-### 4. Session Manager (`src/kau_assistant/session_manager.py`)
+### 4. Session Manager (`src/coursepilot/session_manager.py`)
 ```python
 import json
 import logging
 from pathlib import Path
 from playwright.sync_api import sync_playwright, Browser, BrowserContext, Page, Playwright
-from kau_assistant.config import Settings, get_settings
-from kau_assistant.auth import perform_login, find_first_visible, LOGGED_IN_SELECTORS
-from kau_assistant.exceptions import NavigationTimeoutError
+from coursepilot.config import Settings, get_settings
+from coursepilot.auth import perform_login, find_first_visible, LOGGED_IN_SELECTORS
+from coursepilot.exceptions import NavigationTimeoutError
 
-logger = logging.getLogger("kau_assistant.session_manager")
+logger = logging.getLogger("coursepilot.session_manager")
 
 
 class SessionManager:

@@ -9,15 +9,15 @@ date: 2026-09-25
 
 ## Overview
 
-Plan 09-01 successfully implemented the core VOD player automation module (`src/kau_assistant/player/vod_player.py`). It controls Coursemos Video.js video playback in headless/background mode with audio muted, automatically confirms resume/alert dialogs, polls progress, resumes playback if paused, and ensures Coursemos attendance tracking heartbeats are sent until video completion.
+Plan 09-01 successfully implemented the core VOD player automation module (`src/coursepilot/player/vod_player.py`). It controls Coursemos Video.js video playback in headless/background mode with audio muted, automatically confirms resume/alert dialogs, polls progress, resumes playback if paused, and ensures Coursemos attendance tracking heartbeats are sent until video completion.
 
 ## Key Accomplishments
 
-1. **VOD Player Domain Models (`src/kau_assistant/player/models.py`)**:
+1. **VOD Player Domain Models (`src/coursepilot/player/models.py`)**:
    - `PlaybackOptions`: Muted by default (`muted=True`), normal speed (`playback_rate=1.0`), configurable polling interval, and optional `max_wait_seconds`.
    - `PlaybackProgress`: Structured snapshot containing `vod_url`, `title`, `duration`, `current_time`, `progress_percent`, `is_completed`, `is_paused`, and `error_message`.
 
-2. **VodPlayer Automation Engine (`src/kau_assistant/player/vod_player.py`)**:
+2. **VodPlayer Automation Engine (`src/coursepilot/player/vod_player.py`)**:
    - Live inspection on KAU LXP confirmed Coursemos uses an HTML5 `<video class="vjs-tech">` wrapped in Video.js (`.video-js`).
    - Integrated `page.on("dialog")` handler to automatically accept "이어보기" (resume) or "알림" alerts.
    - Initialized playback with audio muted and normal 1.0x speed.

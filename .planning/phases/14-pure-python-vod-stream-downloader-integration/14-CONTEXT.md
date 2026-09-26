@@ -9,7 +9,7 @@
 Phase 14 delivers a pure-Python HLS/m3u8 stream sniffer, segment downloader, and local MP4 assembler without requiring system `ffmpeg`:
 1. 시스템에 `ffmpeg` 설치 없이 순수 파이썬만으로 동작하는 HLS/m3u8 파서 및 TS 세그먼트 다운로더/병합기 구현.
 2. VOD 시청(`watch`) 시 `--download` 옵션을 지정하면 1.0배속 출석 인정 하트비트와 백그라운드 영상 다운로드를 동시에 완수.
-3. 1.0배속 실시간 시청 대기 없이 영상 파일만 고속으로 로컬 저장할 수 있는 단독 서브커맨드 `kau-assistant download-vod` 제공.
+3. 1.0배속 실시간 시청 대기 없이 영상 파일만 고속으로 로컬 저장할 수 있는 단독 서브커맨드 `coursepilot download-vod` 제공.
 4. `#EXT-X-KEY:METHOD=AES-128` 암호화 스트림에 대해 세션 인증 기반 키 취득 및 세그먼트별 투명 복호화 내장.
 5. 저장 경로 `downloads/<과목명>/W{주차}/W{주차}-{영상순번}_{영상제목}.mp4` 및 중복 시 건너뛰기(Skip), 임시 캐시를 통한 원자적 저장(Atomic Save).
 6. Rich CLI 진행 바(stderr) 및 에이전트 연동용 `--json` 출력 지원.
@@ -20,8 +20,8 @@ Phase 14 delivers a pure-Python HLS/m3u8 stream sniffer, segment downloader, and
 ## Implementation Decisions
 
 ### 1. 다운로드 실행 트리거 및 출석 연동 정책
-- **D-14-01:** `kau-assistant watch` 실행 시 `--download` 플래그 명시 시에만 다운로드를 병행한다. 기본 `watch`는 1.0배속 출석 하트비트 시청만 수행하여 불필요한 디스크 용량 낭비를 방지한다.
-- **D-14-02:** 출석 1.0배속 실시간 대기 없이 영상 파일만 즉시 고속으로 다운로드하는 단독 서브커맨드 `kau-assistant download-vod`를 제공한다 (m3u8 스트림 감지 후 브라우저를 닫고 고속 세그먼트 병렬 다운로드).
+- **D-14-01:** `coursepilot watch` 실행 시 `--download` 플래그 명시 시에만 다운로드를 병행한다. 기본 `watch`는 1.0배속 출석 하트비트 시청만 수행하여 불필요한 디스크 용량 낭비를 방지한다.
+- **D-14-02:** 출석 1.0배속 실시간 대기 없이 영상 파일만 즉시 고속으로 다운로드하는 단독 서브커맨드 `coursepilot download-vod`를 제공한다 (m3u8 스트림 감지 후 브라우저를 닫고 고속 세그먼트 병렬 다운로드).
 - **D-14-03:** `watch --download` 실행 시 재생 시작 즉시 스트림 URL을 감지하여 백그라운드 스레드에서 최대 대역폭으로 세그먼트들을 고속 다운로드 완료한다.
 - **D-14-04:** 출석 인정 격리 보장: 다운로드가 네트워크 일시 장애로 실패하더라도 브라우저 출석 재생은 절대 중단하지 않고 끝까지 완수한 뒤 경고/에러 로그만 보고한다.
 
@@ -59,11 +59,11 @@ Phase 14 delivers a pure-Python HLS/m3u8 stream sniffer, segment downloader, and
 - `.planning/REQUIREMENTS.md` § VDL-01, VDL-02 — VOD stream downloader requirements
 
 ### Existing Code & Architecture
-- `src/kau_assistant/player/vod_player.py` — Playwright VOD navigation, heartbeat loop, dialog handling
-- `src/kau_assistant/player/runner.py` — Watch execution pipeline and targeting logic
-- `src/kau_assistant/session_manager.py` — Playwright session storage and authentication cookies
-- `src/kau_assistant/materials/filename_utils.py` — Filename sanitization utilities
-- `src/kau_assistant/config.py` — Application configuration and `.env` handling
+- `src/coursepilot/player/vod_player.py` — Playwright VOD navigation, heartbeat loop, dialog handling
+- `src/coursepilot/player/runner.py` — Watch execution pipeline and targeting logic
+- `src/coursepilot/session_manager.py` — Playwright session storage and authentication cookies
+- `src/coursepilot/materials/filename_utils.py` — Filename sanitization utilities
+- `src/coursepilot/config.py` — Application configuration and `.env` handling
 
 </canonical_refs>
 
@@ -81,19 +81,19 @@ Phase 14 delivers a pure-Python HLS/m3u8 stream sniffer, segment downloader, and
 - CLI 플래그 일관성: `--course`, `--week`, `--output-dir`, `--overwrite`, `--dry-run`, `--json`.
 
 ### Integration Points
-- `src/kau_assistant/stream/` (신규): HLS m3u8 파서, 세그먼트 다운로더, AES-128 복호화기, TS 병합기.
-- `src/kau_assistant/player/vod_player.py`: m3u8 스트림 응답 스니핑 리스너 등록.
-- `src/kau_assistant/player/runner.py`: watch 파이프라인 내 백그라운드 다운로드 스레드 연동.
-- `src/kau_assistant/cli.py`: `watch --download` 플래그 및 `download-vod` 신규 서브커맨드 등록.
+- `src/coursepilot/stream/` (신규): HLS m3u8 파서, 세그먼트 다운로더, AES-128 복호화기, TS 병합기.
+- `src/coursepilot/player/vod_player.py`: m3u8 스트림 응답 스니핑 리스너 등록.
+- `src/coursepilot/player/runner.py`: watch 파이프라인 내 백그라운드 다운로드 스레드 연동.
+- `src/coursepilot/cli.py`: `watch --download` 플래그 및 `download-vod` 신규 서브커맨드 등록.
 
 </code_context>
 
 <specifics>
 ## Specific Ideas
 
-- 사용자가 `kau-assistant watch --course "컴파일러" --week 2 --download` 실행 시:
+- 사용자가 `coursepilot watch --course "컴파일러" --week 2 --download` 실행 시:
   - 1.0배속으로 출석 인정 하트비트가 유지되면서, 백그라운드에서 HLS 세그먼트가 최대 속도로 병렬 다운로드되어 `downloads/컴파일러/W02/W02-01_어휘분석기.mp4`로 원자적 저장.
-- 사용자가 `kau-assistant download-vod --course "공수2" --week 3` 실행 시:
+- 사용자가 `coursepilot download-vod --course "공수2" --week 3` 실행 시:
   - 출석 1.0배속 시청 없이 즉시 스트림 주소만 획득 후 브라우저를 닫고 고속으로 다운로드 완료.
 
 </specifics>

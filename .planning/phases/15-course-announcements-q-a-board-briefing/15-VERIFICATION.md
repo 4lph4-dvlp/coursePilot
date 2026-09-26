@@ -35,13 +35,13 @@ re_verification: null
 
 | Artifact | Expected | Status | Details |
 |----------|----------|--------|---------|
-| `src/kau_assistant/board/models.py` | BoardItem, BoardComment, BoardAttachment, BoardRunResult, BoardReadState with schema_version: 1 | ✓ VERIFIED | Defined all Pydantic models with `extra="forbid"`, proper field typing, and JSON contracts. |
-| `src/kau_assistant/board/text_converter.py` | CP949-safe HTML to Markdown converter | ✓ VERIFIED | Implemented `html_to_markdown` normalizing NBSP, handling tables, links, emphasis, and code. |
-| `src/kau_assistant/scraper/board_parser.py` | Coursemos ubboard list and article parser | ✓ VERIFIED | Implemented `parse_board_list` (5-col notice, 6-col Q&A), `parse_article_detail`, secret post detection. |
-| `src/kau_assistant/board/read_state.py` | Atomic JSON read state manager with LRU capping | ✓ VERIFIED | Implemented `BoardReadStateManager` with `.tmp -> replace` atomic updates and 200 entry/course LRU. |
-| `src/kau_assistant/board/runner.py` | Multi-course collection pipeline with error isolation and attachment downloading | ✓ VERIFIED | Implemented `run_board_collection` and `fetch_and_format_article` with Phase 13 downloader integration. |
-| `src/kau_assistant/board/reporter.py` | Rich terminal presentation with status badges and article view | ✓ VERIFIED | Implemented `render_board_report` and `render_article_detail` with Korean badges and muted lines. |
-| `src/kau_assistant/cli.py` | Click CLI commands `board`, `notices`, `qna` | ✓ VERIFIED | Registered commands with shared options, stream separation (stderr/stdout), and exit codes. |
+| `src/coursepilot/board/models.py` | BoardItem, BoardComment, BoardAttachment, BoardRunResult, BoardReadState with schema_version: 1 | ✓ VERIFIED | Defined all Pydantic models with `extra="forbid"`, proper field typing, and JSON contracts. |
+| `src/coursepilot/board/text_converter.py` | CP949-safe HTML to Markdown converter | ✓ VERIFIED | Implemented `html_to_markdown` normalizing NBSP, handling tables, links, emphasis, and code. |
+| `src/coursepilot/scraper/board_parser.py` | Coursemos ubboard list and article parser | ✓ VERIFIED | Implemented `parse_board_list` (5-col notice, 6-col Q&A), `parse_article_detail`, secret post detection. |
+| `src/coursepilot/board/read_state.py` | Atomic JSON read state manager with LRU capping | ✓ VERIFIED | Implemented `BoardReadStateManager` with `.tmp -> replace` atomic updates and 200 entry/course LRU. |
+| `src/coursepilot/board/runner.py` | Multi-course collection pipeline with error isolation and attachment downloading | ✓ VERIFIED | Implemented `run_board_collection` and `fetch_and_format_article` with Phase 13 downloader integration. |
+| `src/coursepilot/board/reporter.py` | Rich terminal presentation with status badges and article view | ✓ VERIFIED | Implemented `render_board_report` and `render_article_detail` with Korean badges and muted lines. |
+| `src/coursepilot/cli.py` | Click CLI commands `board`, `notices`, `qna` | ✓ VERIFIED | Registered commands with shared options, stream separation (stderr/stdout), and exit codes. |
 | `tests/test_board_text_converter.py` | Unit tests for text converter | ✓ VERIFIED | 6 tests passing. |
 | `tests/test_board_parser.py` | Unit tests for board parser | ✓ VERIFIED | 12 tests passing. |
 | `tests/test_board_read_state.py` | Unit tests for read state manager | ✓ VERIFIED | 6 tests passing. |

@@ -11,7 +11,7 @@ requires:
   - phase: 04-notion-scheduler-integration-deduplication
     provides: "NotionSyncEngine.sync(tasks, dry_run=...), SyncResult/CreateAction/UpdateAction/SkipAction/ErrorAction/FieldDiff DTOs, dry-run-after-real-reads pattern, _safe_error masking"
 provides:
-  - "python -m kau_assistant sync [--json] [--headed] [--relogin] [--apply]"
+  - "python -m coursepilot sync [--json] [--headed] [--relogin] [--apply]"
   - "Sync half of JSON contract v1 (report_models.py: SyncChange/SyncCreateItem/SyncUpdateItem/SyncSkipItem/SyncCounts/SyncSection/SyncReport)"
   - "build_sync_report/render_sync_report/notion_page_url (reporter.py) mapping a real SyncResult into the create/update/skip approval-flow data (D-16)"
   - "Shared _collect_lms_tasks helper in cli.py reused by both check and sync"
@@ -34,9 +34,9 @@ tech-stack:
 key-files:
   created: []
   modified:
-    - src/kau_assistant/report_models.py
-    - src/kau_assistant/reporter.py
-    - src/kau_assistant/cli.py
+    - src/coursepilot/report_models.py
+    - src/coursepilot/reporter.py
+    - src/coursepilot/cli.py
     - tests/test_cli.py
     - tests/test_reporter.py
 
@@ -52,7 +52,7 @@ requirements-completed: [SKIL-02, SKIL-01]
 
 coverage:
   - id: D1
-    description: "python -m kau_assistant sync --json runs the real NotionSyncEngine planning path (target resolve -> schema validate -> query existing -> plan) as a dry-run by default, making zero create_page/update_page calls"
+    description: "python -m coursepilot sync --json runs the real NotionSyncEngine planning path (target resolve -> schema validate -> query existing -> plan) as a dry-run by default, making zero create_page/update_page calls"
     requirement: SKIL-02
     verification:
       - kind: unit
@@ -132,7 +132,7 @@ status: complete
 
 # Phase 5 Plan 3: `sync` Command — Notion Preview-then-Apply Summary
 
-**`python -m kau_assistant sync` runs the real Phase 4 `NotionSyncEngine` planning path as a dry-run by default, writes only with `--apply`, and reports the create/update/skip plan as both a Rich report and the sync half of JSON contract v1 — `check` still never touches Notion.**
+**`python -m coursepilot sync` runs the real Phase 4 `NotionSyncEngine` planning path as a dry-run by default, writes only with `--apply`, and reports the create/update/skip plan as both a Rich report and the sync half of JSON contract v1 — `check` still never touches Notion.**
 
 ## Performance
 
@@ -148,7 +148,7 @@ status: complete
 - Sync half of contract v1 (`report_models.py`): `SyncChange`, `SyncCreateItem`, `SyncUpdateItem`, `SyncSkipItem`, `SyncCounts`, `SyncSection`, `SyncReport` — all `extra="forbid"`, matching the plan's exact field lists.
 - Pure mapper (`reporter.py`): `build_sync_report` maps a real `SyncResult` into `SyncSection` explicitly (never `model_dump()`), with `notion_page_url()` building hyphen-free Notion URLs and a private `_display()` helper rendering `FieldDiff` before/after values (`None`/`datetime.isoformat()`/`Enum.value`/`str` fallback). Every `ErrorAction` becomes a top-level `ErrorItem(scope="notion", ...)`. `applied = enabled and not dry_run`. Unconfigured Notion sets a static Korean `notice` naming only the candidate `.env` key names (no values).
 - Rich renderer (`reporter.py`): `render_sync_report` shows the shared summary header (D-03, extracted into `_summary_header` and reused by `render_check_report`), a mode banner (미리보기 with `--apply` hint / 적용 완료 / the unconfigured notice), 생성/수정/건너뜀 tables (update shows `DueDate: before -> after`, skip shows Korean reason labels via `SKIP_REASON_LABELS`), and the shared `_render_errors` section — all `overflow="fold"` + `Text`-wrapped, matching 05-01's no-truncation/no-markup-injection rules.
-- `check` continues to never import or construct `NotionSyncEngine`, now pinned by a dedicated test that patches `kau_assistant.cli.NotionSyncEngine` to raise if called.
+- `check` continues to never import or construct `NotionSyncEngine`, now pinned by a dedicated test that patches `coursepilot.cli.NotionSyncEngine` to raise if called.
 - Exit codes and redaction hold across every sync path (configured, unconfigured, Notion error, LMS-fatal), all covered by dedicated tests.
 
 ## Task Commits
@@ -164,9 +164,9 @@ Task 1 was `type="tracer"` (single production-quality commit + re-verified `<ver
 
 ## Files Created/Modified
 
-- `src/kau_assistant/report_models.py` - Sync half of contract v1: SyncChange/SyncCreateItem/SyncUpdateItem/SyncSkipItem/SyncCounts/SyncSection/SyncReport
-- `src/kau_assistant/reporter.py` - notion_page_url, build_sync_report, render_sync_report, _classify_by_urgency and _summary_header extracted as shared helpers
-- `src/kau_assistant/cli.py` - sync command, _collect_lms_tasks shared helper
+- `src/coursepilot/report_models.py` - Sync half of contract v1: SyncChange/SyncCreateItem/SyncUpdateItem/SyncSkipItem/SyncCounts/SyncSection/SyncReport
+- `src/coursepilot/reporter.py` - notion_page_url, build_sync_report, render_sync_report, _classify_by_urgency and _summary_header extracted as shared helpers
+- `src/coursepilot/cli.py` - sync command, _collect_lms_tasks shared helper
 - `tests/test_cli.py` - 8 new tests: dry-run, apply, check-no-engine, no-Notion notice, exit codes (notion error, fatal), redaction
 - `tests/test_reporter.py` - 3 new tests: sync envelope key contract, Rich section rendering, no-truncation at scale
 
@@ -196,9 +196,9 @@ None - no external service configuration required. No new packages were installe
 
 ## Self-Check: PASSED
 
-- FOUND: src/kau_assistant/report_models.py
-- FOUND: src/kau_assistant/reporter.py
-- FOUND: src/kau_assistant/cli.py
+- FOUND: src/coursepilot/report_models.py
+- FOUND: src/coursepilot/reporter.py
+- FOUND: src/coursepilot/cli.py
 - FOUND: tests/test_cli.py
 - FOUND: tests/test_reporter.py
 - FOUND commits: faa32bd, 8442a2c, 3edbd98, 93b6871

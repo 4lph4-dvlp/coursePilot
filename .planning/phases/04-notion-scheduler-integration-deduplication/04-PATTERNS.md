@@ -9,13 +9,13 @@
 | New/Modified File | Role | Data Flow | Closest Tracked Analog | Match Quality |
 |---|---|---|---|---|
 | `.env.example` | config | transform | `.env.example` | exact, modify in place |
-| `src/kau_assistant/config.py` | config | transform | `src/kau_assistant/config.py` | exact, modify in place |
-| `src/kau_assistant/notion/__init__.py` | provider/facade | request-response | `src/kau_assistant/domain/__init__.py` | exact role |
-| `src/kau_assistant/notion/models.py` | model | transform | `src/kau_assistant/domain/models.py` | exact role |
-| `src/kau_assistant/notion/client.py` | service | request-response + CRUD | `src/kau_assistant/session_manager.py` | role/data-flow match |
-| `src/kau_assistant/notion/mapper.py` | utility | transform | `src/kau_assistant/domain/transformer.py` | exact data-flow |
-| `src/kau_assistant/notion/deduplicator.py` | service | batch + transform | `src/kau_assistant/domain/transformer.py`; `src/kau_assistant/course_mapping.py` | data-flow match |
-| `src/kau_assistant/notion/engine.py` | service/orchestrator | batch + request-response | `src/kau_assistant/session_manager.py` | role match |
+| `src/coursepilot/config.py` | config | transform | `src/coursepilot/config.py` | exact, modify in place |
+| `src/coursepilot/notion/__init__.py` | provider/facade | request-response | `src/coursepilot/domain/__init__.py` | exact role |
+| `src/coursepilot/notion/models.py` | model | transform | `src/coursepilot/domain/models.py` | exact role |
+| `src/coursepilot/notion/client.py` | service | request-response + CRUD | `src/coursepilot/session_manager.py` | role/data-flow match |
+| `src/coursepilot/notion/mapper.py` | utility | transform | `src/coursepilot/domain/transformer.py` | exact data-flow |
+| `src/coursepilot/notion/deduplicator.py` | service | batch + transform | `src/coursepilot/domain/transformer.py`; `src/coursepilot/course_mapping.py` | data-flow match |
+| `src/coursepilot/notion/engine.py` | service/orchestrator | batch + request-response | `src/coursepilot/session_manager.py` | role match |
 | `tests/conftest.py` | test fixture/config | transform | `tests/conftest.py` | exact, modify in place |
 | `tests/test_config.py` | test | transform | `tests/test_config.py` | exact, modify in place |
 | `tests/test_notion_client.py` | test | request-response + CRUD | `tests/test_session_manager.py` | role/data-flow match |
@@ -39,7 +39,7 @@ Keep the grouped, uppercase environment-variable style. Add `NOTION_TOKEN` as th
 
 ---
 
-### `src/kau_assistant/config.py` (config, transform)
+### `src/coursepilot/config.py` (config, transform)
 
 **Analog:** itself, especially settings declaration and secret masking.
 
@@ -82,17 +82,17 @@ Extend the existing `Settings`/`get_settings` API; do not introduce the stale `A
 
 ---
 
-### `src/kau_assistant/notion/__init__.py` (provider/facade, request-response)
+### `src/coursepilot/notion/__init__.py` (provider/facade, request-response)
 
-**Analog:** `src/kau_assistant/domain/__init__.py` lines 3-45.
+**Analog:** `src/coursepilot/domain/__init__.py` lines 3-45.
 
 ```python
-from kau_assistant.domain.models import (
+from coursepilot.domain.models import (
     Course,
     SyncTask,
     TaskPriority,
 )
-from kau_assistant.domain.transformer import (
+from coursepilot.domain.transformer import (
     format_memo,
     transform_to_sync_tasks,
 )
@@ -106,13 +106,13 @@ __all__ = [
 ]
 ```
 
-Use absolute `kau_assistant...` imports, group imports by defining module, and publish a deliberate alphabetized `__all__`. Export only the stable Phase 5 surface (engine, result/action DTOs, and necessary client errors); keep private mapper helpers and SDK details out. Add a facade-import test like `tests/test_transformer.py:46-63`.
+Use absolute `coursepilot...` imports, group imports by defining module, and publish a deliberate alphabetized `__all__`. Export only the stable Phase 5 surface (engine, result/action DTOs, and necessary client errors); keep private mapper helpers and SDK details out. Add a facade-import test like `tests/test_transformer.py:46-63`.
 
 ---
 
-### `src/kau_assistant/notion/models.py` (model, transform)
+### `src/coursepilot/notion/models.py` (model, transform)
 
-**Analog:** `src/kau_assistant/domain/models.py` lines 3-8 and 46-78.
+**Analog:** `src/coursepilot/domain/models.py` lines 3-8 and 46-78.
 
 ```python
 from datetime import datetime
@@ -138,13 +138,13 @@ Use Pydantic `BaseModel`, typed fields, `Field(default_factory=...)` for every l
 
 Prefer immutable action DTOs (`ConfigDict(frozen=True)`) because planning output should not mutate between dry-run and execution. Each action/result item should retain `task_id`, `title`, optional `page_id`, `executed`, and its diff/reason/error metadata.
 
-**Landmine:** `src/kau_assistant/domain/models.py:80-84` defines `dedup_key` as `title|due_date`. Phase 4 identity is `SyncTask.title` only. Never import or reference `dedup_key` from `notion/`.
+**Landmine:** `src/coursepilot/domain/models.py:80-84` defines `dedup_key` as `title|due_date`. Phase 4 identity is `SyncTask.title` only. Never import or reference `dedup_key` from `notion/`.
 
 ---
 
-### `src/kau_assistant/notion/client.py` (service, request-response + CRUD)
+### `src/coursepilot/notion/client.py` (service, request-response + CRUD)
 
-**Primary analog:** `src/kau_assistant/session_manager.py` lines 14-19 and 68-82. **Error analog:** `src/kau_assistant/exceptions.py` lines 3-20.
+**Primary analog:** `src/coursepilot/session_manager.py` lines 14-19 and 68-82. **Error analog:** `src/coursepilot/exceptions.py` lines 3-20.
 
 **Constructor injection** (session manager lines 14-19):
 
@@ -183,13 +183,13 @@ update_page(page_id: str, properties: dict) -> dict
 
 Use the locked SDK 3.1 data-source API: explicit database ID -> `databases.retrieve` -> exactly one/matched child data source; name discovery -> paginated `search` filtered to `data_source` -> reconstructed exact title -> unique match. Query with the locked OR filter (`DueDate >= 90-day KST cutoff` OR `상태 != 완료`) and paginate every response. Configure SDK `RetryOptions(max_retries=3)` for 429 instead of layering a second 429 loop. A separate narrow 529 retry may use injected sleep and bounded attempts. Apply the 0.35-second spacing at one low-level request boundary so calls are neither skipped nor double-delayed.
 
-Add typed Notion exceptions under `kau_assistant.exceptions.KauAssistantError`; translate 401/403/404/validation failures into Korean recovery guidance and chain the original exception. Do not include tokens, auth headers, or full secret-bearing request bodies in logs/results. Do not retry uncertain create/update outcomes after a 5xx.
+Add typed Notion exceptions under `coursepilot.exceptions.CoursePilotError`; translate 401/403/404/validation failures into Korean recovery guidance and chain the original exception. Do not include tokens, auth headers, or full secret-bearing request bodies in logs/results. Do not retry uncertain create/update outcomes after a 5xx.
 
 ---
 
-### `src/kau_assistant/notion/mapper.py` (utility, transform)
+### `src/coursepilot/notion/mapper.py` (utility, transform)
 
-**Analog:** `src/kau_assistant/domain/transformer.py` lines 51-95 and 215-254.
+**Analog:** `src/coursepilot/domain/transformer.py` lines 51-95 and 215-254.
 
 **Pure, typed transformation pattern** (lines 51-57, 91-95):
 
@@ -214,9 +214,9 @@ Create payload maps `이름`, `선택`, `구분`, optional `DueDate`, `우선순
 
 ---
 
-### `src/kau_assistant/notion/deduplicator.py` (service, batch + transform)
+### `src/coursepilot/notion/deduplicator.py` (service, batch + transform)
 
-**Primary analog:** `src/kau_assistant/domain/transformer.py` lines 215-254. **Fallback/exact lookup analog:** `src/kau_assistant/course_mapping.py` lines 38-51.
+**Primary analog:** `src/coursepilot/domain/transformer.py` lines 215-254. **Fallback/exact lookup analog:** `src/coursepilot/course_mapping.py` lines 38-51.
 
 ```python
 def transform_to_sync_tasks(...) -> list[SyncTask]:
@@ -242,9 +242,9 @@ Make `plan_sync(tasks, existing_pages) -> list[SyncAction]` pure and determinist
 
 ---
 
-### `src/kau_assistant/notion/engine.py` (service/orchestrator, batch + request-response)
+### `src/coursepilot/notion/engine.py` (service/orchestrator, batch + request-response)
 
-**Analog:** `src/kau_assistant/session_manager.py` lines 17-19 and 91-147.
+**Analog:** `src/coursepilot/session_manager.py` lines 17-19 and 91-147.
 
 The analog injects `Settings`, lazily establishes the external boundary, sequences validation before side effects, and returns the acquired result. Follow that shape with explicit collaborators:
 
@@ -311,7 +311,7 @@ Assert neither preferred nor legacy token appears in `repr()` or `str()`.
 ```python
 @pytest.fixture
 def mock_playwright_stack():
-    with patch("kau_assistant.session_manager.sync_playwright") as mock_sync:
+    with patch("coursepilot.session_manager.sync_playwright") as mock_sync:
         mock_p = MagicMock()
         # ... connect the complete mocked external stack ...
         yield {"playwright": mock_p, "browser": mock_browser, "page": mock_page}
@@ -366,25 +366,25 @@ The analog injects settings, patches one external boundary, and verifies both re
 
 ### Imports and Package Surface
 
-**Source:** `src/kau_assistant/domain/__init__.py:3-45`, `src/kau_assistant/domain/transformer.py:6-25`
+**Source:** `src/coursepilot/domain/__init__.py:3-45`, `src/coursepilot/domain/transformer.py:6-25`
 
-Use absolute imports (`from kau_assistant...`) and explicit `__all__`. Keep imports at module top and keep SDK types confined to `notion/client.py` and client tests.
+Use absolute imports (`from coursepilot...`) and explicit `__all__`. Keep imports at module top and keep SDK types confined to `notion/client.py` and client tests.
 
 ### Dependency Injection
 
-**Source:** `src/kau_assistant/session_manager.py:17-19`, `tests/test_session_manager.py:12-31`
+**Source:** `src/coursepilot/session_manager.py:17-19`, `tests/test_session_manager.py:12-31`
 
 Construct production defaults only when collaborators are absent. Inject `Settings`, SDK wrapper, sleep, and clock at the boundary. Pure mapper/deduplicator functions receive all inputs directly and need no global configuration.
 
 ### Errors and Safe Fallback
 
-**Source:** `src/kau_assistant/exceptions.py:3-20`, `src/kau_assistant/course_mapping.py:16-35`, `src/kau_assistant/session_manager.py:68-82`
+**Source:** `src/coursepilot/exceptions.py:3-20`, `src/coursepilot/course_mapping.py:16-35`, `src/coursepilot/session_manager.py:68-82`
 
 Use project exception subclasses and `raise ... from e` at the transport boundary. Reserve graceful non-error fallback for genuinely absent Notion configuration. Configured failures become structured errors with Korean guidance. Log actionable context, but never secrets. Broad `except Exception` from legacy cleanup/fallback code is not the pattern for transport classification.
 
 ### Validation and Canonicalization
 
-**Source:** `src/kau_assistant/domain/models.py:46-78`, `src/kau_assistant/domain/transformer.py:51-95`
+**Source:** `src/coursepilot/domain/models.py:46-78`, `src/coursepilot/domain/transformer.py:51-95`
 
 Use Pydantic for stable DTO contracts and pure functions for API dictionary conversion. Canonicalize titles/dates/select values before diffing. Validate the live Scheduler schema before query/write; never auto-create or mutate user schema/options.
 
@@ -412,7 +412,7 @@ There is no existing in-repo Notion SDK wrapper or plan-then-execute dry-run eng
 
 ## Metadata
 
-**Analog search scope:** tracked files under `src/kau_assistant/`, `tests/`, root config files, and Phase 4 context/research
+**Analog search scope:** tracked files under `src/coursepilot/`, `tests/`, root config files, and Phase 4 context/research
 **Strong source analogs:** `config.py`, `domain/__init__.py`, `domain/models.py`, `domain/transformer.py`, `session_manager.py`, `course_mapping.py` (plus shared exception hierarchy)
 **Tracked-source verification:** every named analog returned non-empty output from `git ls-files -- <path>`; no `.gsd`/plugin mirror path is used
 **Framework:** Python 3.11+, Pydantic 2, pydantic-settings, notion-client (lock resolves 3.1.0), pytest/pytest-mock

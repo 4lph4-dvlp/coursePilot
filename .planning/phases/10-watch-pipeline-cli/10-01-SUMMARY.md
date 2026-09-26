@@ -9,20 +9,20 @@ date: 2026-09-25
 
 ## Overview
 
-Plan 10-01 implemented the end-to-end `watch` runner pipeline and CLI command (`kau-assistant watch`). It allows users and agents to target specific courses and weeks, filters for unwatched regular VODs (skipping already-completed and OT lectures), coordinates sequential playback via `VodPlayer`, and optionally updates corresponding Notion Scheduler tasks to '완료' (Done).
+Plan 10-01 implemented the end-to-end `watch` runner pipeline and CLI command (`coursepilot watch`). It allows users and agents to target specific courses and weeks, filters for unwatched regular VODs (skipping already-completed and OT lectures), coordinates sequential playback via `VodPlayer`, and optionally updates corresponding Notion Scheduler tasks to '완료' (Done).
 
 ## Key Accomplishments
 
-1. **Notion Completion Method (`src/kau_assistant/notion/client.py`)**:
+1. **Notion Completion Method (`src/coursepilot/notion/client.py`)**:
    - Added `mark_task_completed(page_id: str)` to safely update a task's `상태` to `완료` while leaving user-managed fields intact.
 
-2. **Watch Runner Pipeline (`src/kau_assistant/player/runner.py`)**:
+2. **Watch Runner Pipeline (`src/coursepilot/player/runner.py`)**:
    - `find_target_course`: Resolves course queries via exact name, raw name, course ID, or mapped abbreviation (e.g. `디시설` -> `디지털시스템설계`).
    - `resolve_candidate_vods`: Discovers VODs, filters by target week (`current` selects earliest incomplete regular week, `all`, or numeric week like `4`), excludes 0-week/OT videos, and counts completed videos to skip.
    - `watch_course_vods`: Coordinates course scraping, candidate resolution, sequential playback with progress callbacks, and optional Notion status updates.
 
-3. **CLI Subcommand `watch` (`src/kau_assistant/cli.py`)**:
-   - Added `kau-assistant watch` with `--course`, `--week`, `--update-notion`, `--dry-run`, `--json`, `--relogin`, and `--headed`.
+3. **CLI Subcommand `watch` (`src/coursepilot/cli.py`)**:
+   - Added `coursepilot watch` with `--course`, `--week`, `--update-notion`, `--dry-run`, `--json`, `--relogin`, and `--headed`.
    - Supports Rich console real-time status output as well as structured JSON output.
 
 4. **Testing & Live Verification**:

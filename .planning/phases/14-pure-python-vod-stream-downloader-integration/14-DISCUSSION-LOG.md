@@ -26,7 +26,7 @@
 | `watch --only-download` 플래그 | watch 명령어 내부에서 출석 하트비트 생략 | |
 | 단독 다운로드 미지원 | 오직 `watch --download`로만 출석 중 다운로드 허용 | |
 
-**User's choice:** 단독 다운로드 서브커맨드 `kau-assistant download-vod` 제공
+**User's choice:** 단독 다운로드 서브커맨드 `coursepilot download-vod` 제공
 **Notes:** 이미 출석 완료된 영상이거나 오프라인 소장용으로 빠른 다운로드가 필요한 경우 지원
 
 | Option | Description | Selected |

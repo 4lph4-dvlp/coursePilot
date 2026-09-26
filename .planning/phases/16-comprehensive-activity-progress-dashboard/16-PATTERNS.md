@@ -2,15 +2,15 @@
 
 ## Summary
 
-Phase 16 introduces a multi-tier academic activity progress dashboard (`kau-assistant progress`) tracking the 4 core learning activities: Video Lectures (VOD), Assignments, Quizzes, and Learning Materials.
+Phase 16 introduces a multi-tier academic activity progress dashboard (`coursepilot progress`) tracking the 4 core learning activities: Video Lectures (VOD), Assignments, Quizzes, and Learning Materials.
 
 To ensure consistency and high code quality, new code directly mirrors established patterns in the codebase:
-- **Models & Contracts:** Follows `src/kau_assistant/board/models.py` and `src/kau_assistant/report_models.py` using Pydantic `BaseModel` with `ConfigDict(extra="forbid")` and explicit `schema_version: Literal[1] = 1`.
-- **Parsing Enhancement:** Extends `src/kau_assistant/scraper/models.py` (`AssessmentItem`) and `src/kau_assistant/scraper/assessment_parser.py` (`parse_assessment_list`) with backward-compatible `week_number` extraction based on existing table header parsing.
-- **Calculator Logic:** Pure functional engine in `src/kau_assistant/progress/calculator.py` mirroring `src/kau_assistant/scraper/lecture_parser.py` for date/section parsing and `src/kau_assistant/reporter.py` for KPI aggregation.
-- **Runner & Caching:** Orchestrator in `src/kau_assistant/progress/runner.py` adopting `src/kau_assistant/board/runner.py` for session management and error isolation, `src/kau_assistant/materials/downloader.py` for authenticated HTTP client retrieval, and an atomic 10-minute file cache (`progress_cache.json`).
-- **Rich Reporting:** Terminal renderer in `src/kau_assistant/progress/reporter.py` drawing on `src/kau_assistant/reporter.py` and `src/kau_assistant/board/reporter.py` for 3-tier layouts (Summary table with color-coded progress bars, Action items To-Do list, Alert / All-Clear badge panel).
-- **CLI Commands:** Integration in `src/kau_assistant/cli.py` mirroring `board_command` and `materials_command` with clean stream separation (stderr spinners, stdout reports/JSON).
+- **Models & Contracts:** Follows `src/coursepilot/board/models.py` and `src/coursepilot/report_models.py` using Pydantic `BaseModel` with `ConfigDict(extra="forbid")` and explicit `schema_version: Literal[1] = 1`.
+- **Parsing Enhancement:** Extends `src/coursepilot/scraper/models.py` (`AssessmentItem`) and `src/coursepilot/scraper/assessment_parser.py` (`parse_assessment_list`) with backward-compatible `week_number` extraction based on existing table header parsing.
+- **Calculator Logic:** Pure functional engine in `src/coursepilot/progress/calculator.py` mirroring `src/coursepilot/scraper/lecture_parser.py` for date/section parsing and `src/coursepilot/reporter.py` for KPI aggregation.
+- **Runner & Caching:** Orchestrator in `src/coursepilot/progress/runner.py` adopting `src/coursepilot/board/runner.py` for session management and error isolation, `src/coursepilot/materials/downloader.py` for authenticated HTTP client retrieval, and an atomic 10-minute file cache (`progress_cache.json`).
+- **Rich Reporting:** Terminal renderer in `src/coursepilot/progress/reporter.py` drawing on `src/coursepilot/reporter.py` and `src/coursepilot/board/reporter.py` for 3-tier layouts (Summary table with color-coded progress bars, Action items To-Do list, Alert / All-Clear badge panel).
+- **CLI Commands:** Integration in `src/coursepilot/cli.py` mirroring `board_command` and `materials_command` with clean stream separation (stderr spinners, stdout reports/JSON).
 - **Testing Suite:** Comprehensive pytest tests covering models, calculation math, runner mocks, reporter rendering, and CLI invocation mirroring `test_board_runner.py` and `test_cli_board.py`.
 
 ---
@@ -19,13 +19,13 @@ To ensure consistency and high code quality, new code directly mirrors establish
 
 | File | Role | Data Flow | Closest Analog | Key Differences / Additions |
 |---|---|---|---|---|
-| `src/kau_assistant/scraper/models.py` | Scraper DTO | LMS HTML -> AssessmentItem | `AssessmentItem` (same file) | Adds `week_number: int \| None = None` to store parsed week metadata. |
-| `src/kau_assistant/scraper/assessment_parser.py` | Scraper Parser | HTML table -> `list[AssessmentItem]` | `parse_assessment_list` (same file) | Detects `"주차"`, `"주"`, `"Week"` header columns and parses `week_number`. |
-| `src/kau_assistant/progress/models.py` | Progress DTO & Contract | Activity collections -> JSON / CLI | `src/kau_assistant/board/models.py` | Models 4-tier activity counts, dual progress rates, and `ProgressReport` (`schema_version: 1`). |
-| `src/kau_assistant/progress/calculator.py` | Calculation Engine | Raw activities -> Metric aggregations | `src/kau_assistant/scraper/lecture_parser.py` & `src/kau_assistant/reporter.py` | Hybrid current week detection, open vs semester rates, past-weeks missed accounting. |
-| `src/kau_assistant/progress/runner.py` | Pipeline & Cache Orchestrator | LMS HTTP / Cache -> Unified Progress | `src/kau_assistant/board/runner.py` | Single-trip HTML scraping (VOD + materials), atomic 10m TTL cache, course error isolation. |
-| `src/kau_assistant/progress/reporter.py` | Terminal Visualizer | `ProgressReport` -> Rich Terminal UI | `src/kau_assistant/board/reporter.py` & `src/kau_assistant/reporter.py` | 3-tier view: Color progress bar table, To-Do list with tags, Alert/All Clear badges, week matrix. |
-| `src/kau_assistant/cli.py` | CLI Command | CLI flags -> Runner -> Output | `materials_command` & `board_command` | Implements `@cli.command("progress")` with `--course`, `--week`, `--detail`, `--cached`, `--refresh`, `--json`. |
+| `src/coursepilot/scraper/models.py` | Scraper DTO | LMS HTML -> AssessmentItem | `AssessmentItem` (same file) | Adds `week_number: int \| None = None` to store parsed week metadata. |
+| `src/coursepilot/scraper/assessment_parser.py` | Scraper Parser | HTML table -> `list[AssessmentItem]` | `parse_assessment_list` (same file) | Detects `"주차"`, `"주"`, `"Week"` header columns and parses `week_number`. |
+| `src/coursepilot/progress/models.py` | Progress DTO & Contract | Activity collections -> JSON / CLI | `src/coursepilot/board/models.py` | Models 4-tier activity counts, dual progress rates, and `ProgressReport` (`schema_version: 1`). |
+| `src/coursepilot/progress/calculator.py` | Calculation Engine | Raw activities -> Metric aggregations | `src/coursepilot/scraper/lecture_parser.py` & `src/coursepilot/reporter.py` | Hybrid current week detection, open vs semester rates, past-weeks missed accounting. |
+| `src/coursepilot/progress/runner.py` | Pipeline & Cache Orchestrator | LMS HTTP / Cache -> Unified Progress | `src/coursepilot/board/runner.py` | Single-trip HTML scraping (VOD + materials), atomic 10m TTL cache, course error isolation. |
+| `src/coursepilot/progress/reporter.py` | Terminal Visualizer | `ProgressReport` -> Rich Terminal UI | `src/coursepilot/board/reporter.py` & `src/coursepilot/reporter.py` | 3-tier view: Color progress bar table, To-Do list with tags, Alert/All Clear badges, week matrix. |
+| `src/coursepilot/cli.py` | CLI Command | CLI flags -> Runner -> Output | `materials_command` & `board_command` | Implements `@cli.command("progress")` with `--course`, `--week`, `--detail`, `--cached`, `--refresh`, `--json`. |
 | `tests/test_progress_models.py` | Model Unit Tests | Pydantic validation & JSON roundtrip | `tests/test_material_models.py` | Tests `ActivityBreakdown`, `CourseProgress`, and `ProgressReport` contract. |
 | `tests/test_progress_calculator.py` | Engine Unit Tests | Synthetic items -> Calculated metrics | `tests/test_priority.py` & `tests/test_lecture_parser.py` | Tests week detection, dual rates, past missed items, and Week 1 edge cases. |
 | `tests/test_progress_runner.py` | Pipeline Mock Tests | Mock HTTP / HTML fixtures -> Report | `tests/test_board_runner.py` | Tests single-trip scraping, cache TTL expiration, `--refresh`, and error isolation. |
@@ -36,11 +36,11 @@ To ensure consistency and high code quality, new code directly mirrors establish
 
 ## Concrete Code Excerpts
 
-### 1. `src/kau_assistant/scraper/models.py`
-**Analog:** Existing `AssessmentItem` in `src/kau_assistant/scraper/models.py`.
+### 1. `src/coursepilot/scraper/models.py`
+**Analog:** Existing `AssessmentItem` in `src/coursepilot/scraper/models.py`.
 
 ```python
-# In src/kau_assistant/scraper/models.py:
+# In src/coursepilot/scraper/models.py:
 class AssessmentItem(BaseModel):
     """Assessment item (assignment, quiz, exam, discussion) in LMS."""
 
@@ -60,8 +60,8 @@ class AssessmentItem(BaseModel):
     week_number: int | None = None  # Added for Phase 16 activity tracking
 ```
 
-### 2. `src/kau_assistant/scraper/assessment_parser.py`
-**Analog:** Existing `parse_assessment_list` in `src/kau_assistant/scraper/assessment_parser.py`.
+### 2. `src/coursepilot/scraper/assessment_parser.py`
+**Analog:** Existing `parse_assessment_list` in `src/coursepilot/scraper/assessment_parser.py`.
 
 ```python
 # Header column detection in parse_assessment_list:
@@ -112,8 +112,8 @@ class AssessmentItem(BaseModel):
         items.append(item)
 ```
 
-### 3. `src/kau_assistant/progress/models.py`
-**Analog:** `src/kau_assistant/board/models.py` and `src/kau_assistant/report_models.py`.
+### 3. `src/coursepilot/progress/models.py`
+**Analog:** `src/coursepilot/board/models.py` and `src/coursepilot/report_models.py`.
 
 ```python
 """Domain models and versioned JSON contract (schema_version: 1) for activity progress dashboard."""
@@ -126,7 +126,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from kau_assistant.report_models import ErrorItem, ReportNotice
+from coursepilot.report_models import ErrorItem, ReportNotice
 
 SCHEMA_VERSION: Literal[1] = 1
 
@@ -235,8 +235,8 @@ class ProgressReport(BaseModel):
     notices: list[ReportNotice] = Field(default_factory=list)
 ```
 
-### 4. `src/kau_assistant/progress/calculator.py`
-**Analog:** Logic pattern in `src/kau_assistant/scraper/lecture_parser.py` and `src/kau_assistant/reporter.py`.
+### 4. `src/coursepilot/progress/calculator.py`
+**Analog:** Logic pattern in `src/coursepilot/scraper/lecture_parser.py` and `src/coursepilot/reporter.py`.
 
 ```python
 """Progress calculation engine for multi-tier activity completion."""
@@ -246,7 +246,7 @@ from __future__ import annotations
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 
-from kau_assistant.progress.models import (
+from coursepilot.progress.models import (
     ActivityBreakdown,
     ActivityCount,
     ActivityItem,
@@ -254,7 +254,7 @@ from kau_assistant.progress.models import (
     CourseProgress,
     DashboardSummary,
 )
-from kau_assistant.scraper.date_parser import get_current_kst_time
+from coursepilot.scraper.date_parser import get_current_kst_time
 
 
 class SectionMeta(BaseModel):
@@ -419,8 +419,8 @@ def aggregate_dashboard_summary(courses: list[CourseProgress]) -> DashboardSumma
     )
 ```
 
-### 5. `src/kau_assistant/progress/runner.py`
-**Analog:** Orchestrator in `src/kau_assistant/board/runner.py` and `src/kau_assistant/materials/downloader.py`.
+### 5. `src/coursepilot/progress/runner.py`
+**Analog:** Orchestrator in `src/coursepilot/board/runner.py` and `src/coursepilot/materials/downloader.py`.
 
 ```python
 """Progress collection pipeline and 10-minute cache orchestrator."""
@@ -436,43 +436,43 @@ from typing import Callable
 from bs4 import BeautifulSoup
 import httpx
 
-from kau_assistant.config import Settings, get_settings
-from kau_assistant.course_mapping import load_course_mappings
-from kau_assistant.materials.downloader import get_authenticated_httpx_client
-from kau_assistant.player.runner import find_target_course
-from kau_assistant.progress.calculator import (
+from coursepilot.config import Settings, get_settings
+from coursepilot.course_mapping import load_course_mappings
+from coursepilot.materials.downloader import get_authenticated_httpx_client
+from coursepilot.player.runner import find_target_course
+from coursepilot.progress.calculator import (
     SectionMeta,
     aggregate_dashboard_summary,
     calculate_course_progress,
     detect_current_week,
 )
-from kau_assistant.progress.models import (
+from coursepilot.progress.models import (
     ActivityItem,
     ActivityType,
     CourseProgress,
     ProgressReport,
 )
-from kau_assistant.report_models import ErrorItem
-from kau_assistant.scraper.assessment_parser import (
+from coursepilot.report_models import ErrorItem
+from coursepilot.scraper.assessment_parser import (
     enrich_assessment_detail,
     is_quiz_attempt_completed,
     parse_assessment_list,
 )
-from kau_assistant.scraper.course_list import extract_courses
-from kau_assistant.scraper.date_parser import get_current_kst_time, parse_lms_date
-from kau_assistant.scraper.lecture_parser import (
+from coursepilot.scraper.course_list import extract_courses
+from coursepilot.scraper.date_parser import get_current_kst_time, parse_lms_date
+from coursepilot.scraper.lecture_parser import (
     _parse_week_number,
     merge_lecture_progress,
     parse_lectures_from_course_sections,
     parse_ublogs_completion,
 )
-from kau_assistant.scraper.material_parser import parse_materials_from_course_sections
-from kau_assistant.scraper.models import (
+from coursepilot.scraper.material_parser import parse_materials_from_course_sections
+from coursepilot.scraper.models import (
     AssessmentType,
     AttendanceStatus,
     SubmissionStatus,
 )
-from kau_assistant.session_manager import SessionManager
+from coursepilot.session_manager import SessionManager
 
 logger = logging.getLogger(__name__)
 CACHE_TTL_SECONDS = 600  # 10 minutes
@@ -558,8 +558,8 @@ def extract_course_sections_meta(html: str) -> list[SectionMeta]:
     return sections_meta
 ```
 
-### 6. `src/kau_assistant/progress/reporter.py`
-**Analog:** `src/kau_assistant/reporter.py` and `src/kau_assistant/board/reporter.py`.
+### 6. `src/coursepilot/progress/reporter.py`
+**Analog:** `src/coursepilot/reporter.py` and `src/coursepilot/board/reporter.py`.
 
 ```python
 """Rich Console visualizer for 3-tier comprehensive activity progress dashboard."""
@@ -572,9 +572,9 @@ from rich.progress_bar import ProgressBar
 from rich.table import Table
 from rich.text import Text
 
-from kau_assistant.progress.models import CourseProgress, ProgressReport
-from kau_assistant.reporter import format_remaining
-from kau_assistant.scraper.date_parser import get_current_kst_time
+from coursepilot.progress.models import CourseProgress, ProgressReport
+from coursepilot.reporter import format_remaining
+from coursepilot.scraper.date_parser import get_current_kst_time
 
 
 def _get_rate_style(rate: float) -> str:
@@ -709,8 +709,8 @@ def render_progress_dashboard(
         )
 ```
 
-### 7. `src/kau_assistant/cli.py`
-**Analog:** Existing `board_command` and `materials_command` in `src/kau_assistant/cli.py`.
+### 7. `src/coursepilot/cli.py`
+**Analog:** Existing `board_command` and `materials_command` in `src/coursepilot/cli.py`.
 
 ```python
 @cli.command("progress")
@@ -777,12 +777,12 @@ def progress_command(
     headed: bool,
 ) -> None:
     """전체 학습활동(동영상/과제/퀴즈/자료)의 종합 진척도 및 현황을 브리핑합니다."""
-    from kau_assistant.progress.reporter import (
+    from coursepilot.progress.reporter import (
         render_course_matrix,
         render_detailed_activities,
         render_progress_dashboard,
     )
-    from kau_assistant.progress.runner import run_progress_pipeline
+    from coursepilot.progress.runner import run_progress_pipeline
 
     err = Console(stderr=True)
     out = Console()
@@ -833,7 +833,7 @@ import json
 import pytest
 from pydantic import ValidationError
 
-from kau_assistant.progress.models import (
+from coursepilot.progress.models import (
     SCHEMA_VERSION,
     ActivityBreakdown,
     ActivityCount,
@@ -912,13 +912,13 @@ def test_progress_report_json_contract():
 """Unit tests for progress calculation engine and hybrid week detection."""
 
 from datetime import datetime
-from kau_assistant.progress.calculator import (
+from coursepilot.progress.calculator import (
     SectionMeta,
     calculate_course_progress,
     compute_breakdown,
     detect_current_week,
 )
-from kau_assistant.progress.models import ActivityItem, ActivityType
+from coursepilot.progress.models import ActivityItem, ActivityType
 
 
 def test_detect_current_week_by_date():
@@ -971,9 +971,9 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 import pytest
 
-from kau_assistant.config import Settings
-from kau_assistant.progress.runner import load_progress_cache, run_progress_pipeline, save_progress_cache
-from kau_assistant.scraper.models import CourseItem
+from coursepilot.config import Settings
+from coursepilot.progress.runner import load_progress_cache, run_progress_pipeline, save_progress_cache
+from coursepilot.scraper.models import CourseItem
 
 
 @pytest.fixture
@@ -1006,8 +1006,8 @@ def test_progress_runner_course_error_isolation(dummy_settings):
 from io import StringIO
 from rich.console import Console
 
-from kau_assistant.progress.models import ActivityItem, ActivityType, CourseProgress, ProgressReport
-from kau_assistant.progress.reporter import render_progress_dashboard
+from coursepilot.progress.models import ActivityItem, ActivityType, CourseProgress, ProgressReport
+from coursepilot.progress.reporter import render_progress_dashboard
 
 
 def test_render_all_clear_panel():
@@ -1020,13 +1020,13 @@ def test_render_all_clear_panel():
 **Analog:** `tests/test_cli_board.py`.
 
 ```python
-"""Integration tests for Click CLI `kau-assistant progress` command."""
+"""Integration tests for Click CLI `coursepilot progress` command."""
 
 import json
 from click.testing import CliRunner
 from unittest.mock import patch
 
-from kau_assistant.cli import cli
+from coursepilot.cli import cli
 
 
 def test_cli_progress_help():

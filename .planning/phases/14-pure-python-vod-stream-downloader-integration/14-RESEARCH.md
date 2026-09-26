@@ -8,8 +8,8 @@
 ## Implementation Decisions
 
 ### 1. 다운로드 실행 트리거 및 출석 연동 정책
-- **D-14-01:** `kau-assistant watch` 실행 시 `--download` 플래그 명시 시에만 다운로드를 병행한다. 기본 `watch`는 1.0배속 출석 하트비트 시청만 수행하여 불필요한 디스크 용량 낭비를 방지한다.
-- **D-14-02:** 출석 1.0배속 실시간 대기 없이 영상 파일만 즉시 고속으로 다운로드하는 단독 서브커맨드 `kau-assistant download-vod`를 제공한다 (m3u8 스트림 감지 후 브라우저를 닫고 고속 세그먼트 병렬 다운로드).
+- **D-14-01:** `coursepilot watch` 실행 시 `--download` 플래그 명시 시에만 다운로드를 병행한다. 기본 `watch`는 1.0배속 출석 하트비트 시청만 수행하여 불필요한 디스크 용량 낭비를 방지한다.
+- **D-14-02:** 출석 1.0배속 실시간 대기 없이 영상 파일만 즉시 고속으로 다운로드하는 단독 서브커맨드 `coursepilot download-vod`를 제공한다 (m3u8 스트림 감지 후 브라우저를 닫고 고속 세그먼트 병렬 다운로드).
 - **D-14-03:** `watch --download` 실행 시 재생 시작 즉시 스트림 URL을 감지하여 백그라운드 스레드에서 최대 대역폭으로 세그먼트들을 고속 다운로드 완료한다.
 - **D-14-04:** 출석 인정 격리 보장: 다운로드가 네트워크 일시 장애로 실패하더라도 브라우저 출석 재생은 절대 중단하지 않고 끝까지 완수한 뒤 경고/에러 로그만 보고한다.
 
@@ -42,7 +42,7 @@
 | ID | Description | Source |
 |---|---|---|
 | **VDL-01** | 시스템에 `ffmpeg` 설치 없이 순수 파이썬만으로 동작하는 HLS/m3u8 파서 및 TS 세그먼트 다운로더/병합기 구현 (RFC 8216 AES-128 복호화 포함). | `.planning/ROADMAP.md` § Phase 14, 14-CONTEXT.md D-14-05..D-14-08 |
-| **VDL-02** | VOD 시청(`watch`) 시 `--download` 옵션을 지정하면 1.0배속 출석 인정 하트비트와 백그라운드 영상 다운로드를 동시에 완수하고, 1.0배속 실시간 시청 대기 없이 영상 파일만 고속으로 로컬 저장할 수 있는 단독 서브커맨드 `kau-assistant download-vod` 제공. | `.planning/ROADMAP.md` § Phase 14, 14-CONTEXT.md D-14-01..D-14-04 |
+| **VDL-02** | VOD 시청(`watch`) 시 `--download` 옵션을 지정하면 1.0배속 출석 인정 하트비트와 백그라운드 영상 다운로드를 동시에 완수하고, 1.0배속 실시간 시청 대기 없이 영상 파일만 고속으로 로컬 저장할 수 있는 단독 서브커맨드 `coursepilot download-vod` 제공. | `.planning/ROADMAP.md` § Phase 14, 14-CONTEXT.md D-14-01..D-14-04 |
 </phase_requirements>
 
 ---
@@ -50,8 +50,8 @@
 ## Summary
 
 Phase 14 establishes a pure-Python, zero-external-binary HLS/M3U8 streaming sniffer, downloader, decryptor, and segment assembler. It delivers two operational workflows:
-1. **Concurrent Watch & Background Download (`kau-assistant watch --download`)**: Preserves Coursemos 1.0x real-time attendance heartbeat in Playwright while concurrently downloading video segments at line-rate in a background thread, strictly isolating attendance integrity from download network faults.
-2. **Standalone Fast Download (`kau-assistant download-vod`)**: Rapidly sniffs stream manifests in Playwright (2–3 seconds), closes browser automation immediately, and fetches all segments in parallel without waiting through video durations.
+1. **Concurrent Watch & Background Download (`coursepilot watch --download`)**: Preserves Coursemos 1.0x real-time attendance heartbeat in Playwright while concurrently downloading video segments at line-rate in a background thread, strictly isolating attendance integrity from download network faults.
+2. **Standalone Fast Download (`coursepilot download-vod`)**: Rapidly sniffs stream manifests in Playwright (2–3 seconds), closes browser automation immediately, and fetches all segments in parallel without waiting through video durations.
 
 The pure-Python pipeline adheres to RFC 8216 for HLS AES-128 CBC decryption with key retrieval and implicit sequence-number IV derivation, performs atomic file assembly via temporary cache directories on the same filesystem volume, skips existing files unless `--overwrite` is specified, and reports progress cleanly via Rich CLI (stderr) and structured JSON (stdout).
 
@@ -61,15 +61,15 @@ The pure-Python pipeline adheres to RFC 8216 for HLS AES-128 CBC decryption with
 
 | Module / Component | Responsibility | Relevant Decisions |
 |---|---|---|
-| `kau_assistant.stream.models` | Pydantic data schemas: `StreamInfo`, `StreamVariant`, `StreamSegment`, `DownloadProgress`, `DownloadResult`, `VodDownloadItemResult`, `VodDownloadResult`. | D-14-08, D-14-16 |
-| `kau_assistant.stream.parser` | M3U8 playlist parsing via `m3u8` library: variant resolution, quality selection (`best`, `1080p`, `720p`, `worst`), segment URL/duration/key extraction. | D-14-07, D-14-08 |
-| `kau_assistant.stream.crypto` | RFC 8216 compliant AES-128-CBC decryption with PKCS7 unpadding and sequence-number IV fallback using `cryptography`. | D-14-06 |
-| `kau_assistant.stream.downloader` | Multi-threaded segment downloader (`ThreadPoolExecutor` + `httpx`), key caching, exponential backoff retry (3x), atomic TS merger, cache directory management. | D-14-05, D-14-12, D-14-14, D-14-15 |
-| `kau_assistant.stream.sniffer` | Hybrid stream sniffer intercepting Playwright `page.on("response")` with DOM video property fallback. | D-14-13 |
-| `kau_assistant.stream.runner` | Orchestrator for `download-vod` pipeline: course resolution, lecture selection (including completed lectures for study), fast stream capture, batch downloads. | D-14-02, D-14-09, D-14-10, D-14-11 |
-| `kau_assistant.player.vod_player` | Hook `on_stream_detected` in `VodPlayer.play_vod` without breaking existing attendance loops or modal handlers. | D-14-03, D-14-13 |
-| `kau_assistant.player.runner` | Orchestrates `watch --download` background thread: launches segment download upon stream discovery, isolates download errors, ensures attendance completion. | D-14-01, D-14-03, D-14-04 |
-| `kau_assistant.cli` | Exposes `--download`, `--quality`, `--overwrite`, `--output-dir` on `watch`; adds `download-vod` standalone command with `--json`, `--dry-run`, `--relogin`, `--headed`. | D-14-01, D-14-02, D-14-16 |
+| `coursepilot.stream.models` | Pydantic data schemas: `StreamInfo`, `StreamVariant`, `StreamSegment`, `DownloadProgress`, `DownloadResult`, `VodDownloadItemResult`, `VodDownloadResult`. | D-14-08, D-14-16 |
+| `coursepilot.stream.parser` | M3U8 playlist parsing via `m3u8` library: variant resolution, quality selection (`best`, `1080p`, `720p`, `worst`), segment URL/duration/key extraction. | D-14-07, D-14-08 |
+| `coursepilot.stream.crypto` | RFC 8216 compliant AES-128-CBC decryption with PKCS7 unpadding and sequence-number IV fallback using `cryptography`. | D-14-06 |
+| `coursepilot.stream.downloader` | Multi-threaded segment downloader (`ThreadPoolExecutor` + `httpx`), key caching, exponential backoff retry (3x), atomic TS merger, cache directory management. | D-14-05, D-14-12, D-14-14, D-14-15 |
+| `coursepilot.stream.sniffer` | Hybrid stream sniffer intercepting Playwright `page.on("response")` with DOM video property fallback. | D-14-13 |
+| `coursepilot.stream.runner` | Orchestrator for `download-vod` pipeline: course resolution, lecture selection (including completed lectures for study), fast stream capture, batch downloads. | D-14-02, D-14-09, D-14-10, D-14-11 |
+| `coursepilot.player.vod_player` | Hook `on_stream_detected` in `VodPlayer.play_vod` without breaking existing attendance loops or modal handlers. | D-14-03, D-14-13 |
+| `coursepilot.player.runner` | Orchestrates `watch --download` background thread: launches segment download upon stream discovery, isolates download errors, ensures attendance completion. | D-14-01, D-14-03, D-14-04 |
+| `coursepilot.cli` | Exposes `--download`, `--quality`, `--overwrite`, `--output-dir` on `watch`; adds `download-vod` standalone command with `--json`, `--dry-run`, `--relogin`, `--headed`. | D-14-01, D-14-02, D-14-16 |
 
 ---
 
@@ -115,8 +115,8 @@ All packages are Tier-1 open-source dependencies with verified legitimacy and pr
 ```mermaid
 flowchart TD
     subgraph CLI Entrypoints
-        CLI_WATCH["kau-assistant watch --download"]
-        CLI_DL["kau-assistant download-vod"]
+        CLI_WATCH["coursepilot watch --download"]
+        CLI_DL["coursepilot download-vod"]
     end
 
     subgraph Browser Engine (Playwright)
@@ -184,7 +184,7 @@ sequenceDiagram
 ### Project Structure (Planned Additions)
 
 ```
-src/kau_assistant/
+src/coursepilot/
 ├── stream/                     # NEW: Pure-python streaming subsystem
 │   ├── __init__.py
 │   ├── models.py               # Pydantic schemas (StreamInfo, VodDownloadResult, etc.)
@@ -207,8 +207,8 @@ src/kau_assistant/
 |---|---|---|
 | **M3U8 Grammar Parsing** | Don't write custom regexes for EXT-X-STREAM-INF, EXT-X-KEY, or EXTINF lines. Nested tags, quoted strings, and attributes are complex. | `m3u8.loads(text, uri=base_url)` [VERIFIED: pypi.org/project/m3u8] |
 | **AES-128 Cipher** | Don't implement pure-Python AES in software; it is ~500x slower and cannot decrypt 300MB streams in real-time. | `cryptography.hazmat.primitives.ciphers.Cipher` with AES CBC mode [VERIFIED: pypi.org/project/cryptography] |
-| **Filename Sanitization** | Don't re-implement character filtering or Windows reserved stems (`CON`, `PRN`, `AUX`). | Reuse `kau_assistant.materials.filename_utils.sanitize_filename` |
-| **Course Matching** | Don't write separate fuzzy string search logic for `download-vod`. | Reuse `kau_assistant.player.runner.find_target_course` |
+| **Filename Sanitization** | Don't re-implement character filtering or Windows reserved stems (`CON`, `PRN`, `AUX`). | Reuse `coursepilot.materials.filename_utils.sanitize_filename` |
+| **Course Matching** | Don't write separate fuzzy string search logic for `download-vod`. | Reuse `coursepilot.player.runner.find_target_course` |
 | **Session Authentication** | Don't re-authenticate with custom HTTP login calls. | Reuse `SessionManager` Playwright session cache and cookie extraction (`get_authenticated_httpx_client`). |
 
 ---
@@ -410,7 +410,7 @@ def assemble_ts_segments_atomic(
 | **VDL-02** (Sniffer) | `tests/test_stream_sniffer.py` | `test_sniff_dom_fallback` | Fallbacks to DOM video `src` if response listener is not triggered. |
 | **VDL-02** (Watch Integration) | `tests/test_watch_download.py` | `test_watch_course_vods_with_download` | `watch --download` runs playback heartbeat and launches background download (D-14-03). |
 | **VDL-02** (Attendance Isolation) | `tests/test_watch_download.py` | `test_watch_download_failure_does_not_abort_attendance` | Download network error logs warning and allows playback to finish 100% (D-14-04). |
-| **VDL-02** (CLI download-vod) | `tests/test_cli_download_vod.py` | `test_download_vod_cli_dry_run_and_json` | Tests `kau-assistant download-vod` with `--dry-run` and `--json`. |
+| **VDL-02** (CLI download-vod) | `tests/test_cli_download_vod.py` | `test_download_vod_cli_dry_run_and_json` | Tests `coursepilot download-vod` with `--dry-run` and `--json`. |
 | **VDL-02** (CLI watch flag) | `tests/test_cli_download_vod.py` | `test_cli_watch_download_flag_plumbing` | Validates `--download`, `--quality`, `--overwrite` options on `watch` command. |
 
 ### Sampling Rate

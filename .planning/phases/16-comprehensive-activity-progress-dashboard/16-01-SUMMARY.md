@@ -24,14 +24,14 @@ patterns:
   - Multi-tier dual progress rates (open vs semester)
   - Strict past weeks missed activity accounting
 key-files.created:
-  - src/kau_assistant/progress/__init__.py
-  - src/kau_assistant/progress/models.py
-  - src/kau_assistant/progress/calculator.py
+  - src/coursepilot/progress/__init__.py
+  - src/coursepilot/progress/models.py
+  - src/coursepilot/progress/calculator.py
   - tests/test_progress_models.py
   - tests/test_progress_calculator.py
 key-files.modified:
-  - src/kau_assistant/scraper/models.py
-  - src/kau_assistant/scraper/assessment_parser.py
+  - src/coursepilot/scraper/models.py
+  - src/coursepilot/scraper/assessment_parser.py
   - tests/test_assessment_parser.py
 key-decisions:
   - "D-16-01: Defined 4-tier activity breakdown (VOD, assignment, quiz, material) with counts and completion percentages."

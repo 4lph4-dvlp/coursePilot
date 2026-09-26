@@ -34,21 +34,21 @@ Phase 2 Wave 2의 두 번째 실행 계획(02-02)을 완벽히 완료했습니�
 ## Tasks Completed
 
 ### Task 02-02-01: Flexible Multi-Pattern Date Parser & Weekly Fallback (D-08)
-- `src/kau_assistant/scraper/date_parser.py`: 한국 표준시(KST) 타임존 상수, 다중 포맷(ISO, 온점 구분, 한글 날짜, 날짜 범위 `~`, 요일 표기) 파싱 함수 `parse_lms_date` 구현
+- `src/coursepilot/scraper/date_parser.py`: 한국 표준시(KST) 타임존 상수, 다중 포맷(ISO, 온점 구분, 한글 날짜, 날짜 범위 `~`, 요일 표기) 파싱 함수 `parse_lms_date` 구현
 - 주차 일요일 23:59:59 KST 안전 폴백 로직(`_apply_fallback`) 및 마감 경과 판별 함수 `is_past_deadline` 구현
 - `tests/test_date_parser.py`: 5개 테스트 케이스 작성 및 검증
 - **Commit:** `feat(02-02): flexible multi-pattern date parser and weekly fallback` (`be4f155`)
 
 ### Task 02-02-02: Lecture Video & Clip Parser with Attendance/Progress Hybrid Check (SCRP-03, D-05, D-06, D-07)
 - `tests/fixtures/progress_report.html`: Coursemos 학습현황/진도표(다중 차시, 출석 'O', 100% 진도, 마감 경과 지연 강의) 모의 HTML fixture 작성
-- `src/kau_assistant/scraper/lecture_parser.py`: 주차 내 개별 차시 분할 및 표준 제목 포맷(`[{course}] {week}주차 {clip}차시: {title}`), 출석 마크 우선 + 진도율 100% 보조 하이브리드 판정(`parse_lectures_from_progress_table`), 메인 홈 주차별 섹션 폴백 파서(`parse_lectures_from_course_sections`) 구현
+- `src/coursepilot/scraper/lecture_parser.py`: 주차 내 개별 차시 분할 및 표준 제목 포맷(`[{course}] {week}주차 {clip}차시: {title}`), 출석 마크 우선 + 진도율 100% 보조 하이브리드 판정(`parse_lectures_from_progress_table`), 메인 홈 주차별 섹션 폴백 파서(`parse_lectures_from_course_sections`) 구현
 - `tests/test_lecture_parser.py`: 3개 테스트 케이스 작성 및 검증
 - **Commit:** `feat(02-02): lecture video and clip parser with hybrid attendance evaluation` (`b72dae6`)
 
 ### Task 02-02-03: Assessment Parser with Deep Detail Extraction & Status Detection (SCRP-04, D-09, D-10, D-11, D-12)
 - `tests/fixtures/assignment_list.html` & `tests/fixtures/assignment_detail.html`: 과제/퀴즈 모아보기 및 상세 안내문, 첨부파일, 지각 제출 마감일 모의 fixture 작성
-- `src/kau_assistant/scraper/assessment_parser.py`: 과제/평가 목록 파서(`parse_assessment_list`, 제출완료/채점완료/임시저장/미제출 정밀 매핑), 상세 안내문 본문/첨부파일/지각마감일 추출기(`enrich_assessment_detail`), 순차 순회 탐색기(`scrape_course_assessments`) 구현
-- `src/kau_assistant/scraper/__init__.py`: 스크래퍼 전체 공개 API 심볼 re-export
+- `src/coursepilot/scraper/assessment_parser.py`: 과제/평가 목록 파서(`parse_assessment_list`, 제출완료/채점완료/임시저장/미제출 정밀 매핑), 상세 안내문 본문/첨부파일/지각마감일 추출기(`enrich_assessment_detail`), 순차 순회 탐색기(`scrape_course_assessments`) 구현
+- `src/coursepilot/scraper/__init__.py`: 스크래퍼 전체 공개 API 심볼 re-export
 - `tests/test_assessment_parser.py`: 3개 테스트 케이스 작성 및 검증
 - **Commit:** `feat(02-02): assessment deep parser with submission status detection and detail enrichment` (`1e43d33`)
 
@@ -65,10 +65,10 @@ Phase 2 Wave 2의 두 번째 실행 계획(02-02)을 완벽히 완료했습니�
 
 ## Key Files Created/Modified
 
-- `src/kau_assistant/scraper/date_parser.py`: 유연한 다중 정규식 날짜 파서
-- `src/kau_assistant/scraper/lecture_parser.py`: 강의 차시 분할 및 하이브리드 수강 판정기
-- `src/kau_assistant/scraper/assessment_parser.py`: 평가 항목 상세 본문/첨부파일 파서
-- `src/kau_assistant/scraper/__init__.py`: 패키지 공개 API
+- `src/coursepilot/scraper/date_parser.py`: 유연한 다중 정규식 날짜 파서
+- `src/coursepilot/scraper/lecture_parser.py`: 강의 차시 분할 및 하이브리드 수강 판정기
+- `src/coursepilot/scraper/assessment_parser.py`: 평가 항목 상세 본문/첨부파일 파서
+- `src/coursepilot/scraper/__init__.py`: 패키지 공개 API
 - `tests/fixtures/progress_report.html`: 진도표 HTML fixture
 - `tests/fixtures/assignment_list.html`: 과제 목록 HTML fixture
 - `tests/fixtures/assignment_detail.html`: 과제 상세 HTML fixture

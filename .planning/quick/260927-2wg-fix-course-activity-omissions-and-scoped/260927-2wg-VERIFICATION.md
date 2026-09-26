@@ -42,10 +42,10 @@ $courseScope = @(
   '--course-week', '기초전자실험:5',
   '--course-week', '항공우주산업개론:4'
 )
-uv run python -m kau_assistant check --json --include-completed @courseScope --prepare-by 2026-10-02
-uv run python -m kau_assistant sync --json --include-completed @courseScope --prepare-by 2026-10-02
-uv run python -m kau_assistant progress --refresh --json
-uv run python -m kau_assistant materials --dry-run --week all --json
+uv run python -m coursepilot check --json --include-completed @courseScope --prepare-by 2026-10-02
+uv run python -m coursepilot sync --json --include-completed @courseScope --prepare-by 2026-10-02
+uv run python -m coursepilot progress --refresh --json
+uv run python -m coursepilot materials --dry-run --week all --json
 uv run --extra dev python -m pytest -o addopts= -q --disable-warnings
 ```
 

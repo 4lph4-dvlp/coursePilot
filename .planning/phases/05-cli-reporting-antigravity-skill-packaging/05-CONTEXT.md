@@ -10,7 +10,7 @@ Phase 5 delivers the user-facing layer on top of the Phase 1–4 engine:
 
 1. A single end-to-end pipeline (LMS login → course scrape → normalize to `SyncTask` → briefing / Notion sync) callable from the CLI.
 2. A Rich console briefing report plus an equivalent, versioned `--json` output.
-3. `python -m kau_assistant check` / `sync` / `install-skill` commands.
+3. `python -m coursepilot check` / `sync` / `install-skill` commands.
 4. An **agent-neutral** skill package (`SKILL.md` + support docs) usable by any agent that supports the common Agent Skills format — explicitly NOT Antigravity-only.
 5. Per-agent install guidance (README) and an install command for Claude Code, Codex, Antigravity, and Pi/Hermes.
 6. End-to-end verification: fixture-based automated tests, live `check` + dry-run `sync`, and manual skill-invocation checks in every supported agent.
@@ -43,7 +43,7 @@ Phase 5 delivers the user-facing layer on top of the Phase 1–4 engine:
 - **D-14:** No output (Rich, JSON, or error text) may contain the student ID, password, Notion token, or session cookies. Item LMS links and Notion page URLs are included. Apply the existing `_safe_error` masking approach (`notion/engine.py`) to CLI error output as well.
 
 ### 4. Skill invocation experience (스킬 호출 경험)
-- **D-15:** The skill folder lives at `skills/kau-lxp/` in the repo (`SKILL.md` + support docs such as the JSON schema reference).
+- **D-15:** The skill folder lives at `skills/coursepilot/` in the repo (`SKILL.md` + support docs such as the JSON schema reference).
 - **D-16:** For requests like "노션에 올려줘", the agent runs `sync` (dry-run) first, shows the create / update / skip lists, and runs `sync --apply` only after the user approves in the conversation.
 - **D-17:** In chat, the agent parses `--json` and rebuilds the briefing as markdown tables that follow D-01–D-04. It does not paste the Rich/ANSI output.
 - **D-18:** On first run, the agent diagnoses the environment. It installs dependencies itself (`uv sync`, `playwright install chromium`). For secrets (student ID, password, Notion token), it only tells the user to put them in `.env` themselves. **The agent never asks for secrets in conversation.**
@@ -51,7 +51,7 @@ Phase 5 delivers the user-facing layer on top of the Phase 1–4 engine:
 ### 5. Universal agent skill packaging (범용 에이전트 스킬)
 - **D-19:** `SKILL.md` uses only the fields common to the Agent Skills format (`name`, `description`) plus agent-neutral body instructions: run the CLI, read `--json`, follow D-16/D-17/D-18. No agent-specific tool names or frontmatter extensions. — **Reversibility:** costly — every installed copy across agents depends on the format
 - **D-20:** README includes per-agent install guidance (a table of skill paths and steps) for Claude Code, Codex, Antigravity, and Pi/Hermes.
-- **D-21:** The install command is a CLI subcommand: `python -m kau_assistant install-skill --agent {claude|codex|antigravity|pi|hermes}`. It is one Python implementation for every OS and is testable.
+- **D-21:** The install command is a CLI subcommand: `python -m coursepilot install-skill --agent {claude|codex|antigravity|pi|hermes}`. It is one Python implementation for every OS and is testable.
 - **D-22:** Supported install targets from day one: Claude Code, Codex, Antigravity, Pi, Hermes. Agent → skill-path mappings are kept as **data** (a table or dict) so adding an agent is a data change. Exact paths (user-level vs project-level, Pi/Hermes locations) must be confirmed in research.
 - **D-23:** Install copies the folder by default. `--link` creates a symlink or junction for development so repo edits show up immediately. The installed SKILL.md must resolve the repo / CLI location so it works from any agent's working directory (for example, the installer writes the repo path into the installed copy).
 - **D-24:** Update ROADMAP.md (Phase 5 name and goal), REQUIREMENTS.md (SKIL-03), and PROJECT.md (Active item, Context) to say "universal Agent Skill (SKILL.md)" instead of "Antigravity Skill".
@@ -93,13 +93,13 @@ Phase 5 delivers the user-facing layer on top of the Phase 1–4 engine:
 ## Existing Code Insights
 
 ### Reusable Assets
-- `src/kau_assistant/notion/engine.py` `NotionSyncEngine` + `_safe_error`: sync execution with dry-run, and a secret-masking error pattern to reuse for CLI errors (D-14).
-- `src/kau_assistant/notion/models.py` `SyncResult` / `CreateAction` / `UpdateAction` (with `FieldDiff`) / `SkipAction` / `ErrorAction` / `SyncStats`: input for the sync report and JSON `sync` section.
-- `src/kau_assistant/domain/transformer.py` `transform_to_sync_tasks`, `domain/priority.py` `calculate_priority`: normalized tasks and the 24h / overdue classification behind D-01.
-- `src/kau_assistant/domain/models.py` `SyncTask`, `Course`: briefing item model.
-- `src/kau_assistant/session_manager.py` `SessionManager(headful=...)`: backs `--headed` and session caching (`--relogin`).
-- `src/kau_assistant/scraper/` (`course_list`, `navigator`, `lecture_parser`, `assessment_parser`): the scraping steps.
-- `src/kau_assistant/exceptions.py`: `ConfigError` / `AuthenticationError` map to exit code 2; per-course errors (`NavigationTimeoutError`, `CourseAccessDeniedError`, Notion item errors) map to exit code 1.
+- `src/coursepilot/notion/engine.py` `NotionSyncEngine` + `_safe_error`: sync execution with dry-run, and a secret-masking error pattern to reuse for CLI errors (D-14).
+- `src/coursepilot/notion/models.py` `SyncResult` / `CreateAction` / `UpdateAction` (with `FieldDiff`) / `SkipAction` / `ErrorAction` / `SyncStats`: input for the sync report and JSON `sync` section.
+- `src/coursepilot/domain/transformer.py` `transform_to_sync_tasks`, `domain/priority.py` `calculate_priority`: normalized tasks and the 24h / overdue classification behind D-01.
+- `src/coursepilot/domain/models.py` `SyncTask`, `Course`: briefing item model.
+- `src/coursepilot/session_manager.py` `SessionManager(headful=...)`: backs `--headed` and session caching (`--relogin`).
+- `src/coursepilot/scraper/` (`course_list`, `navigator`, `lecture_parser`, `assessment_parser`): the scraping steps.
+- `src/coursepilot/exceptions.py`: `ConfigError` / `AuthenticationError` map to exit code 2; per-course errors (`NavigationTimeoutError`, `CourseAccessDeniedError`, Notion item errors) map to exit code 1.
 - `rich` and `click` are already declared in `pyproject.toml`.
 
 ### Established Patterns
@@ -109,7 +109,7 @@ Phase 5 delivers the user-facing layer on top of the Phase 1–4 engine:
 
 ### Integration Points
 - **No end-to-end orchestrator exists yet.** There is no `__main__.py` or `cli.py`, and nothing chains login → course list → per-course parse → `transform_to_sync_tasks`. Phase 5 must add this pipeline with per-course error collection (D-08).
-- New: `src/kau_assistant/__main__.py` / `cli.py`, reporter module, JSON output models, `install-skill` command, `skills/kau-lxp/`.
+- New: `src/coursepilot/__main__.py` / `cli.py`, reporter module, JSON output models, `install-skill` command, `skills/coursepilot/`.
 
 </code_context>
 

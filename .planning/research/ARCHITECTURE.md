@@ -2,7 +2,7 @@
 
 ## System Overview
 
-KAU LXP Assistant는 **4개 계층(Layer)**으로 구성된 모듈식 아키텍처를 따릅니다.
+CoursePilot는 **4개 계층(Layer)**으로 구성된 모듈식 아키텍처를 따릅니다.
 
 ```mermaid
 flowchart TD
@@ -53,7 +53,7 @@ flowchart TD
 
 ### 2. Scraper Core Layer
 - **`base.py`**: LMS 스크래퍼 공통 추상 클래스 (`login()`, `get_courses()`, `get_course_activities()`). 추후 다른 학교 LMS(Canvas, Moodle 등) 확장을 위한 표준 인터페이스 제공.
-- **`kau_lxp.py`**: 한국항공대 LXP 및 유사 Canvas 기반 학습 사이트의 로그인 폼 제출, 강좌 대시보드 접근, 주차별 강의 목록(비디오 재생 상태, 출석 완료 여부, 마감일) 및 과제 페이지 크롤링.
+- **`coursemos.py`**: Coursemos 기반 학습 사이트의 로그인 폼 제출, 강좌 대시보드 접근, 주차별 강의 목록(비디오 재생 상태, 출석 완료 여부, 마감일) 및 과제 페이지 크롤링을 위한 초기 설계 이름. 실제 구현은 `scraper/navigator.py`에 있으며 다른 플랫폼 지원은 별도 구현이 필요합니다.
 - **`date_parser.py`**: LMS 내 다양한 문자열 날짜 포맷을 표준 Python `datetime` (KST) 객체로 파싱.
 
 ### 3. Domain Logic
@@ -71,5 +71,5 @@ flowchart TD
 
 ### 4. Notion Sync & Agent Interface
 - **`notion_client.py`**: Notion 공식 SDK 또는 Notion MCP 연동을 통해 Scheduler DB(`21d53280-64be-80ec-af4e-000b679f03bb`)의 스키마에 맞춰 페이지 생성.
-- **`cli.py`**: CLI 진입점 (`python -m kau_assistant check`, `python -m kau_assistant sync`).
+- **`cli.py`**: CLI 진입점 (`python -m coursepilot check`, `python -m coursepilot sync`).
 - **`SKILL.md`**: Antigravity 에이전트가 호출할 수 있는 메타데이터, 사용 가이드, 파라미터 정의.

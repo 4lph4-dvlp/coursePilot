@@ -39,11 +39,11 @@
 
 | Option | Description | Selected |
 |--------|-------------|----------|
-| `kau-assistant materials` | 약칭 `files` 및 `download` 별칭도 함께 지원 | ✓ |
-| `kau-assistant download` | 단일 다운로드 명령어 | |
-| `kau-assistant resources` | 단일 리소스 명령어 | |
+| `coursepilot materials` | 약칭 `files` 및 `download` 별칭도 함께 지원 | ✓ |
+| `coursepilot download` | 단일 다운로드 명령어 | |
+| `coursepilot resources` | 단일 리소스 명령어 | |
 
-**User's choice:** `kau-assistant materials` (약칭 `files` 및 `download` 별칭도 함께 지원).
+**User's choice:** `coursepilot materials` (약칭 `files` 및 `download` 별칭도 함께 지원).
 **Notes:**
 - `--course` 생략 시 전체 수강 과목 순차 처리, 지정 시 해당 과목만 처리 (기존 `check`와 동일한 패턴).
 - Notion Scheduler 연동 제외: 학습자료는 마감 기한이 없으므로 Notion DB 오염 방지를 위해 제외.

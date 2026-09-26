@@ -21,7 +21,7 @@ provides:
   - Task naming engine with Korean week/activity rules and smart title cleaning (naming.py)
   - 24-hour urgency analyzer and Notion selection/priority decision ladder (priority.py)
   - DTO to SyncTask transformer with description deadline rescue and 1500/1950 char memo truncation (transformer.py)
-  - Domain package public facade (kau_assistant.domain)
+  - Domain package public facade (coursepilot.domain)
 affects:
   - 04-notion-sdk-database-sync
   - 05-cli-reporter-session-persistence
@@ -41,11 +41,11 @@ tech-stack:
 
 key-files:
   created:
-    - src/kau_assistant/domain/__init__.py
-    - src/kau_assistant/domain/models.py
-    - src/kau_assistant/domain/naming.py
-    - src/kau_assistant/domain/priority.py
-    - src/kau_assistant/domain/transformer.py
+    - src/coursepilot/domain/__init__.py
+    - src/coursepilot/domain/models.py
+    - src/coursepilot/domain/naming.py
+    - src/coursepilot/domain/priority.py
+    - src/coursepilot/domain/transformer.py
     - tests/test_domain_models.py
     - tests/test_naming.py
     - tests/test_priority.py
@@ -158,7 +158,7 @@ status: complete
 - Built task naming engine (`naming.py`) supporting fixed lecture format `[{과목약어}] {N}주차 {M}차시 강의 시청` (D-01), verb-branched assignment format `[{과목약어}] {N}주차 {과제명} 제출` (D-02), non-week fallback (D-03), smart HTML unescaping/tag stripping (D-04), and double-verb deduplication (DOMN-03).
 - Implemented 24-hour urgency analyzer and priority ladder (`priority.py`) strictly enforcing P1 promotion for <=24h deadlines, P4 for overdue/completed items, and routine/event mapping for Notion '선택' (DOMN-02).
 - Built DTO transformer (`transformer.py`) converting scraper models to `SyncTask`, filtering OT/open lectures without deadlines (D-11), rescuing deadlines from assignment descriptions (D-11), and applying 1500/1950-char safety caps to Notion memos (D-12 ~ D-14).
-- Exported unified package facade (`kau_assistant.domain`) for downstream Phase 4 Notion SDK and Phase 5 CLI reporter integration.
+- Exported unified package facade (`coursepilot.domain`) for downstream Phase 4 Notion SDK and Phase 5 CLI reporter integration.
 
 ## Task Commits
 
@@ -171,11 +171,11 @@ Each task was committed atomically:
 
 ## Files Created/Modified
 
-- `src/kau_assistant/domain/__init__.py` - Package facade exporting all public domain models, enums, and functions
-- `src/kau_assistant/domain/models.py` - Core Pydantic domain models (`SyncTask`, `Course`) and Notion property enums
-- `src/kau_assistant/domain/naming.py` - Task title normalizer, HTML cleaner, and week/activity formatter
-- `src/kau_assistant/domain/priority.py` - 24-hour urgency calculator, P1~P4 priority ladder, and selection mapper
-- `src/kau_assistant/domain/transformer.py` - Scraper DTO to SyncTask converter, deadline rescuer, and memo builder
+- `src/coursepilot/domain/__init__.py` - Package facade exporting all public domain models, enums, and functions
+- `src/coursepilot/domain/models.py` - Core Pydantic domain models (`SyncTask`, `Course`) and Notion property enums
+- `src/coursepilot/domain/naming.py` - Task title normalizer, HTML cleaner, and week/activity formatter
+- `src/coursepilot/domain/priority.py` - 24-hour urgency calculator, P1~P4 priority ladder, and selection mapper
+- `src/coursepilot/domain/transformer.py` - Scraper DTO to SyncTask converter, deadline rescuer, and memo builder
 - `tests/test_domain_models.py` - 4 unit tests validating models, enums, KST enforcement, and dedup key
 - `tests/test_naming.py` - 7 unit tests validating naming formats, smart cleaning, and double-verb prevention
 - `tests/test_priority.py` - 4 unit tests validating 24h boundary conditions, overdue/completed priorities, and selection mapping
@@ -185,7 +185,7 @@ Each task was committed atomically:
 
 - Followed D-01 through D-15 as specified in CONTEXT.md and PLAN.md without deviation.
 - All domain modules maintain strict pure-domain isolation: zero network or external I/O imports.
-- Reused `KST` and `parse_lms_date` from `kau_assistant.scraper.date_parser` for consistency.
+- Reused `KST` and `parse_lms_date` from `coursepilot.scraper.date_parser` for consistency.
 
 ## Deviations from Plan
 

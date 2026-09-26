@@ -65,7 +65,7 @@ created: "2026-09-25"
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| Real LMS video download & VLC playback | VDL-01, VDL-02 | Requires real live student credentials and active course enrolment | Run `kau-assistant download-vod --course <과목명> --week 1` and open the generated `.mp4` file in VLC or PotPlayer to confirm video and audio play smoothly |
+| Real LMS video download & VLC playback | VDL-01, VDL-02 | Requires real live student credentials and active course enrolment | Run `coursepilot download-vod --course <과목명> --week 1` and open the generated `.mp4` file in VLC or PotPlayer to confirm video and audio play smoothly |
 
 ---
 

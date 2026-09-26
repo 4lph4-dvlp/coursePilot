@@ -1,4 +1,4 @@
-# Debug: Phase 05 UAT gaps (LXP target, parsing, agent discovery)
+# Debug: Phase 05 UAT gaps (LMS target, parsing, agent discovery)
 
 **Goal:** find_root_cause_only (fixes via /gsd-plan-phase 05 --gaps)
 **Discovered:** /gsd-verify-work 05, 2026-09-23/24
@@ -6,7 +6,7 @@
 
 ## G-05-2 (blocker): wrong LMS target
 
-- `src/kau_assistant/config.py:18`: `lms_url` defaults to `https://lms.kau.ac.kr`. `"lms_url" in get_settings().model_fields_set` is False, so the user's `.env` has no `LMS_URL` and the default is used.
+- `src/coursepilot/config.py:18`: `lms_url` defaults to `https://lms.kau.ac.kr`. `"lms_url" in get_settings().model_fields_set` is False, so the user's `.env` has no `LMS_URL` and the default is used.
 - lms.kau.ac.kr is the old Coursemos LMS. For 2026 2학기, `/local/ubion/user/?year=2026&semester=20` says "참여중인 강좌가 없습니다". Only 1학기 courses exist there.
 - https://lxp.kau.ac.kr ("한국항공대LXP", also Coursemos/Moodle; login form `input#input-username`, `input#input-password`, `button[name=loginbutton][type=submit]`) holds the current term. `/my/` lists 7 courses and `extract_courses_from_html` finds all 7. With the URL overridden, the user confirmed their 2 known pending assignments were found.
 - `/local/ubion/user/` returns 403 on the LXP, so course discovery must stay on `/my/`.
@@ -23,7 +23,7 @@ f. **G-05-1b** (old LMS): `extract_courses` waits 15s for `.block_coursemos_my_c
 
 ## G-05-4 (major): agent discovery
 
-- **Hermes:** the installer target is `~/.hermes/skills` (`installer.py:80-81`). On this Windows machine Hermes' home is `%LOCALAPPDATA%\hermes` (config.yaml, skills/, state.db), and its `skills/` holds the user's other skills. Hermes searched there and never found kau-lxp. Fix: resolve `HERMES_HOME`, else `%LOCALAPPDATA%\hermes` on Windows, else `~/.hermes`.
+- **Hermes:** the installer target is `~/.hermes/skills` (`installer.py:80-81`). On this Windows machine Hermes' home is `%LOCALAPPDATA%\hermes` (config.yaml, skills/, state.db), and its `skills/` holds the user's other skills. Hermes searched there and never found coursepilot. Fix: resolve `HERMES_HOME`, else `%LOCALAPPDATA%\hermes` on Windows, else `~/.hermes`.
 - **Antigravity (agy):** the path `~/.gemini/antigravity/skills` is plausibly correct (agy's `settings.json` references `~/.gemini/antigravity/skills/gsd-*`). The agent skipped the skill because the shared test folder already contained `check.stdout.json` from the Codex run, so this was test contamination. Needs a retest in an empty folder.
 - The "노션에 올려줘" flow was only exercised in Claude Code.
 

@@ -21,7 +21,7 @@
    - Atomic writes: Stream chunks to a `.tmp` file and rename upon verified completion to prevent partial/corrupted files.
 
 3. **CLI Interface & Notion Boundary (D-13-05..D-13-08):**
-   - Provide `kau-assistant materials` as the canonical command, with `files` as an alias (D-13-05).
+   - Provide `coursepilot materials` as the canonical command, with `files` as an alias (D-13-05).
    - Support `--course <과목명>` (fuzzy match, all courses if omitted) and `--week <current|all|N>` (D-13-06).
    - Scope isolation (D-13-07): Learning materials have no assignment deadlines, so they must NOT sync to Notion Scheduler DB.
    - Preview & Agent Integration (D-13-08): Support `--dry-run` to preview target materials, filenames, and local paths without network downloads, and `--json` for agent communication.
@@ -38,13 +38,13 @@
 
 | Module / Component | Responsibility | Relevant Existing Code / New File |
 |--------------------|----------------|-----------------------------------|
-| `kau_assistant.scraper.material_models` | Data DTOs: `MaterialItem`, `MaterialDownloadResult`, `MaterialsRunResult` | New (`src/kau_assistant/scraper/material_models.py`) |
-| `kau_assistant.scraper.material_parser` | Course home & `ublogs` parsing for `ubfile`/`resource` activities | New (`src/kau_assistant/scraper/material_parser.py`) |
-| `kau_assistant.materials.downloader` | Cookie extraction, streaming HTTP download, atomic file writing, size check, RFC 5987 filename parsing, sanitization | New (`src/kau_assistant/materials/downloader.py`) |
-| `kau_assistant.materials.runner` | Orchestration across courses/weeks, smart visit vs download decision, progress reporting, dry-run evaluation | New (`src/kau_assistant/materials/runner.py`) |
-| `kau_assistant.config` | Add `download_dir: Path = Path("downloads")` configuration | Modify (`src/kau_assistant/config.py`) |
-| `kau_assistant.cli` | Register `materials` (and `files` alias) command with `--course`, `--week`, `--output-dir`, `--no-download`, `--dry-run`, `--json` | Modify (`src/kau_assistant/cli.py`) |
-| `kau_assistant.reporter` | Build Rich table summary and JSON serialization for materials | Modify or New (`src/kau_assistant/materials/reporter.py`) |
+| `coursepilot.scraper.material_models` | Data DTOs: `MaterialItem`, `MaterialDownloadResult`, `MaterialsRunResult` | New (`src/coursepilot/scraper/material_models.py`) |
+| `coursepilot.scraper.material_parser` | Course home & `ublogs` parsing for `ubfile`/`resource` activities | New (`src/coursepilot/scraper/material_parser.py`) |
+| `coursepilot.materials.downloader` | Cookie extraction, streaming HTTP download, atomic file writing, size check, RFC 5987 filename parsing, sanitization | New (`src/coursepilot/materials/downloader.py`) |
+| `coursepilot.materials.runner` | Orchestration across courses/weeks, smart visit vs download decision, progress reporting, dry-run evaluation | New (`src/coursepilot/materials/runner.py`) |
+| `coursepilot.config` | Add `download_dir: Path = Path("downloads")` configuration | Modify (`src/coursepilot/config.py`) |
+| `coursepilot.cli` | Register `materials` (and `files` alias) command with `--course`, `--week`, `--output-dir`, `--no-download`, `--dry-run`, `--json` | Modify (`src/coursepilot/cli.py`) |
+| `coursepilot.reporter` | Build Rich table summary and JSON serialization for materials | Modify or New (`src/coursepilot/materials/reporter.py`) |
 
 </architectural_responsibility_map>
 
@@ -116,7 +116,7 @@ All required packages (`httpx`, `beautifulsoup4`, `lxml`, `pydantic`, `pydantic-
 <architecture_patterns>
 ## Architecture Patterns & Component Design
 
-### 1. Data Models (`src/kau_assistant/scraper/material_models.py`)
+### 1. Data Models (`src/coursepilot/scraper/material_models.py`)
 
 ```python
 from datetime import datetime
@@ -181,16 +181,16 @@ class MaterialsRunResult(BaseModel):
     courses: list[CourseMaterialsResult] = Field(default_factory=list)
 ```
 
-### 2. Materials Parser (`src/kau_assistant/scraper/material_parser.py`)
+### 2. Materials Parser (`src/coursepilot/scraper/material_parser.py`)
 
 ```python
 import copy
 import re
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup, Tag
-from kau_assistant.scraper.lecture_parser import _parse_week_number, clean_lecture_title
-from kau_assistant.scraper.material_models import MaterialItem
-from kau_assistant.scraper.models import CourseItem
+from coursepilot.scraper.lecture_parser import _parse_week_number, clean_lecture_title
+from coursepilot.scraper.material_models import MaterialItem
+from coursepilot.scraper.models import CourseItem
 
 
 def parse_materials_from_course_sections(html: str, course: CourseItem) -> list[MaterialItem]:
@@ -263,7 +263,7 @@ def parse_materials_from_course_sections(html: str, course: CourseItem) -> list[
     return materials
 ```
 
-### 3. Downloader Engine (`src/kau_assistant/materials/downloader.py`)
+### 3. Downloader Engine (`src/coursepilot/materials/downloader.py`)
 
 Key responsibilities:
 - Resolves cookie session from `SessionManager` or `session.json`.
@@ -405,8 +405,8 @@ flowchart TD
 from pathlib import Path
 import json
 import httpx
-from kau_assistant.config import Settings
-from kau_assistant.session_manager import SessionManager
+from coursepilot.config import Settings
+from coursepilot.session_manager import SessionManager
 
 
 def get_authenticated_httpx_client(
@@ -539,10 +539,10 @@ def download_stream(
 - RFC 6266: Use of the Content-Disposition Header Field in the Hypertext Transfer Protocol (HTTP)
 - RFC 5987: Character Set and Language Encoding for Hypertext Transfer Protocol (HTTP) Header Field Parameters
 - Existing Codebase:
-  - `src/kau_assistant/scraper/lecture_parser.py` (HTML section parsing, `_parse_week_number`, `ublogs` table extraction)
-  - `src/kau_assistant/scraper/navigator.py` (Navigation patterns and polite delay)
-  - `src/kau_assistant/session_manager.py` (Session caching and Playwright context)
-  - `src/kau_assistant/player/runner.py` (Fuzzy course matching, week resolution)
+  - `src/coursepilot/scraper/lecture_parser.py` (HTML section parsing, `_parse_week_number`, `ublogs` table extraction)
+  - `src/coursepilot/scraper/navigator.py` (Navigation patterns and polite delay)
+  - `src/coursepilot/session_manager.py` (Session caching and Playwright context)
+  - `src/coursepilot/player/runner.py` (Fuzzy course matching, week resolution)
 
 </sources>
 
@@ -577,22 +577,22 @@ To guarantee robustness without requiring live LMS credentials during automated 
 
 ```bash
 # 1. Preview materials for a course (Dry-run)
-python -m kau_assistant materials --course 기초전자실험 --dry-run
+python -m coursepilot materials --course 기초전자실험 --dry-run
 
 # 2. View-only mode (100% completion without downloading files)
-python -m kau_assistant materials --course 기초전자실험 --week current --no-download
+python -m coursepilot materials --course 기초전자실험 --week current --no-download
 
 # 3. Download materials for current week
-python -m kau_assistant materials --course 기초전자실험 --week current
+python -m coursepilot materials --course 기초전자실험 --week current
 
 # 4. Verify downloaded directory and file contents
 # Directory: downloads/기초전자실험/W2/
 
 # 5. Re-run download command to verify size-based skip (D-13-02)
-python -m kau_assistant materials --course 기초전자실험 --week current
+python -m coursepilot materials --course 기초전자실험 --week current
 
 # 6. JSON output test
-python -m kau_assistant materials --course 기초전자실험 --week current --json
+python -m coursepilot materials --course 기초전자실험 --week current --json
 ```
 
 ---

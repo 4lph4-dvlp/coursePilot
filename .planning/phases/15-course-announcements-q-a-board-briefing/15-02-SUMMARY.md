@@ -24,15 +24,15 @@ patterns:
   - Stream separation (stderr vs stdout)
   - Unified CLI command options decorator
 key-files.created:
-  - src/kau_assistant/board/runner.py
-  - src/kau_assistant/board/reporter.py
+  - src/coursepilot/board/runner.py
+  - src/coursepilot/board/reporter.py
   - tests/test_board_runner.py
   - tests/test_cli_board.py
 key-files.modified:
-  - src/kau_assistant/reporter.py
-  - src/kau_assistant/cli.py
+  - src/coursepilot/reporter.py
+  - src/coursepilot/cli.py
 key-decisions:
-  - "D-15-01: Expose unified kau-assistant board with notices and qna convenience commands."
+  - "D-15-01: Expose unified coursepilot board with notices and qna convenience commands."
   - "D-15-02: Compact 1-line muted text for inactive courses without notices or Q&A."
   - "D-15-04: Strict schema_version: 1 JSON contract formatting for machine-readable output."
   - "D-15-06: Provide --view <id> for single post inspection with markdown rendering."
@@ -91,7 +91,7 @@ Multi-course board collection pipeline, single article viewer, Rich terminal tab
   - Implemented `render_board_report` rendering summary header panels, 1-line muted summaries for inactive courses (`[dim]• 과목명: 최근 공지 및 질문 없음[/dim]`), and structured tables for active courses.
   - Implemented visual status badges: `[NEW]`, `[답변완료]`, `[답변대기]`, and `[내 질문]`.
   - Implemented `render_article_viewer` rendering metadata panels, attachments lists with file sizes/saved paths, body markdown, and reply sub-panels.
-  - Re-exported renderer functions in `src/kau_assistant/reporter.py`.
+  - Re-exported renderer functions in `src/coursepilot/reporter.py`.
 
 - **Click CLI Commands & JSON Contract (`cli.py`):**
   - Registered `@cli.command("board")` for unified briefing, along with convenience commands `@cli.command("notices")` and `@cli.command("qna")`.

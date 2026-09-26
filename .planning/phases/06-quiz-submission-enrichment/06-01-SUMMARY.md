@@ -13,7 +13,7 @@ Plan 06-01 resolved the issue where quizzes with hidden grades (such as 기초�
 
 ## Key Accomplishments
 
-1. **Quiz Attempt Inspection Function (`src/kau_assistant/scraper/assessment_parser.py`)**:
+1. **Quiz Attempt Inspection Function (`src/coursepilot/scraper/assessment_parser.py`)**:
    - Implemented pure function `is_quiz_attempt_completed(html: str) -> bool`.
    - Inspects review buttons/links (`답안 검토`, `Review attempt`), attempt exhaustion banners (`응시 가능 횟수를 초과하여 더 이상 응시할 수 없습니다`), and Moodle attempt summary table rows (`완료됨`, `Finished`, `Submitted`).
    - Integrated into `enrich_assessment_detail`: for quizzes with status `NOT_ATTEMPTED` or `DRAFT`, if attempt completion is detected on the view page, updates status to `SubmissionStatus.SUBMITTED` and sets `is_overdue = False`.

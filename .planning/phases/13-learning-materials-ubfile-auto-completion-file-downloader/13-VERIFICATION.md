@@ -26,7 +26,7 @@ re_verification: null
 | 2 | RES-02, D-13-01: 강의 첨부 파일이 `downloads/<과목명>/W{주차}/` 계층 폴더 구조로 로컬에 안전하게 다운로드된다 | ✓ VERIFIED | `download_material_file` uses atomic `.tmp` rename; `process_course_materials` sets target directory `output_root / course.clean_name / f"W{item.week_number}"`; `tests/test_materials_runner.py::test_process_course_materials_normal` passes. |
 | 3 | D-13-02: 동일 파일명 및 동일 크기 파일이 로컬에 존재할 경우 다운로드를 건너뛰고(Skip), 크기 차이 발생 시 덮어쓴다 | ✓ VERIFIED | Content-Length comparison against `target_path.stat().st_size`; `tests/test_material_downloader.py::test_download_material_file_skip_duplicate` and `test_download_material_file_overwrite_different_size` pass. |
 | 4 | D-13-03: `--no-download` 실행 시 파일 저장 없이 미열람 자료의 진도율 100% 이수만 수행한다 | ✓ VERIFIED | `process_course_materials(no_download=True)` visits uncompleted materials and skips download; `tests/test_materials_runner.py::test_process_course_materials_no_download` passes. |
-| 5 | D-13-05, D-13-06, D-13-08: `kau-assistant materials` 및 별칭 `files` 명령어가 `--course`, `--week`, `--output-dir`, `--no-download`, `--dry-run`, `--json` 옵션을 지원한다 | ✓ VERIFIED | Registered Click commands in `src/kau_assistant/cli.py`; `tests/test_cli_materials.py::test_materials_and_files_help` and `test_materials_flags_passed` pass. |
+| 5 | D-13-05, D-13-06, D-13-08: `coursepilot materials` 및 별칭 `files` 명령어가 `--course`, `--week`, `--output-dir`, `--no-download`, `--dry-run`, `--json` 옵션을 지원한다 | ✓ VERIFIED | Registered Click commands in `src/coursepilot/cli.py`; `tests/test_cli_materials.py::test_materials_and_files_help` and `test_materials_flags_passed` pass. |
 | 6 | D-13-07: 학습자료는 마감 기한이 없으므로 Notion Scheduler DB에 동기화되지 않고 LXP 진도 이수 및 파일 다운로드로 범위를 한정한다 | ✓ VERIFIED | Architecture scope confirmed: no Notion writes emitted from materials pipeline. |
 
 **Score:** 6/6 truths verified
@@ -35,13 +35,13 @@ re_verification: null
 
 | Artifact | Expected | Status | Details |
 |----------|----------|--------|---------|
-| `src/kau_assistant/materials/models.py` | `MaterialItem`, `MaterialDownloadResult`, `CourseMaterialsResult`, `MaterialsRunResult`, `MaterialStatus` | ✓ VERIFIED | Fully defined DTOs with Pydantic serialization. |
-| `src/kau_assistant/scraper/material_parser.py` | DOM parser for `ubfile`/`resource` & `extract_pluginfile_url` | ✓ VERIFIED | BeautifulSoup lxml parser extracting week sections and clean titles. |
-| `src/kau_assistant/materials/filename_utils.py` | RFC 5987 / 6266 resolver and OS sanitization | ✓ VERIFIED | Percent decoding, MIME mapping, and Windows reserved stem prefixes. |
-| `src/kau_assistant/materials/downloader.py` | Authenticated streaming downloader & view engine | ✓ VERIFIED | Session cookie jar, atomic `.tmp` replace, duplicate size match skip. |
-| `src/kau_assistant/materials/runner.py` | Multi-course / week orchestrator | ✓ VERIFIED | `resolve_candidate_materials`, `process_course_materials`, `run_materials_pipeline`. |
-| `src/kau_assistant/materials/reporter.py` | Rich terminal reporting | ✓ VERIFIED | Color-coded status table, file size formatting, failure summary. |
-| `src/kau_assistant/cli.py` | `materials` command and `files` alias | ✓ VERIFIED | Click options, stream separation, standard exit codes. |
+| `src/coursepilot/materials/models.py` | `MaterialItem`, `MaterialDownloadResult`, `CourseMaterialsResult`, `MaterialsRunResult`, `MaterialStatus` | ✓ VERIFIED | Fully defined DTOs with Pydantic serialization. |
+| `src/coursepilot/scraper/material_parser.py` | DOM parser for `ubfile`/`resource` & `extract_pluginfile_url` | ✓ VERIFIED | BeautifulSoup lxml parser extracting week sections and clean titles. |
+| `src/coursepilot/materials/filename_utils.py` | RFC 5987 / 6266 resolver and OS sanitization | ✓ VERIFIED | Percent decoding, MIME mapping, and Windows reserved stem prefixes. |
+| `src/coursepilot/materials/downloader.py` | Authenticated streaming downloader & view engine | ✓ VERIFIED | Session cookie jar, atomic `.tmp` replace, duplicate size match skip. |
+| `src/coursepilot/materials/runner.py` | Multi-course / week orchestrator | ✓ VERIFIED | `resolve_candidate_materials`, `process_course_materials`, `run_materials_pipeline`. |
+| `src/coursepilot/materials/reporter.py` | Rich terminal reporting | ✓ VERIFIED | Color-coded status table, file size formatting, failure summary. |
+| `src/coursepilot/cli.py` | `materials` command and `files` alias | ✓ VERIFIED | Click options, stream separation, standard exit codes. |
 | `tests/test_material_models.py` | Unit tests for models & settings | ✓ VERIFIED | 5 tests passing. |
 | `tests/test_material_parser.py` | Unit tests for HTML parser | ✓ VERIFIED | 2 tests passing. |
 | `tests/test_filename_utils.py` | Unit tests for filename resolution | ✓ VERIFIED | 11 tests passing. |

@@ -63,7 +63,7 @@ created: "2026-09-26"
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| Real LMS live board inspection & Rich briefing | BRD-01, BRD-02 | Requires real student credentials and active course enrolments | Run `kau-assistant board` and verify announcements and Q&A from enrolled courses render cleanly in terminal without CP949 errors. Test `kau-assistant notices --unread-only` and `kau-assistant qna --my`. |
+| Real LMS live board inspection & Rich briefing | BRD-01, BRD-02 | Requires real student credentials and active course enrolments | Run `coursepilot board` and verify announcements and Q&A from enrolled courses render cleanly in terminal without CP949 errors. Test `coursepilot notices --unread-only` and `coursepilot qna --my`. |
 
 ---
 

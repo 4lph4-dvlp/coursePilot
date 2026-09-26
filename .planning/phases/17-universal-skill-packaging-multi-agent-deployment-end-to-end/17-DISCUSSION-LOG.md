@@ -127,7 +127,7 @@
 | You decide | 에이전트 재량에 위임 | |
 
 **User's choice:** (Recommended) 부모 홈 폴더 자동 생성 및 5개 에이전트 선제 배포
-**Notes:** 향후 새로운 에이전트를 설치하더라도 즉시 kau-lxp 스킬이 감지되도록 선제 링크 구성.
+**Notes:** 향후 새로운 에이전트를 설치하더라도 즉시 coursepilot 스킬이 감지되도록 선제 링크 구성.
 
 ### Q4: 배포 후 파일 및 링크 무결성 검증 자동화
 | Option | Description | Selected |

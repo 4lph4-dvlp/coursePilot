@@ -15,7 +15,7 @@
 - **D-16-06:** 색상 코딩 프로그레스 바 + 수치 병기: 과목별 진도율을 달성률에 따른 색상(100% 녹색, 80~99% 청색, 50~79% 황색, 50% 미만 적색) Rich ProgressBar 그래픽과 백분율 및 건수 `85% (17/20)`로 가시성 높게 표현한다.
 - **D-16-07:** 이번 주차 항목 To-Do 최우선 강조: 이번 주차 점검 섹션에서는 아직 완료하지 않은 잔여 활동(미완료)을 상단에 마감 기한/유형 태그(`[VOD]`, `[과제]`, `[퀴즈]`, `[자료]`)와 함께 눈에 띄게 강조하고, 완료된 활동은 하단에 체크(`✓`)로 컴팩트하게 정리한다.
 - **D-16-08:** 상황 맞춤형 Alert 패널: 지난 주차에 결석/미제출된 누락 항목이 존재할 때만 적색/황색 Alert 패널(`⚠️ 과거 주차 누락 N건`)을 표시하고, 누락이 없을 경우 깔끔한 녹색 올클리어(`🎉 All Clear`) 배지를 출력한다.
-- **D-16-09:** `kau-assistant progress` 단일 진입점: 기본 실행 시 전체 수강 과목의 종합 대시보드를 일괄 브리핑한다. — **Reversibility:** costly — CLI 명령어 시그니처 및 에이전트 호출 계약
+- **D-16-09:** `coursepilot progress` 단일 진입점: 기본 실행 시 전체 수강 과목의 종합 대시보드를 일괄 브리핑한다. — **Reversibility:** costly — CLI 명령어 시그니처 및 에이전트 호출 계약
 - **D-16-10:** 퍼지 과목 매칭 및 주차 지정: `--course <과목명/약칭>` 지정 시 해당 과목의 1~16주차 전 주차 활동 현황표(매트릭스 로드맵)를 펼쳐보고, `--week <N>`으로 특정 주차만 정밀 점검할 수 있도록 한다.
 - **D-16-11:** 컴팩트 기본 뷰 및 `--detail` 전 주차 전개: 기본 실행 시 요약 게이지와 이번 주차 활동 위주로 간결하게 표시하고, `--detail` 플래그 지정 시 전 주차의 모든 완료/미완료 개별 활동 세부 목록을 펼쳐서 확인할 수 있다.
 - **D-16-12:** 표준 JSON 계약(`schema_version: 1`): AI 에이전트 연동용 `--json` 출력은 최상위 `schema_version: 1`, `status`, `timestamp`, `summary`(종합 KPI), `courses`(과목별 전체/과거/이번주차 진도율, 4대 활동별 세부 통계, 액션 아이템 목록)를 계층형으로 일관되게 제공한다. — **Reversibility:** costly — JSON_CONTRACT.md 및 에이전트 파싱 계약
@@ -46,7 +46,7 @@
 
 ## Summary
 
-Phase 16은 KAU LXP Assistant의 학습 자동화 기능을 종합 집대성하여, 학생이 수강 중인 모든 강좌의 **4대 학습활동(동영상 VOD, 과제, 퀴즈, 학습자료)** 이수 상태를 빈틈없이 파악하고 학업 진척도를 한눈에 브리핑받을 수 있는 통합 진척도 대시보드(`kau-assistant progress`)를 구축합니다.
+Phase 16은 CoursePilot의 학습 자동화 기능을 종합 집대성하여, 학생이 수강 중인 모든 강좌의 **4대 학습활동(동영상 VOD, 과제, 퀴즈, 학습자료)** 이수 상태를 빈틈없이 파악하고 학업 진척도를 한눈에 브리핑받을 수 있는 통합 진척도 대시보드(`coursepilot progress`)를 구축합니다.
 
 기존 마일스톤(Phase 2, 6, 7, 13)에서 구축된 파서들(`lecture_parser.py`, `assessment_parser.py`, `material_parser.py`)을 효율적으로 재사용하되, 네트워크 부하를 극소화하기 위해 과목 홈 HTML 1회 방문으로 동영상 강의와 학습자료를 동시에 추출(D-16-13)하고 활동 현황(ublogs) 및 과제/퀴즈 목록을 결합합니다.
 
@@ -59,7 +59,7 @@ Phase 16은 KAU LXP Assistant의 학습 자동화 기능을 종합 집대성하�
 ## Architectural Responsibility Map
 
 ```
-src/kau_assistant/
+src/coursepilot/
 ├── scraper/
 │   ├── models.py                     # [UPDATE] AssessmentItem에 week_number: int | None = None 추가 (하위 호환)
 │   ├── assessment_parser.py          # [UPDATE] parse_assessment_list에서 주차 헤더(주/주차/Week) 감지 및 week_number 추출
@@ -76,12 +76,12 @@ src/kau_assistant/
 
 ### Module Responsibilities
 
-1. **`src/kau_assistant/scraper/models.py` & `assessment_parser.py` (Domain Enhancement)**
+1. **`src/coursepilot/scraper/models.py` & `assessment_parser.py` (Domain Enhancement)**
    - `AssessmentItem`에 `week_number: int | None = None` 필드를 추가하여 과제와 퀴즈가 소속된 주차 메타데이터를 보존합니다.
    - `parse_assessment_list`에서 테이블 헤더의 "주", "주차", "Week" 열을 식별하여 각 행의 주차 정보를 추출합니다 (Moodle 장문/단문 테이블 지원).
-   - [VERIFIED: `tests/fixtures/assignment_list.html` 및 `lxp_quiz_index.html`에 이미 `<th>주차</th>`, `<th>주</th>` 열이 실재함].
+   - [VERIFIED: `tests/fixtures/assignment_list.html` 및 `lms_quiz_index.html`에 이미 `<th>주차</th>`, `<th>주</th>` 열이 실재함].
 
-2. **`src/kau_assistant/progress/models.py` (Data Models & JSON Contract)**
+2. **`src/coursepilot/progress/models.py` (Data Models & JSON Contract)**
    - `ActivityType(str, Enum)`: `VOD`, `ASSIGNMENT`, `QUIZ`, `MATERIAL`.
    - `ActivityItem(BaseModel)`: 개별 학습활동의 통합 표현(제목, 활동타입, 주차, 완료여부, 마감일, 지연여부, URL).
    - `ActivityCount(BaseModel)`: `completed: int`, `total: int`, `rate: float`.
@@ -90,7 +90,7 @@ src/kau_assistant/
    - `DashboardSummary(BaseModel)`: 전체 수강 과목의 종합 KPI.
    - `ProgressReport(BaseModel)`: `schema_version: 1`, `status`, `timestamp`, `is_cached`, `summary`, `courses`, `errors`, `notices`.
 
-3. **`src/kau_assistant/progress/calculator.py` (Progress Calculation Engine)**
+3. **`src/coursepilot/progress/calculator.py` (Progress Calculation Engine)**
    - `detect_current_week(sections, now)`: 섹션별 시작/종료일 범위(`start_date <= now <= end_date`)와 `.current` 클래스를 결합한 하이브리드 이번 주차 판정.
    - `calculate_course_progress(course, activities, current_week, now)`:
      * 오픈 활동(`week_number <= current_week`): 메인 진도율 산출.
@@ -100,7 +100,7 @@ src/kau_assistant/
      * 4대 활동별 세부 달성률(x/y) 산출.
    - `aggregate_dashboard_summary(course_progress_list)`: 전 과목 통합 KPI 집계.
 
-4. **`src/kau_assistant/progress/runner.py` (Collection & Cache Orchestrator)**
+4. **`src/coursepilot/progress/runner.py` (Collection & Cache Orchestrator)**
    - `run_progress_pipeline(...)`:
      * 캐시 확인: `--cached` 플래그 지정 시 10분 TTL 이내의 `progress_cache.json`이 존재하면 즉시 반환.
      * 세션 및 과목 탐색: `SessionManager` 기반 인증 세션 확보 및 `extract_courses`.
@@ -109,7 +109,7 @@ src/kau_assistant/
      * 활동 현황(ublogs) 및 과제/퀴즈 목록 수집 후 통합 DTO 변환.
      * 캐시 저장: 새로 수집된 결과를 `progress_cache.json`에 원자적(atomic rename)으로 기록.
 
-5. **`src/kau_assistant/progress/reporter.py` (Rich Visual Presentation)**
+5. **`src/coursepilot/progress/reporter.py` (Rich Visual Presentation)**
    - `render_progress_dashboard(report, console, ...)`:
      * Section 1: 색상 코딩 프로그레스 바 테이블 (100% 녹색, 80~99% 청색, 50~79% 황색, 50% 미만 적색) 및 4대 활동 x/y 병기.
      * Section 2: 이번 주차 To-Do 최상단 강조 (유형별 색상 태그 `[VOD]`, `[과제]`, `[퀴즈]`, `[자료]` 및 잔여 시간), 하단 완료 목록(`✓`).
@@ -117,7 +117,7 @@ src/kau_assistant/
    - `render_course_matrix(course_progress, console)`: `--course` 지정 시 1~16주차 전 주차 로드맵 매트릭스 테이블 렌더링.
    - `render_detailed_activities(report, console)`: `--detail` 플래그 지정 시 전 주차 세부 활동 목록 전개.
 
-6. **`src/kau_assistant/cli.py` (CLI Command Integration)**
+6. **`src/coursepilot/cli.py` (CLI Command Integration)**
    - `@cli.command("progress")` 등록 및 옵션 파싱 (`--course`, `--week`, `--detail`, `--cached`, `--refresh`, `--json`, `--relogin`, `--headed`).
    - `Console(stderr=True)` 스피너와 stdout 리포트/JSON의 완벽한 분리(D-16-15).
    - 종료 코드: 완전 성공 0, 부분 실패(일부 과목 에러 또는 과거 누락 존재) 1, 치명적 에러 2.
@@ -128,12 +128,12 @@ src/kau_assistant/
 
 | 컴포넌트 | 선택 기술 | 선정 근거 |
 |---|---|---|
-| **CLI Framework** | `click >= 8.1.0` | 프로젝트 표준 CLI 프레임워크 (`check`, `sync`, `board`, `materials`와 일관성 유지) [VERIFIED: `src/kau_assistant/cli.py`] |
-| **Data Validation** | `pydantic >= 2.6.0` | 엄격한 타입 검증, `schema_version: 1` 직렬화, 불변성 보장 [VERIFIED: `src/kau_assistant/report_models.py`] |
-| **Terminal UI** | `rich >= 13.7.0` | `ProgressBar`, `Table`, `Panel`, `Text`, `Status` 스피너 지원 [VERIFIED: `src/kau_assistant/reporter.py`] |
-| **HTTP Client** | `httpx >= 0.28.0` | 동기 쿠키 인증 클라이언트 기반 빠른 LXP HTML 스크래핑 [VERIFIED: `src/kau_assistant/board/runner.py`] |
-| **HTML Parsing** | `beautifulsoup4 >= 4.12.0` (`lxml`) | 기존 Coursemos 섹션 및 테이블 파서와 100% 호환 [VERIFIED: `src/kau_assistant/scraper/`] |
-| **Browser Driver** | `playwright >= 1.42.0` | 세션 관리 및 인증 상태 갱신 [VERIFIED: `src/kau_assistant/session_manager.py`] |
+| **CLI Framework** | `click >= 8.1.0` | 프로젝트 표준 CLI 프레임워크 (`check`, `sync`, `board`, `materials`와 일관성 유지) [VERIFIED: `src/coursepilot/cli.py`] |
+| **Data Validation** | `pydantic >= 2.6.0` | 엄격한 타입 검증, `schema_version: 1` 직렬화, 불변성 보장 [VERIFIED: `src/coursepilot/report_models.py`] |
+| **Terminal UI** | `rich >= 13.7.0` | `ProgressBar`, `Table`, `Panel`, `Text`, `Status` 스피너 지원 [VERIFIED: `src/coursepilot/reporter.py`] |
+| **HTTP Client** | `httpx >= 0.28.0` | 동기 쿠키 인증 클라이언트 기반 빠른 LXP HTML 스크래핑 [VERIFIED: `src/coursepilot/board/runner.py`] |
+| **HTML Parsing** | `beautifulsoup4 >= 4.12.0` (`lxml`) | 기존 Coursemos 섹션 및 테이블 파서와 100% 호환 [VERIFIED: `src/coursepilot/scraper/`] |
+| **Browser Driver** | `playwright >= 1.42.0` | 세션 관리 및 인증 상태 갱신 [VERIFIED: `src/coursepilot/session_manager.py`] |
 
 ---
 
@@ -216,8 +216,8 @@ def detect_current_week(sections: list[SectionMeta], now: datetime) -> int:
 |---|---|---|
 | **터미널 프로그레스 바** | `rich.progress_bar.ProgressBar` 또는 Rich Table 스타일 문자열 | 터미널 가로폭 깨짐, ANSI 이스케이프 시퀀스 오작동, 윈도우 cmd/PowerShell 호환성 결함 |
 | **JSON 스키마 직렬화** | Pydantic `BaseModel.model_dump_json()` | datetime ISO 형식 불일치, Enum 직렬화 실패, 계약 불일치 |
-| **한국 표준시 계산** | `src/kau_assistant/scraper/date_parser.py`의 `KST` 및 `get_current_kst_time()` | 시스템 로컬 타임존(UTC 등)과 KST 혼용으로 인한 9시간 시차 버그 |
-| **과목명 퍼지 매칭** | `src/kau_assistant/player/runner.py`의 `find_target_course` 및 `course_mapping.py` | 약칭 매핑 누락, 괄호/분반 표기 미처리로 과목 검색 실패 |
+| **한국 표준시 계산** | `src/coursepilot/scraper/date_parser.py`의 `KST` 및 `get_current_kst_time()` | 시스템 로컬 타임존(UTC 등)과 KST 혼용으로 인한 9시간 시차 버그 |
+| **과목명 퍼지 매칭** | `src/coursepilot/player/runner.py`의 `find_target_course` 및 `course_mapping.py` | 약칭 매핑 누락, 괄호/분반 표기 미처리로 과목 검색 실패 |
 | **원자적 파일 저장** | `temp_path.write_text(...)` 후 `temp_path.replace(target_path)` | 프로세스 강제 종료 시 JSON 파일이 깨져 이후 실행에서 영구 SyntaxError 발생 |
 
 ---
@@ -244,7 +244,7 @@ def detect_current_week(sections: list[SectionMeta], now: datetime) -> int:
 
 ## Code Examples
 
-### 1. Unified Progress Models (`src/kau_assistant/progress/models.py`)
+### 1. Unified Progress Models (`src/coursepilot/progress/models.py`)
 
 ```python
 """Data models and versioned JSON contract for activity progress dashboard."""
@@ -257,7 +257,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from kau_assistant.report_models import ErrorItem, ReportNotice
+from coursepilot.report_models import ErrorItem, ReportNotice
 
 SCHEMA_VERSION = 1
 
@@ -365,13 +365,13 @@ class ProgressReport(BaseModel):
     notices: list[ReportNotice] = Field(default_factory=list)
 ```
 
-### 2. Progress Calculation Logic (`src/kau_assistant/progress/calculator.py`)
+### 2. Progress Calculation Logic (`src/coursepilot/progress/calculator.py`)
 
 ```python
 """Progress calculation engine for multi-tier activity completion."""
 
 from datetime import datetime
-from kau_assistant.progress.models import (
+from coursepilot.progress.models import (
     ActivityBreakdown,
     ActivityCount,
     ActivityItem,
@@ -379,7 +379,7 @@ from kau_assistant.progress.models import (
     CourseProgress,
     DashboardSummary,
 )
-from kau_assistant.scraper.date_parser import get_current_kst_time
+from coursepilot.scraper.date_parser import get_current_kst_time
 
 
 def compute_breakdown(items: list[ActivityItem]) -> ActivityBreakdown:
@@ -467,7 +467,7 @@ def calculate_course_progress(
     )
 ```
 
-### 3. Local Cache Management (`src/kau_assistant/progress/runner.py`)
+### 3. Local Cache Management (`src/coursepilot/progress/runner.py`)
 
 ```python
 """Atomic 10-minute cache management for progress reports (D-16-14)."""
@@ -477,8 +477,8 @@ import logging
 from pathlib import Path
 from datetime import datetime
 
-from kau_assistant.progress.models import ProgressReport
-from kau_assistant.scraper.date_parser import get_current_kst_time
+from coursepilot.progress.models import ProgressReport
+from coursepilot.scraper.date_parser import get_current_kst_time
 
 logger = logging.getLogger(__name__)
 CACHE_TTL_SECONDS = 600  # 10 minutes
@@ -525,7 +525,7 @@ def save_progress_cache(cache_path: Path, report: ProgressReport) -> None:
 | **Playwright Browser** | Chromium 설치됨 | `SessionManager` 및 헤드리스 브라우저 구동 가능 [VERIFIED: Phase 1~15] |
 | **Rich & Click** | 설치됨 | `rich>=13.7.0`, `click>=8.1.0` [VERIFIED: `pyproject.toml`] |
 | **로컬 세션 캐시** | 준비됨 | `.session_cache/session.json` 및 `progress_cache.json` 기록 경로 확보 |
-| **테스트 픽스처** | 준비됨 | `lxp_course_home.html`, `lxp_course_materials.html`, `assignment_list.html`, `lxp_quiz_index.html` [VERIFIED: `tests/fixtures/`] |
+| **테스트 픽스처** | 준비됨 | `lms_course_home.html`, `lms_course_materials.html`, `assignment_list.html`, `lms_quiz_index.html` [VERIFIED: `tests/fixtures/`] |
 
 ---
 
@@ -551,8 +551,8 @@ def save_progress_cache(cache_path: Path, report: ProgressReport) -> None:
 - 라이브 LXP 수집 검증: 사용자 세션 및 환경변수 주입 시 E2E 검증 가능.
 
 ### Wave 0 Gaps
-- `AssessmentItem` (`src/kau_assistant/scraper/models.py`)에 주차 식별용 `week_number: int | None = None` 필드 추가 필요.
-- `parse_assessment_list` (`src/kau_assistant/scraper/assessment_parser.py`)에 테이블 헤더 "주"/"주차" 열 감지 로직 추가 필요.
+- `AssessmentItem` (`src/coursepilot/scraper/models.py`)에 주차 식별용 `week_number: int | None = None` 필드 추가 필요.
+- `parse_assessment_list` (`src/coursepilot/scraper/assessment_parser.py`)에 테이블 헤더 "주"/"주차" 열 감지 로직 추가 필요.
 - 이 두 항목은 기존 동작에 전혀 영향을 주지 않는 순수한 하위 호환 확장입니다.
 
 ---
@@ -571,9 +571,9 @@ def save_progress_cache(cache_path: Path, report: ProgressReport) -> None:
 
 ## Sources
 
-- [VERIFIED: `src/kau_assistant/scraper/models.py` & `src/kau_assistant/scraper/lecture_parser.py`] - VOD 파싱 및 ublogs 완료 병합 구조
-- [VERIFIED: `src/kau_assistant/scraper/material_parser.py` & `src/kau_assistant/materials/models.py`] - 학습자료 파싱 및 완료 상태 추출
-- [VERIFIED: `src/kau_assistant/scraper/assessment_parser.py`] - 과제 및 퀴즈 완료/제출 상태 판정 로직
-- [VERIFIED: `src/kau_assistant/board/runner.py` & `src/kau_assistant/materials/downloader.py`] - 인증된 httpx 클라이언트 및 세션 매니저 연동 패턴
-- [VERIFIED: `skills/kau-lxp/JSON_CONTRACT.md`] - `schema_version: 1` 에이전트 계약 명세
-- [VERIFIED: `tests/fixtures/lxp_course_home.html` & `assignment_list.html`] - Coursemos HTML 주차 및 섹션 구조 확인
+- [VERIFIED: `src/coursepilot/scraper/models.py` & `src/coursepilot/scraper/lecture_parser.py`] - VOD 파싱 및 ublogs 완료 병합 구조
+- [VERIFIED: `src/coursepilot/scraper/material_parser.py` & `src/coursepilot/materials/models.py`] - 학습자료 파싱 및 완료 상태 추출
+- [VERIFIED: `src/coursepilot/scraper/assessment_parser.py`] - 과제 및 퀴즈 완료/제출 상태 판정 로직
+- [VERIFIED: `src/coursepilot/board/runner.py` & `src/coursepilot/materials/downloader.py`] - 인증된 httpx 클라이언트 및 세션 매니저 연동 패턴
+- [VERIFIED: `skills/coursepilot/JSON_CONTRACT.md`] - `schema_version: 1` 에이전트 계약 명세
+- [VERIFIED: `tests/fixtures/lms_course_home.html` & `assignment_list.html`] - Coursemos HTML 주차 및 섹션 구조 확인

@@ -62,9 +62,9 @@ Phase 2는 한국항공대 LXP(Coursemos/Canvas 기반 LMS)의 학업 데이터�
 - `.planning/phases/01-foundation-session-management/01-CONTEXT.md` — Phase 1 결정사항
 
 ### Source Code References
-- `src/kau_assistant/auth.py` — LMS 셀렉터 및 로그인/대시보드 판별 기준
-- `src/kau_assistant/session_manager.py` — 브라우저 컨텍스트 수명주기 및 세션 캐싱 인프라
-- `src/kau_assistant/course_mapping.py` — 과목명 정규화 매핑 로직
+- `src/coursepilot/auth.py` — LMS 셀렉터 및 로그인/대시보드 판별 기준
+- `src/coursepilot/session_manager.py` — 브라우저 컨텍스트 수명주기 및 세션 캐싱 인프라
+- `src/coursepilot/course_mapping.py` — 과목명 정규화 매핑 로직
 
 </canonical_refs>
 
@@ -81,7 +81,7 @@ Phase 2는 한국항공대 LXP(Coursemos/Canvas 기반 LMS)의 학업 데이터�
 - `.cache/` 디렉터리 격리: 민감 정보 및 디버깅 데이터 격리 보존
 
 ### Integration Points
-- `src/kau_assistant/scraper/`: 이번 단계에서 신규 구축할 스크래퍼 모듈 패키지
+- `src/coursepilot/scraper/`: 이번 단계에서 신규 구축할 스크래퍼 모듈 패키지
 - Phase 3 도메인 모델 생성기로 전달할 원시 추출 데이터 구조
 
 </code_context>

@@ -1,4 +1,4 @@
-# Roadmap: KAU LXP Assistant & Notion Scheduler Sync Skill
+# Roadmap: CoursePilot
 
 ## Overview
 
@@ -151,8 +151,8 @@ Plans:
 **Success Criteria** (what must be TRUE):
 
   1. 터미널 및 대화창에 과목별 미완료 강의, 미제출 과제, 마감 임박 목록이 표(Table) 형태로 깔끔하게 브리핑된다.
-  2. `python -m kau_assistant check` 및 `python -m kau_assistant sync` CLI 명령어가 안정적으로 동작한다.
-  3. 범용 Agent Skill 폴더(`skills/kau-lxp/SKILL.md`, 지침 및 메타데이터)가 완성되어 Claude Code, Codex, Antigravity, Pi, Hermes에서 설치 후 자연어 요청으로 스킬을 구동할 수 있다.
+  2. `python -m coursepilot check` 및 `python -m coursepilot sync` CLI 명령어가 안정적으로 동작한다.
+  3. 범용 Agent Skill 폴더(`skills/coursepilot/SKILL.md`, 지침 및 메타데이터)가 완성되어 Claude Code, Codex, Antigravity, Pi, Hermes에서 설치 후 자연어 요청으로 스킬을 구동할 수 있다.
 
 **Plans**: 11/11 plans executed (05-06..05-11: UAT gap closure completed, 2026-09-24)
 
@@ -282,7 +282,7 @@ Plans:
   1. `--course` 및 `--week` 인자를 해석하여 미수강(`AttendanceStatus.INCOMPLETE`) VOD만 선별하고, 이미 완료된 강의는 자동 건너뛴다.
   2. 선별된 미완료 VOD들을 순서대로 Phase 9 플레이어 엔진에 전달하여 순차 시청 작업을 수행하고 실시간 진행 상황을 콘솔에 출력한다.
   3. `--update-notion` 플래그 활성화 시, 시청이 완료된 강의의 Notion Scheduler DB 상태(`상태`)를 `완료`로 업데이트한다 (기본값은 보호).
-  4. `kau-assistant watch` CLI 서브커맨드를 추가하고 에러 및 타임아웃 상황을 격리한다.
+  4. `coursepilot watch` CLI 서브커맨드를 추가하고 에러 및 타임아웃 상황을 격리한다.
 
 **Plans**: 1/1 plans executed
 
@@ -297,7 +297,7 @@ Plans:
 **Requirements**: SKIL-03, AGNT-01, AGNT-02
 **Success Criteria** (what must be TRUE):
 
-  1. `skills/kau-lxp/SKILL.md`에 VOD 시청 요청 자연어 트리거(예: "기초전자실험 이번주 영상 시청해줘") 및 백그라운드 실행 지침을 추가한다.
+  1. `skills/coursepilot/SKILL.md`에 VOD 시청 요청 자연어 트리거(예: "기초전자실험 이번주 영상 시청해줘") 및 백그라운드 실행 지침을 추가한다.
   2. 에이전트가 영상 시청 요청을 받았을 때 백그라운드 프로세스로 `watch`를 구동하고, 메인 세션에서는 즉시 사용자에게 작업 시작을 알리며 다른 요청을 처리할 수 있는 패턴을 확립한다.
   3. 5개 지원 AI 에이전트(Claude Code, Codex, Antigravity, Pi, Hermes)에 업데이트된 스킬을 일괄 재배포하고 E2E UAT를 완료한다.
 
@@ -438,7 +438,7 @@ Plans:
 **Requirements**: SKIL-04, VERIF-03
 **Success Criteria** (what must be TRUE):
 
-  1. `skills/kau-lxp/SKILL.md` 및 `JSON_CONTRACT.md`에 신규 서브커맨드(`progress`, `notices`, `qna`, 다운로드 옵션 등)가 완벽히 문서화된다.
+  1. `skills/coursepilot/SKILL.md` 및 `JSON_CONTRACT.md`에 신규 서브커맨드(`progress`, `notices`, `qna`, 다운로드 옵션 등)가 완벽히 문서화된다.
   2. 5개 AI 에이전트(Claude Code, Codex, Antigravity, Pi, Hermes)에 업데이트된 스킬이 정상 재배포된다.
   3. 실제 LXP 환경에서 신규 기능들의 E2E 통합 테스트를 통과한다.
 

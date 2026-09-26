@@ -26,9 +26,9 @@ verified_at: "2026-09-21T11:28:00Z"
 
 | Requirement ID | Description | Source Plan | Verification Evidence | Status |
 |----------------|-------------|-------------|-----------------------|--------|
-| **DOMN-01** | 수집된 강의/과제 원시 데이터를 표준 도메인 모델(`SyncTask`, `Course`)로 변환하고 미완료 항목을 정확히 판별 | 03-01 | `src/kau_assistant/domain/models.py`<br>`src/kau_assistant/domain/transformer.py`<br>`tests/test_domain_models.py` (4 tests pass)<br>`tests/test_transformer.py` (7 tests pass) | **Satisfied** |
-| **DOMN-02** | 현재 KST 시간 기준 24시간 이내 마감 과제/강의에 대해 `🔴 긴급 (P1)` 우선순위를 자동 부여하고 지연 항목을 `P4`로 분류 | 03-01 | `src/kau_assistant/domain/priority.py`<br>`tests/test_priority.py` (4 tests pass) | **Satisfied** |
-| **DOMN-03** | 과목명 약칭 매핑 및 활동 유형별 규칙(`[{과목약어}] {N}주차 {M}차시 강의 시청`, `[{과목약어}] {N}주차 {과제명} 제출`, `[퀴즈]`, `[토론]`)을 적용한 통일 네이밍 엔진 구현 | 03-01 | `src/kau_assistant/domain/naming.py`<br>`tests/test_naming.py` (7 tests pass) | **Satisfied** |
+| **DOMN-01** | 수집된 강의/과제 원시 데이터를 표준 도메인 모델(`SyncTask`, `Course`)로 변환하고 미완료 항목을 정확히 판별 | 03-01 | `src/coursepilot/domain/models.py`<br>`src/coursepilot/domain/transformer.py`<br>`tests/test_domain_models.py` (4 tests pass)<br>`tests/test_transformer.py` (7 tests pass) | **Satisfied** |
+| **DOMN-02** | 현재 KST 시간 기준 24시간 이내 마감 과제/강의에 대해 `🔴 긴급 (P1)` 우선순위를 자동 부여하고 지연 항목을 `P4`로 분류 | 03-01 | `src/coursepilot/domain/priority.py`<br>`tests/test_priority.py` (4 tests pass) | **Satisfied** |
+| **DOMN-03** | 과목명 약칭 매핑 및 활동 유형별 규칙(`[{과목약어}] {N}주차 {M}차시 강의 시청`, `[{과목약어}] {N}주차 {과제명} 제출`, `[퀴즈]`, `[토론]`)을 적용한 통일 네이밍 엔진 구현 | 03-01 | `src/coursepilot/domain/naming.py`<br>`tests/test_naming.py` (7 tests pass) | **Satisfied** |
 
 ---
 
@@ -37,7 +37,7 @@ verified_at: "2026-09-21T11:28:00Z"
 ```text
 ============================= test session starts =============================
 platform win32 -- Python 3.14.0, pytest-9.1.1, pluggy-1.6.0
-rootdir: D:\dev\kau-lxp-assistant
+rootdir: <repository root>
 configfile: pyproject.toml
 testpaths: tests
 plugins: anyio-4.15.1, asyncio-1.4.0, mock-3.15.1
@@ -72,7 +72,7 @@ tests\test_transformer.py .......                                        [100%]
 
 ## 4. Architectural & Safety Checklist
 
-- [x] **Pure Domain Isolation:** `src/kau_assistant/domain/` 모듈은 외부 I/O(Playwright, HTTP client, 파일 시스템)를 전혀 임포트하지 않는 순수 비즈니스 로직 계층으로 격리 (100% 결정론적 테스트)
+- [x] **Pure Domain Isolation:** `src/coursepilot/domain/` 모듈은 외부 I/O(Playwright, HTTP client, 파일 시스템)를 전혀 임포트하지 않는 순수 비즈니스 로직 계층으로 격리 (100% 결정론적 테스트)
 - [x] **KST Timezone Enforcement:** `ensure_kst` validator가 naive datetime 및 timezone-aware datetime을 일관되게 `Asia/Seoul` (KST)로 보정하여 타임존 오차 차단 (D-07)
 - [x] **Notion API 2000-Char Limit Defense:** 과제 설명문 1500자 초과 시 안전 절삭 및 전체 메모 1950자 상한 하드캡 적용 (D-14)
 - [x] **Korean Activity Naming Conventions:** 강의 `[{과목약어}] {N}주차 {M}차시 강의 시청` (D-01), 과제 `[{과목약어}] {N}주차 {과제명} 제출` (D-02), 비주차 폴백 (D-03), 스마트 HTML 태그 정제 (D-04)

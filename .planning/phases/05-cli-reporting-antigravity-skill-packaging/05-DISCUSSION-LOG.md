@@ -31,7 +31,7 @@
 
 | Question | Options | Selected |
 |---|---|---|
-| SKILL.md 위치 | skills/kau-lxp/ 전용 폴더 / 저장소 루트 / .agents/skills/ | skills/kau-lxp/ |
+| SKILL.md 위치 | skills/coursepilot/ 전용 폴더 / 저장소 루트 / .agents/skills/ | skills/coursepilot/ |
 | '노션에 올려줘' 흐름 | 드라이런 → 확인 → --apply / 바로 --apply / 항상 드라이런만 | 드라이런 → 확인 → --apply |
 | 대화 출력 | --json → 마크다운 재구성 / Rich 그대로 / --markdown 모드 | --json → 마크다운 재구성 |
 | 첫 실행 환경 미비 | 설치 자동·비밀정보 안내 / 안내만 / 대화로 .env 작성 | 설치 자동·비밀정보 안내 |

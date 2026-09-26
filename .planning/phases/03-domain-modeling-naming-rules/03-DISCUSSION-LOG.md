@@ -189,10 +189,10 @@
 
 | Option | Description | Selected |
 |--------|-------------|----------|
-| 계층형 서브패키지 (`src/kau_assistant/domain/`) | `models.py`(도메인 엔티티), `naming.py`(네이밍 규칙), `priority.py`(긴급도/속성 매핑), `transformer.py`(DTO 변환기)로 명확한 관심사 분리 | ✓ |
-| 단일 도메인 모듈 (`src/kau_assistant/domain.py`) | 단일 파일에 모든 로직 통합 | |
+| 계층형 서브패키지 (`src/coursepilot/domain/`) | `models.py`(도메인 엔티티), `naming.py`(네이밍 규칙), `priority.py`(긴급도/속성 매핑), `transformer.py`(DTO 변환기)로 명확한 관심사 분리 | ✓ |
+| 단일 도메인 모듈 (`src/coursepilot/domain.py`) | 단일 파일에 모든 로직 통합 | |
 
-**User's choice:** 계층형 서브패키지 (`src/kau_assistant/domain/`)
+**User's choice:** 계층형 서브패키지 (`src/coursepilot/domain/`)
 **Notes:** 단위 테스트 용이성 및 향후 유지보수성 최적화.
 
 ---

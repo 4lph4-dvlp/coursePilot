@@ -26,15 +26,15 @@ tech-stack:
     - decorated Notion labels translated only at the API boundary
 key-files:
   created:
-    - src/kau_assistant/notion/mapper.py
-    - src/kau_assistant/notion/deduplicator.py
+    - src/coursepilot/notion/mapper.py
+    - src/coursepilot/notion/deduplicator.py
     - tests/test_notion_mapper.py
     - tests/test_notion_deduplicator.py
     - .planning/phases/04-notion-scheduler-integration-deduplication/04-02-LIVE-DRY-RUN-EVIDENCE.md
   modified:
-    - src/kau_assistant/notion/__init__.py
-    - src/kau_assistant/notion/client.py
-    - src/kau_assistant/notion/engine.py
+    - src/coursepilot/notion/__init__.py
+    - src/coursepilot/notion/client.py
+    - src/coursepilot/notion/engine.py
     - tests/test_notion_client.py
     - tests/test_notion_engine.py
 key-decisions:
@@ -105,11 +105,11 @@ status: complete
 
 ## Files Created/Modified
 
-- `src/kau_assistant/notion/mapper.py` - Canonical Scheduler schema, parsing, create payload, and allowlisted update transformations.
-- `src/kau_assistant/notion/deduplicator.py` - Pure exact-title action planner and duplicate conflict handling.
-- `src/kau_assistant/notion/client.py` - Mapper-delegated schema and page parsing while retaining the guarded transport boundary.
-- `src/kau_assistant/notion/engine.py` - Configuration gate, read-plan-write orchestration, dry-run suppression, and action failure aggregation.
-- `src/kau_assistant/notion/__init__.py` - Stable Phase 5-facing synchronization facade.
+- `src/coursepilot/notion/mapper.py` - Canonical Scheduler schema, parsing, create payload, and allowlisted update transformations.
+- `src/coursepilot/notion/deduplicator.py` - Pure exact-title action planner and duplicate conflict handling.
+- `src/coursepilot/notion/client.py` - Mapper-delegated schema and page parsing while retaining the guarded transport boundary.
+- `src/coursepilot/notion/engine.py` - Configuration gate, read-plan-write orchestration, dry-run suppression, and action failure aggregation.
+- `src/coursepilot/notion/__init__.py` - Stable Phase 5-facing synchronization facade.
 - `tests/test_notion_mapper.py`, `tests/test_notion_deduplicator.py`, `tests/test_notion_client.py`, `tests/test_notion_engine.py` - Schema, mapping, identity, orchestration, and regression coverage.
 - `.planning/phases/04-notion-scheduler-integration-deduplication/04-02-LIVE-DRY-RUN-EVIDENCE.md` - Redacted credentialed verification and human approval record.
 
@@ -127,7 +127,7 @@ status: complete
 - **Found during:** Task 3 live schema preflight
 - **Issue:** The live select options use decorated Korean labels rather than literal `P1`-`P4` strings.
 - **Fix:** Added bidirectional API-boundary mapping while leaving domain values unchanged.
-- **Files modified:** `src/kau_assistant/notion/mapper.py`, `tests/test_notion_mapper.py`
+- **Files modified:** `src/coursepilot/notion/mapper.py`, `tests/test_notion_mapper.py`
 - **Verification:** Mapper tests and live eight-property schema validation pass.
 - **Committed in:** `407e18c`
 
@@ -135,7 +135,7 @@ status: complete
 - **Found during:** Task 3 guarded live probe
 - **Issue:** A Notion date-only value was interpreted without the project KST timezone, producing a false comparison difference.
 - **Fix:** Attached or converted KST during Notion date parsing before action planning.
-- **Files modified:** `src/kau_assistant/notion/mapper.py`, `tests/test_notion_mapper.py`
+- **Files modified:** `src/coursepilot/notion/mapper.py`, `tests/test_notion_mapper.py`
 - **Verification:** Regression test passes and the final live plan reports one unchanged skip with zero updates.
 - **Committed in:** `17f1986`
 

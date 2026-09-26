@@ -9,7 +9,7 @@
 Phase 15 delivers Coursemos LXP course board parsing and interactive CLI briefing for announcements and Q&A:
 1. 과목별 공지사항 게시판(`ubboard`)의 최근 공지글 목록(번호, 제목, 작성자, 작성일) 및 본문/첨부파일 메타데이터 추출.
 2. Q&A 게시판의 질문글 및 답변 상태(답변완료/답변대기), 교수/조교의 공식 답변 본문 파싱.
-3. 통합 CLI 명령어 `kau-assistant board` 및 단독 편의 서브커맨드 `notices`, `qna` 제공.
+3. 통합 CLI 명령어 `coursepilot board` 및 단독 편의 서브커맨드 `notices`, `qna` 제공.
 4. 기본 과목당 최근 3개(`--limit 3`), 개수 지정(`--limit N`), 전체 조회(`--all`), 상세 전문 뷰어(`--view <id>`), 미확인 공지 필터(`--unread-only`), 답변 대기 질문 필터(`--unanswered`), 내 질문 필터(`--my`) 지원.
 5. 로컬 읽음 상태 파일(`board_read_state.json`) 기반 `[NEW]` 태그 및 읽음(`--mark-read`) 관리.
 6. 표준 JSON 계약(`schema_version: 1`) 기반 에이전트 연동 지원.
@@ -21,7 +21,7 @@ Phase 15 delivers Coursemos LXP course board parsing and interactive CLI briefin
 ## Implementation Decisions
 
 ### 1. CLI 명령어 및 진입점 설계
-- **D-15-01:** `kau-assistant board`를 단일 통합 명령어로 제공하여 공지사항과 Q&A를 함께 브리핑하며, 사용자 편의를 위해 `kau-assistant notices`와 `kau-assistant qna` 단독 별칭(또는 서브커맨드)도 함께 지원한다. — **Reversibility:** costly — CLI 명령어 시그니처 및 에이전트 스킬 연동 경로에 영향
+- **D-15-01:** `coursepilot board`를 단일 통합 명령어로 제공하여 공지사항과 Q&A를 함께 브리핑하며, 사용자 편의를 위해 `coursepilot notices`와 `coursepilot qna` 단독 별칭(또는 서브커맨드)도 함께 지원한다. — **Reversibility:** costly — CLI 명령어 시그니처 및 에이전트 스킬 연동 경로에 영향
 - **D-15-02:** `--course` 옵션 생략 시 전체 수강 과목을 순회하되, 최근 공지/질문이 있는 과목 위주로 깔끔하게 묶어서 브리핑하고 공지가 없는 과목은 1줄 요약으로 컴팩트하게 출력한다.
 - **D-15-03:** 기본 조회 게시글 개수는 최근 3개(`--limit 3`)로 설정하며, `--limit <N>`으로 개수 조절 및 `--all` 플래그로 게시판 전체 글 조회를 지원한다.
 - **D-15-04:** 에이전트 연동용 `--json` 출력은 프로젝트 표준 JSON 계약(`schema_version: 1`)을 준수하여, 과목별 `notices` 및 `qna` 배열과 게시글 상세 메타데이터(id, title, author, created_at, content, is_answered, replies, attachments, url)를 일관되게 제공한다. — **Reversibility:** costly — JSON_CONTRACT.md 및 에이전트 파싱 계약
@@ -61,18 +61,18 @@ Phase 15 delivers Coursemos LXP course board parsing and interactive CLI briefin
 - `.planning/REQUIREMENTS.md` § BRD-01, BRD-02 — Board requirements
 
 ### Scraper Core & Navigation Patterns
-- `src/kau_assistant/scraper/navigator.py` — Course navigation and page fetching patterns
-- `src/kau_assistant/scraper/course_list.py` — Course extraction and clean_name resolution
-- `src/kau_assistant/scraper/material_parser.py` — Section/module activity inspection and accesshide cleaning patterns
-- `src/kau_assistant/scraper/date_parser.py` — Korean date string parsing utilities
-- `src/kau_assistant/session_manager.py` — Playwright session caching and authentication cookies
-- `src/kau_assistant/config.py` — Configuration loading and settings
+- `src/coursepilot/scraper/navigator.py` — Course navigation and page fetching patterns
+- `src/coursepilot/scraper/course_list.py` — Course extraction and clean_name resolution
+- `src/coursepilot/scraper/material_parser.py` — Section/module activity inspection and accesshide cleaning patterns
+- `src/coursepilot/scraper/date_parser.py` — Korean date string parsing utilities
+- `src/coursepilot/session_manager.py` — Playwright session caching and authentication cookies
+- `src/coursepilot/config.py` — Configuration loading and settings
 
 ### CLI & Reporting Architecture
-- `src/kau_assistant/cli.py` — Click CLI command groups, option patterns, and error handling
-- `src/kau_assistant/reporter.py` — Rich table formatting and console stream separation (stderr vs stdout)
-- `src/kau_assistant/report_models.py` — JSON contract models and serialization conventions
-- `src/kau_assistant/materials/downloader.py` — File downloader engine reusable for `--download-attachments`
+- `src/coursepilot/cli.py` — Click CLI command groups, option patterns, and error handling
+- `src/coursepilot/reporter.py` — Rich table formatting and console stream separation (stderr vs stdout)
+- `src/coursepilot/report_models.py` — JSON contract models and serialization conventions
+- `src/coursepilot/materials/downloader.py` — File downloader engine reusable for `--download-attachments`
 
 </canonical_refs>
 
@@ -87,25 +87,25 @@ Phase 15 delivers Coursemos LXP course board parsing and interactive CLI briefin
 - `Downloader`: Phase 13에서 구현된 세션 쿠키 기반 다운로더 엔진 (`--download-attachments` 재사용).
 
 ### Established Patterns
-- Click 기반 명령/서브커맨드 (`kau-assistant <command>`) 구조.
+- Click 기반 명령/서브커맨드 (`coursepilot <command>`) 구조.
 - `Console(stderr=True)`로 실시간 진행 상태/로그를 출력하고 stdout은 최종 브리핑 리포트 또는 JSON만 단독 출력.
 - Course-level try-except 예외 격리: 한 과목의 게시판 조회에 실패해도 다른 과목의 브리핑이 중단되지 않고 결과에 경고만 포함.
 - 정규화된 과목 약칭 매핑 및 깔끔한 과목명(`clean_name`) 사용.
 
 ### Integration Points
-- `src/kau_assistant/scraper/board_parser.py` (신규): `ubboard` 목록 파싱, 글 번호/제목/작성자/작성일/답변여부/본문/첨부파일 추출.
-- `src/kau_assistant/board/` (신규 패키지): `models.py` (도메인 모델), `runner.py` (수집 및 뷰어 로직), `read_state.py` (로컬 읽음 상태 관리).
-- `src/kau_assistant/cli.py`: `@cli.command("board")` 및 `@cli.command("notices")`, `@cli.command("qna")` 서브커맨드 등록.
+- `src/coursepilot/scraper/board_parser.py` (신규): `ubboard` 목록 파싱, 글 번호/제목/작성자/작성일/답변여부/본문/첨부파일 추출.
+- `src/coursepilot/board/` (신규 패키지): `models.py` (도메인 모델), `runner.py` (수집 및 뷰어 로직), `read_state.py` (로컬 읽음 상태 관리).
+- `src/coursepilot/cli.py`: `@cli.command("board")` 및 `@cli.command("notices")`, `@cli.command("qna")` 서브커맨드 등록.
 
 </code_context>
 
 <specifics>
 ## Specific Ideas
 
-- 사용자가 `kau-assistant board` 실행 시: "최근 공지가 있는 과목들의 중요 공지와 질문 답변 현황을 깔끔한 Rich Table로 한눈에 요약 브리핑."
-- 사용자가 `kau-assistant board --view 1234` 실행 시: "1234번 게시글의 본문 전문, 첨부파일 목록, 교수님 답변을 터미널에서 읽기 좋은 마크다운 뷰어로 렌더링하고 자동으로 읽음 처리."
-- 사용자가 `kau-assistant notices --unread-only` 실행 시: "아직 내가 확인하지 않은 [NEW] 공지사항만 쏙 골라서 출력."
-- 사용자가 `kau-assistant qna --unanswered --my` 실행 시: "내가 질문한 것 중 아직 교수님/조교님 답변이 달리지 않은 대기 질문만 필터링."
+- 사용자가 `coursepilot board` 실행 시: "최근 공지가 있는 과목들의 중요 공지와 질문 답변 현황을 깔끔한 Rich Table로 한눈에 요약 브리핑."
+- 사용자가 `coursepilot board --view 1234` 실행 시: "1234번 게시글의 본문 전문, 첨부파일 목록, 교수님 답변을 터미널에서 읽기 좋은 마크다운 뷰어로 렌더링하고 자동으로 읽음 처리."
+- 사용자가 `coursepilot notices --unread-only` 실행 시: "아직 내가 확인하지 않은 [NEW] 공지사항만 쏙 골라서 출력."
+- 사용자가 `coursepilot qna --unanswered --my` 실행 시: "내가 질문한 것 중 아직 교수님/조교님 답변이 달리지 않은 대기 질문만 필터링."
 
 </specifics>
 

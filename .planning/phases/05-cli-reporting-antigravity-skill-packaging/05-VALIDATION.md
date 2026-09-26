@@ -70,7 +70,7 @@ created: "2026-09-23"
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| Real `check` and dry-run `sync` against live LMS/Notion | SKIL-01, SKIL-02 | Needs real credentials and live services (D-26) | Run `python -m kau_assistant check` and `python -m kau_assistant sync`; record evidence file |
+| Real `check` and dry-run `sync` against live LMS/Notion | SKIL-01, SKIL-02 | Needs real credentials and live services (D-26) | Run `python -m coursepilot check` and `python -m coursepilot sync`; record evidence file |
 | Skill install + natural-language invocation per agent | SKIL-03 | Needs each agent runtime installed (D-27) | For Claude Code, Codex, Antigravity, Pi, Hermes: `install-skill --agent X`, restart agent, ask in natural language, record result |
 
 ---

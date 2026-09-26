@@ -9,7 +9,7 @@ requires:
   - phase: 04-notion-scheduler-integration-deduplication
     provides: SyncTask domain model, transform_to_sync_tasks, is_overdue/is_urgent classification, exceptions hierarchy, _safe_error masking pattern
 provides:
-  - "python -m kau_assistant check [--json] [--headed] [--relogin]"
+  - "python -m coursepilot check [--json] [--headed] [--relogin]"
   - First end-to-end LMS orchestrator (pipeline.py: SessionManager -> extract_courses -> per-course scrape -> transform_to_sync_tasks)
   - Versioned JSON contract v1 (report_models.py: SCHEMA_VERSION=1, CheckReport envelope)
   - Pure urgency-grouped Rich reporter (reporter.py: build_check_report, format_remaining, to_json, render_check_report)
@@ -31,12 +31,12 @@ tech-stack:
 
 key-files:
   created:
-    - src/kau_assistant/report_models.py
-    - src/kau_assistant/reporter.py
-    - src/kau_assistant/pipeline.py
-    - src/kau_assistant/cli.py
-    - src/kau_assistant/__main__.py
-    - src/kau_assistant/errors.py
+    - src/coursepilot/report_models.py
+    - src/coursepilot/reporter.py
+    - src/coursepilot/pipeline.py
+    - src/coursepilot/cli.py
+    - src/coursepilot/__main__.py
+    - src/coursepilot/errors.py
     - tests/test_cli.py
     - tests/test_reporter.py
     - tests/test_errors.py
@@ -56,7 +56,7 @@ requirements-completed: [SKIL-01, SKIL-02]
 
 coverage:
   - id: D1
-    description: "python -m kau_assistant check runs LMS login -> course list -> per-course scrape -> transform_to_sync_tasks -> briefing, printing Rich by default and equivalent JSON with --json, never importing/constructing any Notion component"
+    description: "python -m coursepilot check runs LMS login -> course list -> per-course scrape -> transform_to_sync_tasks -> briefing, printing Rich by default and equivalent JSON with --json, never importing/constructing any Notion component"
     requirement: SKIL-02
     verification:
       - kind: unit
@@ -173,7 +173,7 @@ status: complete
 
 # Phase 5 Plan 1: End-to-End CLI Reporting Summary
 
-**`python -m kau_assistant check` chains SessionManager -> course scrape -> transform_to_sync_tasks into a Rich/JSON v1 briefing with stderr-only progress, UTF-8 stdout, 0/1/2 exit codes, and typed-allowlist secret redaction — no Notion import anywhere on the path.**
+**`python -m coursepilot check` chains SessionManager -> course scrape -> transform_to_sync_tasks into a Rich/JSON v1 briefing with stderr-only progress, UTF-8 stdout, 0/1/2 exit codes, and typed-allowlist secret redaction — no Notion import anywhere on the path.**
 
 ## Performance
 
@@ -189,7 +189,7 @@ status: complete
 - Versioned JSON contract v1 (`report_models.py`): `SCHEMA_VERSION = 1`, all `extra="forbid"` Pydantic models — `ReportSummary`, `ReportItem`, `CourseGroup`, `BriefingSections`, `ErrorItem`, `CheckReport` — never a raw `SyncTask` dump.
 - Pure reporter (`reporter.py`): `build_check_report` classifies purely from existing `is_overdue`/`is_urgent` flags (no re-derivation, no N-day cutoff), `format_remaining` produces the five Korean time-remaining shapes, `to_json` uses Pydantic's own serializer (Korean unescaped), `render_check_report` draws the full urgency-grouped Rich briefing with `overflow="fold"` everywhere (no truncation) and `Text`-wrapped user data (no markup injection from bracketed titles).
 - `cli.py` `check` command: exactly `--json`/`--headed`/`--relogin`, two `Console`s created at call time, progress lines only to `err`, guarded top-level exception boundary converts any `Exception` into a well-formed fatal `CheckReport`, every exit path goes through `exit_code_for()` (0/1/2).
-- `errors.py`: `safe_cli_error()` typed allowlist covering `ConfigError`/`NotionIntegrationError` (own message), `AuthenticationError`/`NavigationTimeoutError`/`CourseAccessDeniedError`/bare `KauAssistantError`/any other `Exception` (fixed Korean messages), and pydantic `ValidationError` (field names only, never the rejected input value).
+- `errors.py`: `safe_cli_error()` typed allowlist covering `ConfigError`/`NotionIntegrationError` (own message), `AuthenticationError`/`NavigationTimeoutError`/`CourseAccessDeniedError`/bare `CoursePilotError`/any other `Exception` (fixed Korean messages), and pydantic `ValidationError` (field names only, never the rejected input value).
 - `main()`/`_configure_streams()`/`_configure_logging()` + `__main__.py`: stdout/stderr reconfigured to UTF-8 (survives a cp949 parent pipe), stdlib logging routed to stderr once.
 
 ## Task Commits
@@ -206,19 +206,19 @@ Task 1 was `type="tracer"` (single production-quality commit + re-verified `<ver
 
 ## Files Created/Modified
 
-- `src/kau_assistant/report_models.py` - Versioned JSON contract v1 (SCHEMA_VERSION, CheckReport envelope)
-- `src/kau_assistant/reporter.py` - build_check_report, format_remaining, to_json, render_check_report (pure + Rich)
-- `src/kau_assistant/pipeline.py` - collect_tasks/scrape_course, first end-to-end orchestrator
-- `src/kau_assistant/cli.py` - click group, check command, main()/_configure_streams()/_configure_logging()
-- `src/kau_assistant/__main__.py` - `python -m kau_assistant` entry
-- `src/kau_assistant/errors.py` - safe_cli_error, exit_code_for, EXIT_OK/EXIT_PARTIAL/EXIT_FATAL
+- `src/coursepilot/report_models.py` - Versioned JSON contract v1 (SCHEMA_VERSION, CheckReport envelope)
+- `src/coursepilot/reporter.py` - build_check_report, format_remaining, to_json, render_check_report (pure + Rich)
+- `src/coursepilot/pipeline.py` - collect_tasks/scrape_course, first end-to-end orchestrator
+- `src/coursepilot/cli.py` - click group, check command, main()/_configure_streams()/_configure_logging()
+- `src/coursepilot/__main__.py` - `python -m coursepilot` entry
+- `src/coursepilot/errors.py` - safe_cli_error, exit_code_for, EXIT_OK/EXIT_PARTIAL/EXIT_FATAL
 - `tests/test_cli.py` - CliRunner coverage: JSON contract, stderr routing, flags, exit codes, redaction, UTF-8 entry
 - `tests/test_reporter.py` - Pure reporter coverage: grouping, detail blocks, no truncation, JSON encoding
 - `tests/test_errors.py` - Allowlist and exit-code unit coverage
 
 ## Decisions Made
 
-- Reused `notion/engine.py`'s `_safe_error` *shape* (typed allowlist, not regex scrubbing) rather than a new redaction strategy, per RESEARCH.md's Don't Hand-Roll guidance — `errors.py` is a proper superset covering the full `kau_assistant.exceptions` hierarchy plus pydantic `ValidationError`.
+- Reused `notion/engine.py`'s `_safe_error` *shape* (typed allowlist, not regex scrubbing) rather than a new redaction strategy, per RESEARCH.md's Don't Hand-Roll guidance — `errors.py` is a proper superset covering the full `coursepilot.exceptions` hierarchy plus pydantic `ValidationError`.
 - `remaining_minutes` and `remaining_text` are computed once per `ReportItem` from the CLI's single `now` snapshot (never re-derived per render call), keeping the JSON and Rich outputs numerically identical for the same report.
 - Per-course error isolation was deliberately left out of `pipeline.py`'s loop in this plan (explicitly Plan 05-02's slice per the plan text) — `PipelineResult.errors` and the entire `ErrorItem`/exit-code contract are already wired so 05-02 only needs to populate the list.
 

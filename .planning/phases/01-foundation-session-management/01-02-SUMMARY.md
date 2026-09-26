@@ -32,7 +32,7 @@ Phase 1 Wave 2의 핵심 실행 계획(01-02)을 완수했습니다. Playwright 
 ## Tasks Completed
 
 ### Task 01-02-01: LMS Authentication Engine with Cascading Multi-Selectors (SCRP-01)
-- `src/kau_assistant/auth.py`:
+- `src/coursepilot/auth.py`:
   - 다중 셀렉터 우선순위 리스트 구성: `USERNAME_SELECTORS`, `PASSWORD_SELECTORS`, `SUBMIT_SELECTORS`, `LOGGED_IN_SELECTORS`, `ERROR_SELECTORS` (Coursemos/Moodle 및 Canvas 표준 지원)
   - `find_first_visible`: 화면에 노출된 첫 번째 요소 탐색
   - `perform_login`: 지정된 LMS URL 이동, 폼 필드 탐색, 자격증명 입력, 로그인 버튼 클릭, 로딩 대기, 에러 배너 탐색 및 `AuthenticationError` 예외 처리, 대시보드 진입 검증
@@ -40,7 +40,7 @@ Phase 1 Wave 2의 핵심 실행 계획(01-02)을 완수했습니다. Playwright 
 - **Commit:** `feat(01-02): lms authentication engine with cascading multi-selectors` (`fc776b4`)
 
 ### Task 01-02-02: Playwright Session Manager with Cache Invalidation, Auto-Healing & Retry (CONF-03, SCRP-01)
-- `src/kau_assistant/session_manager.py`:
+- `src/coursepilot/session_manager.py`:
   - 컨텍스트 매니저 인터페이스(`__enter__`, `__exit__`, `close`)로 리소스 역순 해제
   - `_is_valid_cache_file`: 세션 캐시 파일 크기 및 JSON 스키마 사전 검증
   - `_navigate_with_retry`: 30초 타임아웃 및 2초 백오프 후 1회 자동 재시도, 최종 실패 시 `NavigationTimeoutError` 발생
@@ -61,8 +61,8 @@ Phase 1 Wave 2의 핵심 실행 계획(01-02)을 완수했습니다. Playwright 
 
 ## Key Files Created
 
-- `src/kau_assistant/auth.py`: 다중 셀렉터 폴백 LMS 로그인 엔진
-- `src/kau_assistant/session_manager.py`: 브라우저 라이프사이클 및 세션 캐시 매니저
+- `src/coursepilot/auth.py`: 다중 셀렉터 폴백 LMS 로그인 엔진
+- `src/coursepilot/session_manager.py`: 브라우저 라이프사이클 및 세션 캐시 매니저
 - `tests/test_auth.py`: 인증 엔진 단위 테스트
 - `tests/test_session_manager.py`: 세션 매니저 및 재시도 단위 테스트
 

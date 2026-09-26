@@ -24,14 +24,14 @@ tech-stack:
     - SDK-owned 429 retry plus bounded read-only 529 retry
 key-files:
   created:
-    - src/kau_assistant/notion/models.py
-    - src/kau_assistant/notion/client.py
-    - src/kau_assistant/notion/engine.py
+    - src/coursepilot/notion/models.py
+    - src/coursepilot/notion/client.py
+    - src/coursepilot/notion/engine.py
     - tests/test_notion_client.py
     - tests/test_notion_engine.py
   modified:
-    - src/kau_assistant/config.py
-    - src/kau_assistant/exceptions.py
+    - src/coursepilot/config.py
+    - src/coursepilot/exceptions.py
     - tests/test_config.py
     - tests/conftest.py
     - .env.example
@@ -101,11 +101,11 @@ Each TDD task was committed as a failing test followed by its implementation:
 
 ## Files Created/Modified
 
-- `src/kau_assistant/notion/models.py` - Stable public synchronization DTOs.
-- `src/kau_assistant/notion/client.py` - Guarded SDK transport, target resolution, schema preflight, and paginated reads.
-- `src/kau_assistant/notion/engine.py` - Configuration gate, title-only planning, and dry-run write suppression.
-- `src/kau_assistant/config.py` - Preferred/legacy token handling and explicit target configuration state.
-- `src/kau_assistant/exceptions.py` - Typed safe Notion integration errors.
+- `src/coursepilot/notion/models.py` - Stable public synchronization DTOs.
+- `src/coursepilot/notion/client.py` - Guarded SDK transport, target resolution, schema preflight, and paginated reads.
+- `src/coursepilot/notion/engine.py` - Configuration gate, title-only planning, and dry-run write suppression.
+- `src/coursepilot/config.py` - Preferred/legacy token handling and explicit target configuration state.
+- `src/coursepilot/exceptions.py` - Typed safe Notion integration errors.
 - `tests/test_notion_client.py` - Transport, ambiguity, schema, pagination, timing, retry, and secret-safety evidence.
 - `tests/test_notion_engine.py` - End-to-end dry-run tracer and safe-disabled evidence.
 - `tests/test_config.py`, `tests/conftest.py`, `.env.example` - Configuration contract and documentation.

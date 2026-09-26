@@ -5,7 +5,7 @@
 - **Timestamp (UTC):** 2026-09-23T13:49-13:52Z (KST 22:49-22:52)
 - **Automated baseline:** `uv run pytest` (full suite, before any live command)
 - **Automated baseline result:** PASS — 178 tests
-- **Invocation mode:** every live command below was run from an OS temp scratch folder outside the repository, via `uv --directory "D:/dev/kau-lxp-assistant" run python -m kau_assistant ...`
+- **Invocation mode:** every live command below was run from an OS temp scratch folder outside the repository, via `uv --directory "<repository root>" run python -m coursepilot ...`
 - **Secret handling:** No `.env` content was ever opened, printed, or copied. No student ID, password, Notion token, raw JSON payload, plain-text task title, or assignment text is recorded below — only counts, exit codes, error codes/scopes, and (where applicable) SHA-256 title-prefix hashes.
 - **Write guard:** `sync` was run without `--apply` at every step; no `--apply` invocation occurred anywhere in this evidence.
 - **Capture cleanup:** stdout/stderr captures and the standalone Notion read-count scripts were written only inside the OS temp scratch folder and deleted immediately after the values below were recorded; `git status --porcelain` after the run shows no new/untracked capture files in the repository.
@@ -52,7 +52,7 @@
 
 ## Foreign-Cwd Invocation
 
-- **Foreign-cwd invocation:** PASS — both `check --json` and `sync --json` were invoked as `uv --directory "D:/dev/kau-lxp-assistant" run python -m kau_assistant ... --json` from the OS temp scratch folder (outside the repository) and both produced parseable, well-formed JSON on stdout (verified: `schema_version`, `command`, and the full top-level key set matched the contract in both cases, even on the fatal path)
+- **Foreign-cwd invocation:** PASS — both `check --json` and `sync --json` were invoked as `uv --directory "<repository root>" run python -m coursepilot ... --json` from the OS temp scratch folder (outside the repository) and both produced parseable, well-formed JSON on stdout (verified: `schema_version`, `command`, and the full top-level key set matched the contract in both cases, even on the fatal path)
 
 ## Verify Outcome
 
@@ -64,7 +64,7 @@
 `LMS_USERNAME` and `LMS_PASSWORD` in the repository's `.env` are empty. To obtain a clean D-26 live-evidence run with real course/assignment data:
 
 1. Open `.env` (never share its contents in chat) and fill in the real KAU LXP student ID and password for `LMS_USERNAME` / `LMS_PASSWORD`.
-2. Re-run `uv --directory "<repo root>" run python -m kau_assistant check --json` and `sync --json` from any folder outside the repository (as this evidence file did) and update this document, or ask for the equivalent verification step to be re-run.
+2. Re-run `uv --directory "<repo root>" run python -m coursepilot check --json` and `sync --json` from any folder outside the repository (as this evidence file did) and update this document, or ask for the equivalent verification step to be re-run.
 
 This gap is also recorded in `.planning/WINDOWS.md` as an `unmet-truth` entry against D-26 so it stays visible at ship time.
 
@@ -76,7 +76,7 @@ This gap is also recorded in `.planning/WINDOWS.md` as an `unmet-truth` entry ag
 
 ## UAT Re-run — 2026-09-23 (after real LMS credentials were filled in)
 
-Run during `/gsd-verify-work 05` Test 1, again from the OS temp scratch folder via `uv --directory "D:/dev/kau-lxp-assistant" run python -m kau_assistant ...`. `.env` was not opened. Only counts, exit codes, error scopes/codes and structural markers are recorded here. All captured HTML/JSON was deleted right after the counts were taken.
+Run during `/gsd-verify-work 05` Test 1, again from the OS temp scratch folder via `uv --directory "<repository root>" run python -m coursepilot ...`. `.env` was not opened. Only counts, exit codes, error scopes/codes and structural markers are recorded here. All captured HTML/JSON was deleted right after the counts were taken.
 
 ### Current term (2026 2학기): mechanics PASS, 0 active courses
 
@@ -122,7 +122,7 @@ The real `collect_tasks` pipeline ran with only the course source swapped to the
 ### Scope and Safeguards
 
 - **Timestamp (KST):** 2026-09-24 14:48 (UTC 05:48)
-- **Invocation mode:** Run from an OS temporary directory outside the repository using `uv --directory "D:/dev/kau-lxp-assistant" run python ...`
+- **Invocation mode:** Run from an OS temporary directory outside the repository using `uv --directory "<repository root>" run python ...`
 - **Secret handling:** No `.env` content was opened, printed, or copied.
 - **Write guard:** Zero `--apply` invocations; read-only probes and dry-run sync only.
 - **Capture cleanup:** Scratch captures cleaned up immediately; working directory clean.

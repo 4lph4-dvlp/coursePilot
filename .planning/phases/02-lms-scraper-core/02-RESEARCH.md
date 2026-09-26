@@ -44,13 +44,13 @@ Single-tier CLI / Local Engine application — all capabilities reside in the lo
 
 | Module | Location | Primary Responsibility |
 |--------|----------|------------------------|
-| `scraper.models` | `src/kau_assistant/scraper/models.py` | 스크래핑 결과 원시 데이터 모델 정의 (`CourseItem`, `LectureItem`, `AssessmentItem`, `AttachmentMeta`) |
-| `scraper.course_list` | `src/kau_assistant/scraper/course_list.py` | LMS 대시보드 강좌 목록 추출, 학기 필터링, 정규식 기반 과목명/분반 정제 (SCRP-02, D-01~D-04) |
-| `scraper.lecture_parser` | `src/kau_assistant/scraper/lecture_parser.py` | 주차별 동영상/차시 강의 파싱, 출석/진도율 하이브리드 판정, 지연 강의 및 다중 차시 분할 (SCRP-03, D-05~D-08) |
-| `scraper.assessment_parser` | `src/kau_assistant/scraper/assessment_parser.py` | 과제/퀴즈/토론 목록 및 상세 페이지 본문/첨부파일 메타데이터 추출, 제출/미제출 상태 판정 (SCRP-04, D-09~D-12) |
-| `scraper.navigator` | `src/kau_assistant/scraper/navigator.py` | 과목별 학습현황/모아보기 및 주차별 섹션 페이지 안전 순차 탐색, 스마트 대기, 폴백 네비게이션 (D-13~D-15) |
-| `scraper.debug_dump` | `src/kau_assistant/scraper/debug_dump.py` | 파싱 실패/타임아웃 시 `.cache/debug/`에 스크린샷 및 HTML 스냅샷 저장 (D-16) |
-| `scraper.date_parser` | `src/kau_assistant/scraper/date_parser.py` | 다양한 한국어/표준 날짜시간 문자열 파싱 및 일요일 23:59 안전 폴백 로직 (D-08) |
+| `scraper.models` | `src/coursepilot/scraper/models.py` | 스크래핑 결과 원시 데이터 모델 정의 (`CourseItem`, `LectureItem`, `AssessmentItem`, `AttachmentMeta`) |
+| `scraper.course_list` | `src/coursepilot/scraper/course_list.py` | LMS 대시보드 강좌 목록 추출, 학기 필터링, 정규식 기반 과목명/분반 정제 (SCRP-02, D-01~D-04) |
+| `scraper.lecture_parser` | `src/coursepilot/scraper/lecture_parser.py` | 주차별 동영상/차시 강의 파싱, 출석/진도율 하이브리드 판정, 지연 강의 및 다중 차시 분할 (SCRP-03, D-05~D-08) |
+| `scraper.assessment_parser` | `src/coursepilot/scraper/assessment_parser.py` | 과제/퀴즈/토론 목록 및 상세 페이지 본문/첨부파일 메타데이터 추출, 제출/미제출 상태 판정 (SCRP-04, D-09~D-12) |
+| `scraper.navigator` | `src/coursepilot/scraper/navigator.py` | 과목별 학습현황/모아보기 및 주차별 섹션 페이지 안전 순차 탐색, 스마트 대기, 폴백 네비게이션 (D-13~D-15) |
+| `scraper.debug_dump` | `src/coursepilot/scraper/debug_dump.py` | 파싱 실패/타임아웃 시 `.cache/debug/`에 스크린샷 및 HTML 스냅샷 저장 (D-16) |
+| `scraper.date_parser` | `src/coursepilot/scraper/date_parser.py` | 다양한 한국어/표준 날짜시간 문자열 파싱 및 일요일 23:59 안전 폴백 로직 (D-08) |
 
 </architectural_responsibility_map>
 
@@ -149,7 +149,7 @@ uv add beautifulsoup4 lxml
                                     List[LectureItem]                   List[AssessmentItem]
 ```
 
-### Data Models (`src/kau_assistant/scraper/models.py`)
+### Data Models (`src/coursepilot/scraper/models.py`)
 
 ```python
 from datetime import datetime
@@ -365,8 +365,8 @@ def capture_debug_snapshot(page: Page, action_name: str, base_dir: Path = Path("
 from bs4 import BeautifulSoup
 from playwright.sync_api import Page
 import re
-from kau_assistant.scraper.models import CourseItem
-from kau_assistant.scraper.debug_dump import capture_debug_snapshot
+from coursepilot.scraper.models import CourseItem
+from coursepilot.scraper.debug_dump import capture_debug_snapshot
 
 DASHBOARD_CONTAINER_SELECTORS = [
     ".block_coursemos_my_courses",
@@ -465,7 +465,7 @@ def parse_progress_table(soup: BeautifulSoup, course_id: str) -> list[LectureIte
 ## Sources
 
 ### Primary (HIGH confidence)
-- `src/kau_assistant/auth.py` & `src/kau_assistant/session_manager.py` (Phase 1 검증 완료 코드)
+- `src/coursepilot/auth.py` & `src/coursepilot/session_manager.py` (Phase 1 검증 완료 코드)
 - 한국항공대학교 LMS (`https://lms.kau.ac.kr`) Coursemos/Moodle 3.x 실제 DOM 구조 분석
 - Playwright Python 공식 문서 (`https://playwright.dev/python/docs/api/class-page`)
 - BeautifulSoup4 공식 문서 (`https://www.crummy.com/software/BeautifulSoup/bs4/doc/`)

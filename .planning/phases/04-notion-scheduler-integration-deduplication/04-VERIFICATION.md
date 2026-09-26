@@ -41,12 +41,12 @@ decision_coverage:
 
 | Artifact | Expected | Status | Details |
 |----------|----------|--------|---------|
-| `src/kau_assistant/notion/models.py` | Stable synchronization DTOs | ✓ VERIFIED | Substantive action/result contracts; consumed by client, planner, engine, facade, and tests. |
-| `src/kau_assistant/notion/client.py` | Guarded Notion transport and real reads | ✓ VERIFIED | Substantive target/schema/query/write boundary; imported and used by the engine. |
-| `src/kau_assistant/notion/mapper.py` | Canonical schema and property transforms | ✓ VERIFIED | Substantive eight-field validator, parser, create serializer, and allowlisted updater; used by client, planner, and engine. |
-| `src/kau_assistant/notion/deduplicator.py` | Deterministic exact-title action planner | ✓ VERIFIED | Substantive create/update/skip/error planning; used by engine. |
-| `src/kau_assistant/notion/engine.py` | Read-plan-write orchestration and dry-run gate | ✓ VERIFIED | Substantive, exported through the public facade and exercised by integration-style tests. |
-| `src/kau_assistant/notion/__init__.py` | Stable application facade | ✓ VERIFIED | Exports application DTOs/errors/engine without SDK leakage. |
+| `src/coursepilot/notion/models.py` | Stable synchronization DTOs | ✓ VERIFIED | Substantive action/result contracts; consumed by client, planner, engine, facade, and tests. |
+| `src/coursepilot/notion/client.py` | Guarded Notion transport and real reads | ✓ VERIFIED | Substantive target/schema/query/write boundary; imported and used by the engine. |
+| `src/coursepilot/notion/mapper.py` | Canonical schema and property transforms | ✓ VERIFIED | Substantive eight-field validator, parser, create serializer, and allowlisted updater; used by client, planner, and engine. |
+| `src/coursepilot/notion/deduplicator.py` | Deterministic exact-title action planner | ✓ VERIFIED | Substantive create/update/skip/error planning; used by engine. |
+| `src/coursepilot/notion/engine.py` | Read-plan-write orchestration and dry-run gate | ✓ VERIFIED | Substantive, exported through the public facade and exercised by integration-style tests. |
+| `src/coursepilot/notion/__init__.py` | Stable application facade | ✓ VERIFIED | Exports application DTOs/errors/engine without SDK leakage. |
 | `tests/test_notion_engine.py` | Orchestration and write-safety evidence | ✓ VERIFIED | Six active behavioral tests; no skipped tests. |
 | `04-02-LIVE-DRY-RUN-EVIDENCE.md` | Redacted credentialed proof | ✓ VERIFIED | Records unique live target, 65 relevant reads, exact live schema options, zero writes, unchanged count/edit time/state digest, and completed human approval. |
 

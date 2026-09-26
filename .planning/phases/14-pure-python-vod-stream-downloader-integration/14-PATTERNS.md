@@ -10,23 +10,23 @@
 
 | File Path | Action | Role | Data Flow |
 |---|---|---|---|
-| [`pyproject.toml`](file:///D:/dev/kau-lxp-assistant/pyproject.toml) | Modify | Dependency Manifest | Specification -> Dependency Resolver -> Virtualenv |
-| [`src/kau_assistant/stream/__init__.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/stream/__init__.py) | Create | Package Init & Public API | Internal symbols -> `__all__` export table -> External callers |
-| [`src/kau_assistant/stream/models.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/stream/models.py) | Create | Domain Data Models | Raw parser/download state -> Pydantic Schema -> Validated typed objects / JSON |
-| [`src/kau_assistant/stream/parser.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/stream/parser.py) | Create | M3U8 Playlist Parser | Raw M3U8 text + URL -> `m3u8` AST parsing -> `StreamInfo` / `StreamSegment` |
-| [`src/kau_assistant/stream/crypto.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/stream/crypto.py) | Create | RFC 8216 AES-128 Decryptor | Encrypted TS bytes + Key + IV -> AES-128-CBC decipher + PKCS7 unpad -> Plaintext TS |
-| [`src/kau_assistant/stream/downloader.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/stream/downloader.py) | Create | Segment Downloader & TS Merger | Media playlist segments -> ThreadPool HTTP GET -> Decrypt -> Temp TS -> Atomic `.mp4` |
-| [`src/kau_assistant/stream/sniffer.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/stream/sniffer.py) | Create | Playwright Stream Sniffer | Playwright `page.on("response")` + DOM probe -> Detected stream URL -> Thread callback |
-| [`src/kau_assistant/stream/runner.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/stream/runner.py) | Create | Standalone Downloader Orchestrator | CLI options -> Course/VOD discovery -> Sniff stream -> Download -> `VodDownloadRunResult` |
-| [`src/kau_assistant/player/vod_player.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/player/vod_player.py) | Modify | Playwright Player Automation | Page navigation -> Heartbeat loop -> Sniffer hook trigger -> Attendance completion |
-| [`src/kau_assistant/player/runner.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/player/runner.py) | Modify | Watch Pipeline Orchestrator | `watch --download` -> Sniff stream -> Background download thread -> Isolated completion |
-| [`src/kau_assistant/cli.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/cli.py) | Modify | CLI Entry Points & Commands | User CLI args -> Click validation -> Orchestrator dispatch -> Rich / JSON render |
-| [`tests/test_stream_parser.py`](file:///D:/dev/kau-lxp-assistant/tests/test_stream_parser.py) | Create | Unit Test (Parser) | Mock M3U8 manifest strings -> Parser functions -> Assert variants/segments/keys |
-| [`tests/test_stream_crypto.py`](file:///D:/dev/kau-lxp-assistant/tests/test_stream_crypto.py) | Create | Unit Test (Crypto) | Synthetic ciphertext + AES keys/IVs -> Decryptor -> Assert plaintext / padding recovery |
-| [`tests/test_stream_downloader.py`](file:///D:/dev/kau-lxp-assistant/tests/test_stream_downloader.py) | Create | Unit Test (Downloader) | Mock `httpx.Client` + tmp_path -> SegmentDownloader -> Assert atomic file / skip / retries |
-| [`tests/test_stream_sniffer.py`](file:///D:/dev/kau-lxp-assistant/tests/test_stream_sniffer.py) | Create | Unit Test (Sniffer) | Mock Playwright Page/Response -> Sniffer -> Assert stream URL detection & DOM fallback |
-| [`tests/test_watch_download.py`](file:///D:/dev/kau-lxp-assistant/tests/test_watch_download.py) | Create | Integration Test (Watch + Download) | Mock Page & Downloader -> `watch_course_vods` -> Assert background download + attendance isolation |
-| [`tests/test_cli_download_vod.py`](file:///D:/dev/kau-lxp-assistant/tests/test_cli_download_vod.py) | Create | CLI Test (Click Runner) | CLI args -> Click CliRunner -> Assert stdout JSON / exit codes / option plumbing |
+| [`pyproject.toml`](../../../pyproject.toml) | Modify | Dependency Manifest | Specification -> Dependency Resolver -> Virtualenv |
+| [`src/coursepilot/stream/__init__.py`](../../../src/coursepilot/stream/__init__.py) | Create | Package Init & Public API | Internal symbols -> `__all__` export table -> External callers |
+| [`src/coursepilot/stream/models.py`](../../../src/coursepilot/stream/models.py) | Create | Domain Data Models | Raw parser/download state -> Pydantic Schema -> Validated typed objects / JSON |
+| [`src/coursepilot/stream/parser.py`](../../../src/coursepilot/stream/parser.py) | Create | M3U8 Playlist Parser | Raw M3U8 text + URL -> `m3u8` AST parsing -> `StreamInfo` / `StreamSegment` |
+| [`src/coursepilot/stream/crypto.py`](../../../src/coursepilot/stream/crypto.py) | Create | RFC 8216 AES-128 Decryptor | Encrypted TS bytes + Key + IV -> AES-128-CBC decipher + PKCS7 unpad -> Plaintext TS |
+| [`src/coursepilot/stream/downloader.py`](../../../src/coursepilot/stream/downloader.py) | Create | Segment Downloader & TS Merger | Media playlist segments -> ThreadPool HTTP GET -> Decrypt -> Temp TS -> Atomic `.mp4` |
+| [`src/coursepilot/stream/sniffer.py`](../../../src/coursepilot/stream/sniffer.py) | Create | Playwright Stream Sniffer | Playwright `page.on("response")` + DOM probe -> Detected stream URL -> Thread callback |
+| [`src/coursepilot/stream/runner.py`](../../../src/coursepilot/stream/runner.py) | Create | Standalone Downloader Orchestrator | CLI options -> Course/VOD discovery -> Sniff stream -> Download -> `VodDownloadRunResult` |
+| [`src/coursepilot/player/vod_player.py`](../../../src/coursepilot/player/vod_player.py) | Modify | Playwright Player Automation | Page navigation -> Heartbeat loop -> Sniffer hook trigger -> Attendance completion |
+| [`src/coursepilot/player/runner.py`](../../../src/coursepilot/player/runner.py) | Modify | Watch Pipeline Orchestrator | `watch --download` -> Sniff stream -> Background download thread -> Isolated completion |
+| [`src/coursepilot/cli.py`](../../../src/coursepilot/cli.py) | Modify | CLI Entry Points & Commands | User CLI args -> Click validation -> Orchestrator dispatch -> Rich / JSON render |
+| [`tests/test_stream_parser.py`](../../../tests/test_stream_parser.py) | Create | Unit Test (Parser) | Mock M3U8 manifest strings -> Parser functions -> Assert variants/segments/keys |
+| [`tests/test_stream_crypto.py`](../../../tests/test_stream_crypto.py) | Create | Unit Test (Crypto) | Synthetic ciphertext + AES keys/IVs -> Decryptor -> Assert plaintext / padding recovery |
+| [`tests/test_stream_downloader.py`](../../../tests/test_stream_downloader.py) | Create | Unit Test (Downloader) | Mock `httpx.Client` + tmp_path -> SegmentDownloader -> Assert atomic file / skip / retries |
+| [`tests/test_stream_sniffer.py`](../../../tests/test_stream_sniffer.py) | Create | Unit Test (Sniffer) | Mock Playwright Page/Response -> Sniffer -> Assert stream URL detection & DOM fallback |
+| [`tests/test_watch_download.py`](../../../tests/test_watch_download.py) | Create | Integration Test (Watch + Download) | Mock Page & Downloader -> `watch_course_vods` -> Assert background download + attendance isolation |
+| [`tests/test_cli_download_vod.py`](../../../tests/test_cli_download_vod.py) | Create | CLI Test (Click Runner) | CLI args -> Click CliRunner -> Assert stdout JSON / exit codes / option plumbing |
 
 ---
 
@@ -34,7 +34,7 @@
 
 ### 1. `pyproject.toml`
 - **Role:** Project dependency specifications
-- **Closest Analog:** [`pyproject.toml`](file:///D:/dev/kau-lxp-assistant/pyproject.toml#L7-L19)
+- **Closest Analog:** [`pyproject.toml`](../../../pyproject.toml#L7-L19)
 - **Rationale:** Existing project configuration file specifying runtime dependencies.
 - **Concrete Code Excerpt:**
   ```toml
@@ -56,22 +56,22 @@
 
 ---
 
-### 2. `src/kau_assistant/stream/__init__.py`
+### 2. `src/coursepilot/stream/__init__.py`
 - **Role:** Package entrypoint and explicit export boundary
-- **Closest Analog:** [`src/kau_assistant/player/__init__.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/player/__init__.py#L1-L21)
+- **Closest Analog:** [`src/coursepilot/player/__init__.py`](../../../src/coursepilot/player/__init__.py#L1-L21)
 - **Rationale:** `player/__init__.py` cleanly defines package docstrings, selective model/runner imports, and an explicit `__all__` list.
 - **Concrete Code Excerpt:**
   ```python
   """VOD playback automation package."""
 
-  from kau_assistant.player.models import PlaybackOptions, PlaybackProgress
-  from kau_assistant.player.runner import (
+  from coursepilot.player.models import PlaybackOptions, PlaybackProgress
+  from coursepilot.player.runner import (
       WatchResult,
       find_target_course,
       resolve_candidate_vods,
       watch_course_vods,
   )
-  from kau_assistant.player.vod_player import VodPlayer
+  from coursepilot.player.vod_player import VodPlayer
 
   __all__ = [
       "PlaybackOptions",
@@ -87,15 +87,15 @@
   ```python
   """Pure-Python HLS/M3U8 streaming, decryption, and video download subsystem."""
 
-  from kau_assistant.stream.downloader import SegmentDownloader
-  from kau_assistant.stream.models import (
+  from coursepilot.stream.downloader import SegmentDownloader
+  from coursepilot.stream.models import (
       DownloadProgress,
       StreamInfo,
       VodDownloadItemResult,
       VodDownloadRunResult,
   )
-  from kau_assistant.stream.runner import run_vod_download_pipeline
-  from kau_assistant.stream.sniffer import StreamSniffer
+  from coursepilot.stream.runner import run_vod_download_pipeline
+  from coursepilot.stream.sniffer import StreamSniffer
 
   __all__ = [
       "DownloadProgress",
@@ -110,9 +110,9 @@
 
 ---
 
-### 3. `src/kau_assistant/stream/models.py`
+### 3. `src/coursepilot/stream/models.py`
 - **Role:** Pydantic domain models for stream metadata, download items, progress events, and run results
-- **Closest Analog:** [`src/kau_assistant/materials/models.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/materials/models.py#L7-L63) & [`src/kau_assistant/player/models.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/player/models.py#L19-L30)
+- **Closest Analog:** [`src/coursepilot/materials/models.py`](../../../src/coursepilot/materials/models.py#L7-L63) & [`src/coursepilot/player/models.py`](../../../src/coursepilot/player/models.py#L19-L30)
 - **Rationale:** `materials/models.py` defines enums for file statuses (`DOWNLOADED`, `SKIPPED`, `FAILED`), per-item result schemas, and aggregated run schemas with counts. `player/models.py` defines real-time progress snapshots.
 - **Concrete Code Excerpt:**
   ```python
@@ -156,9 +156,9 @@
 
 ---
 
-### 4. `src/kau_assistant/stream/parser.py`
+### 4. `src/coursepilot/stream/parser.py`
 - **Role:** Pure-Python HLS manifest parser leveraging `m3u8`
-- **Closest Analog:** [`src/kau_assistant/scraper/material_parser.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/scraper/material_parser.py#L1-L15) and [`14-RESEARCH.md#L279-L321`](file:///D:/dev/kau-lxp-assistant/.planning/phases/14-pure-python-vod-stream-downloader-integration/14-RESEARCH.md#L279-L321)
+- **Closest Analog:** [`src/coursepilot/scraper/material_parser.py`](../../../src/coursepilot/scraper/material_parser.py#L1-L15) and [`14-RESEARCH.md#L279-L321`](14-RESEARCH.md#L279-L321)
 - **Rationale:** Pure parsing logic extracting structured data from raw content; URL joining via `urllib.parse.urljoin`.
 - **Concrete Code Excerpt:**
   ```python
@@ -183,9 +183,9 @@
 
 ---
 
-### 5. `src/kau_assistant/stream/crypto.py`
+### 5. `src/coursepilot/stream/crypto.py`
 - **Role:** Pure-Python RFC 8216 AES-128-CBC decryption and IV derivation
-- **Closest Analog:** [`src/kau_assistant/materials/filename_utils.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/materials/filename_utils.py#L93-L126) & [`14-RESEARCH.md#L248-L275`](file:///D:/dev/kau-lxp-assistant/.planning/phases/14-pure-python-vod-stream-downloader-integration/14-RESEARCH.md#L248-L275)
+- **Closest Analog:** [`src/coursepilot/materials/filename_utils.py`](../../../src/coursepilot/materials/filename_utils.py#L93-L126) & [`14-RESEARCH.md#L248-L275`](14-RESEARCH.md#L248-L275)
 - **Rationale:** Functional utility module with robust error handling and fallbacks.
 - **Concrete Code Excerpt:**
   ```python
@@ -218,9 +218,9 @@
 
 ---
 
-### 6. `src/kau_assistant/stream/downloader.py`
+### 6. `src/coursepilot/stream/downloader.py`
 - **Role:** Multi-threaded segment downloader, key cache, exponential backoff, and atomic TS merger
-- **Closest Analog:** [`src/kau_assistant/materials/downloader.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/materials/downloader.py#L14-L50) & [`src/kau_assistant/materials/downloader.py#L61-L131`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/materials/downloader.py#L61-L131)
+- **Closest Analog:** [`src/coursepilot/materials/downloader.py`](../../../src/coursepilot/materials/downloader.py#L14-L50) & [`src/coursepilot/materials/downloader.py#L61-L131`](../../../src/coursepilot/materials/downloader.py#L61-L131)
 - **Rationale:** `materials/downloader.py` demonstrates session-cookie authenticated `httpx.Client`, atomic writing to `.tmp`, duplicate detection, and file cleanup upon error.
 - **Concrete Code Excerpt:**
   ```python
@@ -273,9 +273,9 @@
 
 ---
 
-### 7. `src/kau_assistant/stream/sniffer.py`
+### 7. `src/coursepilot/stream/sniffer.py`
 - **Role:** Playwright network interceptor and DOM video fallback
-- **Closest Analog:** [`src/kau_assistant/player/vod_player.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/player/vod_player.py#L28-L63) & [`src/kau_assistant/player/vod_player.py#L92-L113`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/player/vod_player.py#L92-L113)
+- **Closest Analog:** [`src/coursepilot/player/vod_player.py`](../../../src/coursepilot/player/vod_player.py#L28-L63) & [`src/coursepilot/player/vod_player.py#L92-L113`](../../../src/coursepilot/player/vod_player.py#L92-L113)
 - **Rationale:** `vod_player.py` attaches event listeners to Playwright `page` (`page.on("dialog")`), uses `page.evaluate` to inspect DOM elements, and removes listeners in `finally:`.
 - **Concrete Code Excerpt:**
   ```python
@@ -302,9 +302,9 @@
 
 ---
 
-### 8. `src/kau_assistant/stream/runner.py`
+### 8. `src/coursepilot/stream/runner.py`
 - **Role:** Standalone `download-vod` pipeline orchestrator
-- **Closest Analog:** [`src/kau_assistant/materials/runner.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/materials/runner.py#L171-L268) & [`src/kau_assistant/player/runner.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/player/runner.py#L161-L243)
+- **Closest Analog:** [`src/coursepilot/materials/runner.py`](../../../src/coursepilot/materials/runner.py#L171-L268) & [`src/coursepilot/player/runner.py`](../../../src/coursepilot/player/runner.py#L161-L243)
 - **Rationale:** `materials/runner.py` manages session authentication, course discovery, week filtering, progress callbacks, and result aggregation.
 - **Concrete Code Excerpt:**
   ```python
@@ -336,9 +336,9 @@
 
 ---
 
-### 9. `src/kau_assistant/player/vod_player.py` (Modify)
+### 9. `src/coursepilot/player/vod_player.py` (Modify)
 - **Role:** Playwright player automation engine
-- **Closest Analog:** [`src/kau_assistant/player/vod_player.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/player/vod_player.py#L64-L95)
+- **Closest Analog:** [`src/coursepilot/player/vod_player.py`](../../../src/coursepilot/player/vod_player.py#L64-L95)
 - **Rationale:** Modifying the existing `play_vod` method to register stream sniffing without disrupting attendance heartbeat polling or modal handling.
 - **Concrete Code Excerpt:**
   ```python
@@ -370,9 +370,9 @@
 
 ---
 
-### 10. `src/kau_assistant/player/runner.py` (Modify)
+### 10. `src/coursepilot/player/runner.py` (Modify)
 - **Role:** Watch pipeline orchestrator
-- **Closest Analog:** [`src/kau_assistant/player/runner.py`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/player/runner.py#L161-L177) & [`src/kau_assistant/player/runner.py#L292-L300`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/player/runner.py#L292-L300)
+- **Closest Analog:** [`src/coursepilot/player/runner.py`](../../../src/coursepilot/player/runner.py#L161-L177) & [`src/coursepilot/player/runner.py#L292-L300`](../../../src/coursepilot/player/runner.py#L292-L300)
 - **Rationale:** Connects `watch` execution to the background download thread when `--download` is active.
 - **Concrete Code Excerpt:**
   ```python
@@ -399,9 +399,9 @@
 
 ---
 
-### 11. `src/kau_assistant/cli.py` (Modify)
+### 11. `src/coursepilot/cli.py` (Modify)
 - **Role:** CLI option handling and command routing
-- **Closest Analog:** [`src/kau_assistant/cli.py#L190-L255`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/cli.py#L190-L255) (`watch_group`) & [`src/kau_assistant/cli.py#L470-L535`](file:///D:/dev/kau-lxp-assistant/src/kau_assistant/cli.py#L470-L535) (`materials_command`)
+- **Closest Analog:** [`src/coursepilot/cli.py#L190-L255`](../../../src/coursepilot/cli.py#L190-L255) (`watch_group`) & [`src/coursepilot/cli.py#L470-L535`](../../../src/coursepilot/cli.py#L470-L535) (`materials_command`)
 - **Rationale:** Demonstrates Click option definitions, Console output, progress messages, and error handling.
 - **Concrete Code Excerpt:**
   ```python
@@ -437,7 +437,7 @@
 
 ### 12. `tests/test_stream_parser.py`
 - **Role:** Unit test for M3U8 parsing and quality selection
-- **Closest Analog:** [`tests/test_filename_utils.py`](file:///D:/dev/kau-lxp-assistant/tests/test_filename_utils.py#L6-L44)
+- **Closest Analog:** [`tests/test_filename_utils.py`](../../../tests/test_filename_utils.py#L6-L44)
 - **Rationale:** Test module checking string input against parsed objects with various edge cases.
 - **Concrete Code Excerpt:**
   ```python
@@ -453,7 +453,7 @@
 
 ### 13. `tests/test_stream_crypto.py`
 - **Role:** Unit test for AES-128-CBC decryption and IV derivation
-- **Closest Analog:** [`tests/test_filename_utils.py`](file:///D:/dev/kau-lxp-assistant/tests/test_filename_utils.py#L46-L75)
+- **Closest Analog:** [`tests/test_filename_utils.py`](../../../tests/test_filename_utils.py#L46-L75)
 - **Rationale:** Pure unit tests validating cryptographic transforms with explicit and implicit inputs.
 - **Application:** Test:
   - Encryption-decryption roundtrip using standard AES-128-CBC.
@@ -464,7 +464,7 @@
 
 ### 14. `tests/test_stream_downloader.py`
 - **Role:** Unit test for segment downloader, key caching, retry backoff, and TS merge
-- **Closest Analog:** [`tests/test_material_downloader.py`](file:///D:/dev/kau-lxp-assistant/tests/test_material_downloader.py#L51-L185)
+- **Closest Analog:** [`tests/test_material_downloader.py`](../../../tests/test_material_downloader.py#L51-L185)
 - **Rationale:** Tests HTTP client interactions, temporary files, skipping duplicates, and error cleanup using `tmp_path` fixture.
 - **Concrete Code Excerpt:**
   ```python
@@ -494,7 +494,7 @@
 
 ### 15. `tests/test_stream_sniffer.py`
 - **Role:** Unit test for Playwright response interception and DOM fallback
-- **Closest Analog:** [`tests/test_vod_player.py`](file:///D:/dev/kau-lxp-assistant/tests/test_vod_player.py#L25-L68)
+- **Closest Analog:** [`tests/test_vod_player.py`](../../../tests/test_vod_player.py#L25-L68)
 - **Rationale:** Tests Playwright page events, `evaluate` callbacks, and timeout conditions using mocked `Page`.
 - **Concrete Code Excerpt:**
   ```python
@@ -515,7 +515,7 @@
 
 ### 16. `tests/test_watch_download.py`
 - **Role:** Integration test for `watch --download` background downloading and attendance fault isolation
-- **Closest Analog:** [`tests/test_watch_runner.py`](file:///D:/dev/kau-lxp-assistant/tests/test_watch_runner.py#L122-L175)
+- **Closest Analog:** [`tests/test_watch_runner.py`](../../../tests/test_watch_runner.py#L122-L175)
 - **Rationale:** Tests orchestration of `watch_course_vods` with mocked dependencies.
 - **Concrete Code Excerpt:**
   ```python
@@ -541,7 +541,7 @@
 
 ### 17. `tests/test_cli_download_vod.py`
 - **Role:** CLI test for `download-vod` command and `watch` options
-- **Closest Analog:** [`tests/test_cli_materials.py`](file:///D:/dev/kau-lxp-assistant/tests/test_cli_materials.py#L17-L104)
+- **Closest Analog:** [`tests/test_cli_materials.py`](../../../tests/test_cli_materials.py#L17-L104)
 - **Rationale:** Tests Click CLI commands using `CliRunner` with `--json`, `--dry-run`, and option verification.
 - **Concrete Code Excerpt:**
   ```python
@@ -552,7 +552,7 @@
       assert "--course" in res_materials.output
       assert "--week" in res_materials.output
 
-  @patch("kau_assistant.materials.runner.run_materials_pipeline")
+  @patch("coursepilot.materials.runner.run_materials_pipeline")
   def test_materials_dry_run_json(mock_run_pipeline):
       mock_run_pipeline.return_value = MaterialsRunResult(...)
       runner = CliRunner()
@@ -562,9 +562,9 @@
       assert data["dry_run"] is True
   ```
 - **Application:** Test:
-  - `kau-assistant download-vod --help` displays all flags.
-  - `kau-assistant download-vod --course "..." --dry-run --json` outputs expected JSON structure.
-  - `kau-assistant watch --download --quality 1080p` passes options to runner.
+  - `coursepilot download-vod --help` displays all flags.
+  - `coursepilot download-vod --course "..." --dry-run --json` outputs expected JSON structure.
+  - `coursepilot watch --download --quality 1080p` passes options to runner.
 
 ---
 
@@ -578,7 +578,7 @@
 ### 2. Rich CLI Progress & Output Separation
 - Ephemeral progress updates, spinners, and transfer speeds output exclusively to `Console(stderr=True)`.
 - Final human-readable report tables and structured `--json` outputs go to standard stdout (`Console()` / `click.echo`).
-- Enables clean piping: `kau-assistant download-vod --json | jq .` without stderr progress clutter corrupting stdout JSON.
+- Enables clean piping: `coursepilot download-vod --json | jq .` without stderr progress clutter corrupting stdout JSON.
 
 ### 3. Atomic File Assembly & Volume Isolation
 - Temporary data during segment assembly or direct streaming is written to `<filename>.tmp` or `.cache/`.
@@ -596,7 +596,7 @@
 
 ### 6. Path Formatting & Filename Sanitization
 - Naming format: `downloads/<과목명>/W{week:02d}/W{week:02d}-{clip:02d}_{sanitized_title}.mp4` (Decision D-14-10).
-- Filenames sanitized via `kau_assistant.materials.filename_utils.sanitize_filename` to remove OS reserved characters (`<>:"/\\|?*`) and Windows reserved stems (`CON`, `PRN`, `AUX`).
+- Filenames sanitized via `coursepilot.materials.filename_utils.sanitize_filename` to remove OS reserved characters (`<>:"/\\|?*`) and Windows reserved stems (`CON`, `PRN`, `AUX`).
 
 ---
 
