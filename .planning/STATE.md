@@ -7,8 +7,8 @@ status: completed
 stopped_at: Phase 17 context gathered
 last_updated: "2026-09-26T18:20:50.717Z"
 last_activity: 2026-09-28
-last_activity_desc: Completed quick task 260928-hm1 - Explicit watch sync and unified private storage
-state_head: 5d6edc90a90e1b1a0310e6b457d2bed4ffd9c4c3
+last_activity_desc: Completed quick task 260928-gh1 - Purge personal mapping file from Git history
+state_head: 8d2d1b03df3edbdb119b712eeb6fff0808424b02
 progress:
   total_phases: 5
   completed_phases: 4
@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-09-25)
 Phase: 16
 Plan: Not started
 Status: All phases complete
-Last activity: 2026-09-28 — Completed quick task 260928-hm1: Explicit watch sync and unified private storage
+Last activity: 2026-09-28 — Completed quick task 260928-gh1: Purge personal mapping file from Git history
 
 Progress: [█████████████░░░░░░░] 11/17 phases ([████████░░] 80%)
 
@@ -115,7 +115,8 @@ None yet.
 - Historical D-26 credential blocker is no longer current: quick 260927-2wg verified fresh live check and Notion preview with zero errors. Actual sync application and download/player verification remain outside this quick task; Phase 17 is still pending.
 - [Quick 260928-f4x]: Material 2847 is LMS complete but the CSMSDoc viewer exposes no original file link. CoursePilot reports `viewed_only` rather than a download success. Scheduler title changes are previewed only when a unique LMS source matches; no live Notion write was made. Phase 17 remains pending.
 - [Quick 260928-np1]: Agent watch must propose exact Scheduler completion targets after playback and wait for a separate approval. The read-only preview found two candidates and made zero Notion writes. Source checkout storage is project-rooted; wheel fallback is the user's `~/.coursepilot`. macOS/Linux runtime was not verified. Phase 17 remains pending.
-- [Quick 260928-hm1]: Explicit same-request playback plus Scheduler completion authorizes `watch --update-notion` for actually completed, matching videos. Personal state is unified under `~/.coursepilot` for source and wheel runs, superseding the storage split and strict approval rule in 260928-np1. The personal mapping file is removed from the current Git tree; remote history still contains past copies unless separately rewritten. Five supported agent skills were relinked. Phase 17 remains pending.
+- [Quick 260928-hm1]: Explicit same-request playback plus Scheduler completion authorizes `watch --update-notion` for actually completed, matching videos. Personal state is unified under `~/.coursepilot` for source and wheel runs, superseding the storage split and strict approval rule in 260928-np1. The personal mapping file was removed from the current Git tree, and the later quick task 260928-gh1 removed it from reachable Git history. Five supported agent skills were relinked. Phase 17 remains pending.
+- [Quick 260928-gh1]: User authorized a history rewrite; `config/course_mappings.json` was removed from all reachable commits on remote `main`. GSD commit references were remapped, the pre-existing player edit was preserved, and local unreachable objects were pruned. The isolated temporary folder remains because automatic approval review blocked its recursive removal. Phase 17 remains pending.
 
 ### Quick Tasks Completed
 
@@ -127,6 +128,7 @@ None yet.
 | 260928-f4x | Material, Scheduler, storage, and title repair (426 tests; live 2847 view-only) | 2026-09-28 | 6cc69d5 | Verified with external file limit | [260928-f4x-coursepilot-four-issue-repair](./quick/260928-f4x-coursepilot-four-issue-repair/) |
 | 260928-np1 | Propose Notion completion after watch (428 tests; read-only live preview) | 2026-09-28 | 074b2cd | Verified with OS runtime limit | [260928-np1-confirm-watch-notion-completion](./quick/260928-np1-confirm-watch-notion-completion/) |
 | 260928-hm1 | Explicit watch sync, unified home storage, private mapping removal, five agent links (432 tests) | 2026-09-28 | 5d6edc9 | Verified with history and OS runtime limits | [260928-hm1-unified-home-and-explicit-watch-sync](./quick/260928-hm1-unified-home-and-explicit-watch-sync/) |
+| 260928-gh1 | Rewrite Git history to remove personal mapping file (432 tests) | 2026-09-28 | 8d2d1b0 | Verified with temporary cleanup limit | [260928-gh1-purge-mapping-git-history](./quick/260928-gh1-purge-mapping-git-history/) |
 
 ## Session Continuity
 
