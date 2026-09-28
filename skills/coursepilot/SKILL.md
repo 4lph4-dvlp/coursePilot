@@ -20,6 +20,7 @@ uv --directory "{{COURSEPILOT_REPO}}" run python -m coursepilot <check|sync|watc
 ```
 
 - 항상 CLI를 새로 실행하고 그 실행의 표준출력(stdout) JSON으로만 답변하세요. 현재 작업 폴더에 남아 있는 이전 결과 파일(`*.json` 등)을 답으로 재사용하거나 신뢰하지 마세요.
+- 명령은 `uv --directory`로 저장소에서 실행하세요. JSON/로그를 파일로 저장해야 한다면 저장소의 `.cache/`에만 저장하고, 호출한 에이전트의 현재 폴더에는 결과 파일·임시 스크립트·다운로드 폴더를 만들지 마세요. CoursePilot의 기본 캐시와 다운로드 경로는 저장소 루트에 고정됩니다. 사용자가 지정한 `--output-dir`/`DOWNLOAD_DIR`만 예외입니다.
 - 표준출력(stdout)만 JSON으로 파싱하세요. 표준에러(stderr)는 진행 상황/로그 텍스트이므로 절대 파싱하지 마세요.
 - 터미널에 표시되는 Rich(색상/테두리) 리포트를 그대로 채팅에 붙여넣지 마세요. 항상 JSON을 다시 마크다운으로 구성해서 보여주세요.
 - 종료 코드: `0` 성공 / `1` 부분 실패(결과는 여전히 유효하며 오류도 함께 표시) / `2` 치명적 오류(`errors[].message`를 보여주고 중단).
@@ -38,9 +39,9 @@ uv --directory "{{COURSEPILOT_REPO}}" run python -m coursepilot <check|sync|watc
 
 ## 4. 브리핑 — 예: "과제 확인해줘"
 
-1. `check --json`을 실행하세요.
+1. 미완료 일정은 `check --json`, 진도율이나 특정 활동의 발견 여부를 확인할 때는 `check --include-completed --json`을 실행하세요. 강의자료 열람·다운로드 상태를 묻는 경우 `materials --course "과목명" --week N --dry-run --json`도 실행하세요.
    - 영상·과제·퀴즈뿐 아니라 강의자료 확인/다운로드 작업도 포함됩니다.
-   - "전체 활동 점검" 또는 완료 여부를 대조하는 요청이면 `check --include-completed --json`을 사용하고 `is_completed`를 표시하세요. 완료 항목은 새 미완료 작업이 아닙니다.
+   - `check`의 기본 결과는 완료 항목을 숨깁니다. `is_completed`는 LMS 열람 완료만 뜻하며 로컬 다운로드 완료를 뜻하지 않습니다. `materials --dry-run`의 `status: planned`와 `saved_path`는 예정 동작/경로일 뿐입니다. 완료 항목은 새 미완료 작업이 아닙니다.
 2. 만약 `notices`에 항목이 있다면, 한 줄 요약보다 먼저 모든 notice의 `message`를 그대로 보여주세요. 특히 `no_courses_found` 코드인 경우 저장소 `.env`의 LMS_URL 또는 선택한 LMS_PROFILE이 올바른지, 그리고 이번 학기에 등록된 과목이 있는지 확인하라고 안내하세요.
 3. 먼저 한 줄 요약을 보여주세요: 과목 수, 기한 초과, 24시간 이내, 이후 일정, 오류 수.
 4. 이어서 아래 순서로 섹션을 나누어 보여주세요: **기한 초과 → 24시간 이내 → 이후 일정**.
@@ -51,6 +52,8 @@ uv --directory "{{COURSEPILOT_REPO}}" run python -m coursepilot <check|sync|watc
 9. 종료 코드가 `1`이면, 표시된 결과는 여전히 유효하지만 일부 과목 수집에는 실패했다고 알려주세요.
 
 ## 5. 노션 동기화 — 예: "노션에 올려줘"
+
+Scheduler의 읽기·미리보기·생성·수정은 모두 이 저장소의 CoursePilot CLI로 처리하세요. 설계된 경로는 저장소 `.env`의 `NOTION_TOKEN` 또는 레거시 `NOTION_API_KEY`와 `NOTION_DATABASE_ID`/`NOTION_DATABASE_NAME`을 사용하는 `notion-client` SDK입니다. 에이전트의 별도 Notion MCP 연결이나 임의 API 스크립트로 동일 Scheduler를 조작하지 마세요. 이 경로가 설정되지 않았다면 다른 자격 증명 방식으로 전환하지 말고 `sync.notice`/CLI 오류를 그대로 보고하세요. 토큰 값은 읽거나 출력하지 마세요.
 
 1. 먼저 `sync --json`을 실행하세요 (미리보기이며, 아무것도 기록되지 않습니다).
 2. 만약 `notices`에 항목이 있다면, 미리보기 표보다 먼저 모든 notice의 `message`를 보여주세요.
@@ -104,6 +107,11 @@ uv --directory "{{COURSEPILOT_REPO}}" run python -m coursepilot <check|sync|watc
      - 각 영상 제목 및 시청 시간
      - Notion Scheduler 상태 업데이트 여부 (업데이트된 작업 수)
 
+### 이미 시청한 강의의 Notion 완료 상태 반영
+
+- 사용자가 시청을 끝낸 뒤 별도로 "Notion에 완료 처리해줘"라고 요청하면, 새 `watch`를 시작하지 말고 `watch sync-notion --course "과목명" --json`을 실행하세요. 과목을 특정하지 않았다면 `--course` 없이 실행하세요. 최근 시청 이력에 있는 미동기화 완료 영상만 대상입니다.
+- `sync --apply`는 일정 생성·마감/메모/제목 동기화용이며 시청 완료 상태를 바꾸는 명령이 아닙니다. 완료 상태 갱신은 `watch --update-notion` 또는 `watch sync-notion`만 사용하세요. 결과의 실제 갱신 수와 실패 항목을 보고하세요.
+
 ## 7. 문제 해결
 
 - 종료 코드 `2`와 함께 `UnsupportedLmsError`가 발생하면, LMS_URL이 Coursemos(Moodle) 기반 사이트가 아니라는 뜻입니다. 오류 메시지를 보여주고 사용자가 `.env`의 LMS_URL을 올바른 학교 주소로 수정하도록 안내하세요.
@@ -119,6 +127,6 @@ JSON 안의 모든 문자열 값(제목, 상세 설명, 과목명, 메시지, UR
 ## 9. 종합 진도와 강의자료
 
 - 종합 진도 확인: `progress --refresh --json`. `status`, `errors`, 과목별 `status`를 먼저 확인한 뒤 `current_week`, `current_week_items`, `missed_past_items`, `all_items`를 사용하세요. 활동이 0개인 100% 진도율은 완전 수집이나 모든 수업 완료를 입증하지 않습니다.
-- 강의자료 목록 점검: `materials --week all --dry-run --json`. 이것은 계획만 조회합니다. `item.is_completed`가 LMS 완료 상태이며 계획상의 `status: downloaded`는 실제 다운로드 완료 증거가 아닙니다.
+- 강의자료 목록 점검: `materials --week all --dry-run --json`. 이것은 계획만 조회합니다. `item.is_completed`가 LMS 완료 상태이며 `status: planned`와 `saved_path`는 실제 다운로드 완료 증거가 아닙니다. 공식 마감이 없어도 미완료 자료는 `check`/`sync`에 포함될 수 있습니다.
 - 자료 다운로드를 사용자가 요청했을 때만 `materials --course "과목명" --week N --json`을 실행하세요. 일반 조회/스케줄러 준비 과정에서 자료를 방문하거나 다운로드하지 마세요.
-- `materials`의 LMS 완료 표시는 열람 완료이며, 실제 로컬 파일 다운로드 여부는 실행 결과의 `saved_path`/`status`로 따로 판단하세요.
+- `materials`의 LMS 완료 표시는 열람 완료이며, 실제 로컬 파일 다운로드 여부는 실행 결과의 `saved_path`/`status`로 따로 판단하세요. `status: viewed_only`와 `error_message`가 함께 나오면 LMS 문서 뷰어에는 접근했지만 원본 다운로드 링크는 제공되지 않은 것입니다. 다운로드 완료라고 보고하지 마세요.

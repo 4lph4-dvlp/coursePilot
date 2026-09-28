@@ -1,14 +1,21 @@
 """Cookie-authenticated HTTP client and streaming file downloader with atomic write."""
 
 import json
+import re
 from pathlib import Path
+from urllib.parse import urljoin, urlsplit
 import httpx
+from bs4 import BeautifulSoup
 
 from coursepilot.config import Settings
 from coursepilot.materials.filename_utils import resolve_filename, sanitize_filename
 from coursepilot.materials.models import MaterialItem
 from coursepilot.scraper.material_parser import extract_pluginfile_url
 from coursepilot.session_manager import SessionManager
+
+
+class ViewOnlyMaterialError(ValueError):
+    """The LMS exposes a protected viewer but no original file download link."""
 
 
 def get_authenticated_httpx_client(
@@ -69,7 +76,6 @@ def download_material_file(
     Returns:
         tuple[Path, int, bool]: (saved_path, filesize, is_skipped)
     """
-    target_dir.mkdir(parents=True, exist_ok=True)
     req_url = item.download_url or item.url
 
     with client.stream("GET", req_url) as response:
@@ -85,6 +91,27 @@ def download_material_file(
                 return download_material_file(
                     client, updated_item, target_dir, chunk_size=chunk_size
                 )
+            viewer = BeautifulSoup(html, "lxml").find(
+                "a", href=re.compile(r"/mod/ubfile/viewer\.php(?:\?|$)", re.I)
+            )
+            if viewer and viewer.get("href"):
+                viewer_url = urljoin(str(response.url), viewer["href"])
+                viewer_response = client.get(viewer_url)
+                viewer_response.raise_for_status()
+                viewer_type = viewer_response.headers.get("content-type", "")
+                if "text/html" in viewer_type:
+                    nested_url = extract_pluginfile_url(
+                        viewer_response.text, base_url=str(viewer_response.url)
+                    )
+                    if nested_url:
+                        updated_item = item.model_copy(update={"download_url": nested_url})
+                        return download_material_file(
+                            client, updated_item, target_dir, chunk_size=chunk_size
+                        )
+                if urlsplit(str(viewer_response.url)).path.rstrip("/") == "/local/csmsdoc":
+                    raise ViewOnlyMaterialError(
+                        "LMS 문서 뷰어에 원본 다운로드 링크가 없습니다. 열람 상태만 확인할 수 있습니다."
+                    )
             raise ValueError(f"Could not locate download link in HTML viewer: {item.url}")
 
         # Resolve filename
@@ -96,6 +123,7 @@ def download_material_file(
             content_type=content_type,
         )
         safe_name = sanitize_filename(resolved_name)
+        target_dir.mkdir(parents=True, exist_ok=True)
         target_path = target_dir / safe_name
 
         content_length = response.headers.get("content-length")

@@ -79,6 +79,7 @@ def plan_sync(
             continue
 
         matches = existing_by_source.get(source, []) if source else []
+        matched_by_source = bool(matches)
         if not matches:
             matches = existing_by_title.get(task.title, [])
             if any(_memo_source(page.memo) and _memo_source(page.memo) != source for page in matches) and source:
@@ -99,7 +100,14 @@ def plan_sync(
             continue
 
         existing = matches[0]
-        properties, diffs = mapper.to_update_properties(task, existing)
+        if matched_by_source and any(
+            page.page_id != existing.page_id for page in existing_by_title.get(task.title, [])
+        ):
+            actions.append(ErrorAction(task_id=task.id, title=task.title, code="title_collision", message="새 제목을 이미 다른 Scheduler 항목이 사용합니다."))
+            continue
+        properties, diffs = mapper.to_update_properties(
+            task, existing, update_title=matched_by_source
+        )
         if properties:
             actions.append(
                 UpdateAction(

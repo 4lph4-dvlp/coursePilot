@@ -1,7 +1,7 @@
 """Tests for configuration loader (CONF-01)."""
 
 from pathlib import Path
-from coursepilot.config import Settings, get_settings
+from coursepilot.config import PROJECT_ROOT, Settings, get_settings
 
 
 def test_default_values(clean_env):
@@ -18,8 +18,23 @@ def test_default_values(clean_env):
     assert settings.notion_api_key == ""
     assert settings.effective_notion_token == ""
     assert settings.is_notion_configured is False
-    assert settings.session_cache_path == Path(".cache/session.json")
-    assert settings.course_mappings_path == Path("config/course_mappings.json")
+    assert settings.session_cache_path == PROJECT_ROOT / ".cache/session.json"
+    assert settings.course_mappings_path == PROJECT_ROOT / "config/course_mappings.json"
+    assert settings.download_dir == PROJECT_ROOT / "downloads"
+
+
+def test_relative_storage_overrides_use_project_root(tmp_path: Path, monkeypatch, clean_env):
+    monkeypatch.chdir(tmp_path)
+    settings = Settings(
+        session_cache_path=Path("state/session.json"),
+        course_mappings_path=Path("config/course_mappings.json"),
+        download_dir=Path("files"),
+        _env_file=None,
+    )
+    assert settings.session_cache_path == PROJECT_ROOT / "state/session.json"
+    assert settings.course_mappings_path == PROJECT_ROOT / "config/course_mappings.json"
+    assert settings.download_dir == PROJECT_ROOT / "files"
+    assert list(tmp_path.iterdir()) == []
 
 
 def test_default_lms_url_requires_explicit_school_selection():

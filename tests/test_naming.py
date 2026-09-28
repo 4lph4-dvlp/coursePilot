@@ -35,6 +35,18 @@ def test_lecture_naming_convention():
     assert title_default == "[공수2] 1주차 1차시 강의 시청"
 
 
+def test_repeated_course_and_week_labels_are_removed_without_truncating_identity():
+    mappings = {"항공우주산업개론": "항산개"}
+    assert format_task_title(
+        "항공우주산업개론", "[항공우주산업개론] 4주차 Fourier analysis 2 문제풀이",
+        TaskType.MATERIAL, week_number=4, course_mappings=mappings,
+    ) == "[항산개] 4주차 Fourier analysis 2 문제풀이 확인 및 다운로드"
+    assert format_task_title(
+        "항공우주산업개론", "항산개_4주차 실습 보고서 제출",
+        TaskType.ASSIGNMENT, course_mappings=mappings,
+    ) == "[항산개] 4주차 실습 보고서 제출"
+
+
 def test_assignment_naming_conventions():
     """D-02 & D-03: Verify assignment naming with week and without week."""
     # D-02: With week number parameter

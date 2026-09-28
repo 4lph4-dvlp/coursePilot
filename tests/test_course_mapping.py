@@ -17,6 +17,22 @@ def test_normal_mapping():
     assert get_abbreviation("자료구조", mappings) == "자구"
 
 
+def test_current_course_aliases_are_available_from_default_and_config():
+    expected = {
+        "공학수학II": "공수2",
+        "자료구조및실습": "자구",
+        "디지털시스템설계": "디시설",
+        "확률및랜덤변수": "확랜",
+        "기초전자실험": "기전실",
+        "항공우주산업개론": "항산개",
+        "항공산업우주개론": "항산개",
+    }
+    configured = load_course_mappings()
+    for name, abbr in expected.items():
+        assert get_abbreviation(name, DEFAULT_MAPPINGS) == abbr
+        assert get_abbreviation(name, configured) == abbr
+
+
 def test_whitespace_handling():
     """Verify course names with leading or trailing whitespace are properly trimmed and matched."""
     mappings = {"자료구조": "자구"}

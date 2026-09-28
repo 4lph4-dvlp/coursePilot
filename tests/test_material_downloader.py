@@ -8,6 +8,7 @@ import pytest
 
 from coursepilot.config import Settings
 from coursepilot.materials.downloader import (
+    ViewOnlyMaterialError,
     download_material_file,
     get_authenticated_httpx_client,
     mark_material_viewed,
@@ -160,6 +161,27 @@ def test_download_material_file_embedded_html_viewer(tmp_path: Path, sample_item
     assert saved_path.name == "slides.pdf"
     assert is_skipped is False
     assert mock_client.stream.call_count == 2
+
+
+def test_coursemos_document_viewer_reports_no_original_file(tmp_path: Path, sample_item):
+    client = MagicMock(spec=httpx.Client)
+    page = MagicMock()
+    page.url = sample_item.url
+    page.headers = {"content-type": "text/html"}
+    page.read.return_value = b'<a href="/mod/ubfile/viewer.php?id=8001">View</a>'
+    page.raise_for_status.return_value = None
+    client.stream.return_value.__enter__.return_value = page
+    viewer = MagicMock()
+    viewer.url = "https://lxp.kau.ac.kr/local/csmsdoc/?id=8001"
+    viewer.headers = {"content-type": "text/html"}
+    viewer.text = "<html><body>Document viewer</body></html>"
+    viewer.raise_for_status.return_value = None
+    client.get.return_value = viewer
+
+    target = tmp_path / "W1"
+    with pytest.raises(ViewOnlyMaterialError, match="원본 다운로드 링크"):
+        download_material_file(client, sample_item, target)
+    assert not target.exists()
 
 
 def test_download_material_file_cleanup_on_error(tmp_path: Path, sample_item):

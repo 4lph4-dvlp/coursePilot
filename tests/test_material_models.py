@@ -2,7 +2,7 @@
 
 import json
 from pathlib import Path
-from coursepilot.config import Settings
+from coursepilot.config import PROJECT_ROOT, Settings
 from coursepilot.materials.models import (
     CourseMaterialsResult,
     MaterialDownloadResult,
@@ -17,7 +17,8 @@ def test_material_status_enum():
     assert MaterialStatus.SKIPPED == "skipped"
     assert MaterialStatus.VIEWED_ONLY == "viewed_only"
     assert MaterialStatus.FAILED == "failed"
-    assert len(MaterialStatus) == 4
+    assert MaterialStatus.PLANNED == "planned"
+    assert len(MaterialStatus) == 5
 
 
 def test_material_item_defaults():
@@ -95,8 +96,8 @@ def test_materials_run_result_json_serialization():
 
 
 def test_settings_download_dir():
-    settings = Settings()
-    assert settings.download_dir == Path("downloads")
-    custom_settings = Settings(download_dir=Path("custom/path"))
-    assert custom_settings.download_dir == Path("custom/path")
+    settings = Settings(_env_file=None)
+    assert settings.download_dir == PROJECT_ROOT / "downloads"
+    custom_settings = Settings(download_dir=Path("custom/path"), _env_file=None)
+    assert custom_settings.download_dir == PROJECT_ROOT / "custom/path"
     assert "download_dir=WindowsPath('custom/path')" in repr(custom_settings) or "custom/path" in repr(custom_settings)

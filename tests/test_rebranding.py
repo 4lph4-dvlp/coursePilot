@@ -86,12 +86,13 @@ def test_all_browser_workflows_require_a_school_before_launch(monkeypatch, clean
 
 
 def test_source_activity_identity_and_local_paths_are_unchanged(sample_settings):
+    from coursepilot.config import PROJECT_ROOT
     from coursepilot.domain.models import SyncTask, TaskPriority, TaskSelect, TaskType
     task = SyncTask(id="mat_1125_2847", course_id="1125", course_name="Example", course_abbr="Ex", title="Material", raw_title="Material", task_type=TaskType.MATERIAL, selection=TaskSelect.ROUTINE, priority=TaskPriority.P3, source_url="https://lxp.kau.ac.kr/mod/ubfile/view.php?id=2847")
     restored = SyncTask.model_validate_json(task.model_dump_json())
     assert restored.id == task.id and restored.source_url == task.source_url
-    assert Settings(_env_file=None).session_cache_path == Path(".cache/session.json")
-    assert Settings(_env_file=None).download_dir == Path("downloads")
+    assert Settings(_env_file=None).session_cache_path == PROJECT_ROOT / ".cache/session.json"
+    assert Settings(_env_file=None).download_dir == PROJECT_ROOT / "downloads"
 
 
 def test_bundled_skill_fallback_and_explicit_missing_root(tmp_path, monkeypatch):

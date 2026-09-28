@@ -6,6 +6,7 @@ import httpx
 import pytest
 
 from coursepilot.config import Settings
+from coursepilot.materials.downloader import ViewOnlyMaterialError
 from coursepilot.materials.models import MaterialItem, MaterialStatus
 from coursepilot.materials.runner import (
     process_course_materials,
@@ -167,8 +168,25 @@ def test_process_course_materials_dry_run(tmp_path: Path, sample_course, sample_
     )
 
     assert len(res.items) == 3
-    assert res.items[0].status == MaterialStatus.DOWNLOADED
+    assert res.items[0].status == MaterialStatus.PLANNED
+    assert all(not item.view_success for item in res.items)
     assert "downloads" not in res.items[0].saved_path or str(tmp_path) in res.items[0].saved_path
+
+
+@patch("coursepilot.materials.runner.download_material_file", side_effect=ViewOnlyMaterialError("원본 다운로드 링크가 없습니다."))
+def test_view_only_material_is_not_reported_as_downloaded_or_failed(
+    mock_download, tmp_path: Path, sample_course, sample_materials
+):
+    result = process_course_materials(
+        course=sample_course,
+        materials=[sample_materials[0]],
+        target_week="1주차",
+        output_root=tmp_path,
+        client=MagicMock(spec=httpx.Client),
+    )
+    assert result.items[0].status == MaterialStatus.VIEWED_ONLY
+    assert result.items[0].view_success is True
+    assert not result.items[0].saved_path
 
 
 @patch("coursepilot.materials.runner.download_material_file")

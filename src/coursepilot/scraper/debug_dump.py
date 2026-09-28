@@ -6,13 +6,15 @@ from pathlib import Path
 import re
 from playwright.sync_api import Page
 
+from coursepilot.config import PROJECT_ROOT
+
 logger = logging.getLogger(__name__)
 
 
 def capture_debug_snapshot(
     page: Page,
     action_name: str,
-    base_dir: Path = Path(".cache/debug"),
+    base_dir: Path = PROJECT_ROOT / ".cache/debug",
 ) -> tuple[Path, Path]:
     """Captures a full-page screenshot and HTML content for debugging purposes.
 

@@ -121,11 +121,14 @@ def to_create_properties(task: SyncTask) -> dict[str, Any]:
 
 
 def to_update_properties(
-    task: SyncTask, existing: ExistingPage
+    task: SyncTask, existing: ExistingPage, *, update_title: bool = False
 ) -> tuple[dict[str, Any], list[FieldDiff]]:
     """Build an explicit D-01 allowlisted payload and exact field diffs."""
     properties: dict[str, Any] = {}
     diffs: list[FieldDiff] = []
+    if update_title and task.title != existing.title:
+        properties["이름"] = {"title": [{"text": {"content": task.title}}]}
+        diffs.append(FieldDiff(property_name="이름", before=existing.title, after=task.title))
     if task.due_date != existing.due_date:
         properties["DueDate"] = _encode_date(task.due_date)
         diffs.append(

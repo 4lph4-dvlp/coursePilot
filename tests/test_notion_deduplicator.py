@@ -126,3 +126,32 @@ def test_malformed_existing_page_becomes_error_without_a_write_action() -> None:
     assert isinstance(actions[0], ErrorAction)
     assert actions[0].code == "malformed_existing_page"
 
+
+def test_unique_source_match_previews_shorter_title_and_preserves_user_fields():
+    source = "https://lxp.kau.ac.kr/mod/ubfile/view.php?id=2847"
+    task = _task("mat_1125_2847", "[공수2] 4주차 문제풀이 확인 및 다운로드")
+    task.source_url = source
+    task.memo = f"LMS 바로가기: {source}"
+    existing = ExistingPage(
+        page_id="page-2847", title="[공학수학II] 4주차 문제풀이 확인 및 다운로드",
+        priority=task.priority, memo=task.memo, status=TaskStatus.COMPLETED,
+    )
+    actions = plan_sync([task], [existing])
+    assert isinstance(actions[0], UpdateAction)
+    assert set(actions[0].properties) == {"이름"}
+    assert [(d.property_name, d.before, d.after) for d in actions[0].diffs] == [
+        ("이름", existing.title, task.title)
+    ]
+
+
+def test_source_matched_title_change_fails_when_another_page_uses_target_title():
+    source = "https://lxp.kau.ac.kr/mod/assign/view.php?id=2222"
+    task = _task("task", "[항산개] 4주차 보고서 제출")
+    task.source_url = source
+    pages = [
+        ExistingPage(page_id="source", title="[항공우주산업개론] 4주차 보고서 제출", memo=f"LMS 바로가기: {source}"),
+        ExistingPage(page_id="other", title=task.title),
+    ]
+    actions = plan_sync([task], pages)
+    assert isinstance(actions[0], ErrorAction)
+    assert actions[0].code == "title_collision"

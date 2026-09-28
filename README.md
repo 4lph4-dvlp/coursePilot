@@ -101,6 +101,12 @@ JSON 출력의 정확한 필드 구조는 [`skills/coursepilot/JSON_CONTRACT.md`
 
 `sync`는 기본적으로 **미리보기(dry-run)**입니다 — 생성/수정될 항목 목록만 보여주고 아무것도 쓰지 않습니다. 실제로 Notion에 반영하려면 명시적으로 `--apply`를 붙여야 합니다. 에이전트를 통해 대화로 요청하는 경우("노션에 올려줘")에도 스킬은 먼저 미리보기를 보여주고, 사용자의 명확한 승인을 받은 뒤에만 `--apply`를 실행합니다.
 
+Scheduler 조작의 표준 경로는 CoursePilot CLI입니다. `sync`와 `watch --update-notion`/`watch sync-notion`은 저장소 `.env`의 Notion 통합 토큰과 `notion-client` SDK를 사용합니다. 이미 시청한 강의를 나중에 완료 처리하려면 `watch sync-notion --course "과목명" --json`을 사용합니다. 다른 에이전트의 Notion MCP 접속은 이 CLI와 별도 인증·작업 이력을 사용하므로 CoursePilot Scheduler 작업에 섞지 않습니다.
+
+기본 세션·진도 캐시는 저장소 `.cache/`, 자료·영상 다운로드는 저장소 `downloads/`, 과목 약칭은 저장소 `config/course_mappings.json`에 고정됩니다. 다른 폴더에서 CLI를 호출해도 그 폴더에는 기본 파일이 생성되지 않습니다. 상대경로 `SESSION_CACHE_PATH`, `DOWNLOAD_DIR`, `COURSE_MAPPINGS_PATH`도 저장소 기준으로 해석하며 절대경로를 지정하면 그 경로를 사용합니다. 자료 `--dry-run`의 `planned`와 예정 저장 경로는 실제 다운로드가 아닙니다.
+
+일부 `ubfile`은 Coursemos 문서 뷰어로만 제공됩니다. 이때 CoursePilot는 원본 파일이 저장된 것처럼 표시하지 않고 `viewed_only`와 원인을 보고합니다. LMS 열람 완료와 로컬 파일 보관 여부는 별도 상태입니다.
+
 ## 에이전트 스킬 설치 (Agent Skill Installation)
 
 `skills/coursepilot/`는 에이전트 중립적인 `SKILL.md`(및 `JSON_CONTRACT.md`)로 구성된 범용 Agent Skill입니다. 아래 명령으로 지원하는 각 에이전트의 사용자 스킬 폴더에 설치할 수 있습니다.

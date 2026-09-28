@@ -9,13 +9,15 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 DEFAULT_LMS_URL = ""
 LMS_PROFILES = {"kau": "https://lxp.kau.ac.kr"}
+_source_root = Path(__file__).resolve().parents[2]
+PROJECT_ROOT = _source_root if (_source_root / "pyproject.toml").is_file() else Path.home() / ".coursepilot"
 
 
 class Settings(BaseSettings):
     """Application configuration loaded from environment variables and .env file."""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=PROJECT_ROOT / ".env",
         env_file_encoding="utf-8",
         extra="ignore",
     )
@@ -35,6 +37,11 @@ class Settings(BaseSettings):
         self.lms_url = self.lms_url.strip()
         if not self.lms_url and self.lms_profile:
             self.lms_url = LMS_PROFILES[self.lms_profile]
+        # Relative overrides are relative to CoursePilot, never the invoking agent's CWD.
+        for field_name in ("session_cache_path", "course_mappings_path", "download_dir"):
+            path = getattr(self, field_name)
+            if not path.is_absolute():
+                setattr(self, field_name, PROJECT_ROOT / path)
         return self
 
     # Execution Options

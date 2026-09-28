@@ -12,6 +12,7 @@ class MaterialStatus(str, Enum):
     SKIPPED = "skipped"
     VIEWED_ONLY = "viewed_only"
     FAILED = "failed"
+    PLANNED = "planned"
 
 
 class MaterialItem(BaseModel):

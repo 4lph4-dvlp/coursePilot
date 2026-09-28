@@ -45,6 +45,19 @@ def extract_week_and_title(title: str) -> tuple[int | None, str]:
     return None, cleaned
 
 
+def _strip_course_prefix(title: str, course_name: str, abbr: str) -> str:
+    """Remove an exact leading course label while keeping the distinguishing activity name."""
+    cleaned = clean_task_title(title)
+    for label in sorted({course_name.strip(), abbr.strip()}, key=len, reverse=True):
+        if not label:
+            continue
+        pattern = rf"^(?:\[\s*{re.escape(label)}\s*\]|{re.escape(label)})(?:\s*[:_\-]\s*|\s+)"
+        shortened = re.sub(pattern, "", cleaned, count=1, flags=re.I)
+        if shortened and shortened != cleaned:
+            return shortened.strip()
+    return cleaned
+
+
 def format_task_title(
     course_name: str,
     raw_title: str,
@@ -63,6 +76,7 @@ def format_task_title(
     """
     mappings = course_mappings if course_mappings is not None else {}
     abbr = get_abbreviation(course_name, mappings)
+    activity_title = _strip_course_prefix(raw_title, course_name, abbr)
 
     # 1. Lecture: Fixed format (D-01)
     if task_type == TaskType.LECTURE:
@@ -72,10 +86,12 @@ def format_task_title(
 
     # 2. Assessments: Assignment, Quiz, Forum, Other (D-02, D-03)
     if task_type == TaskType.MATERIAL:
+        extracted_week, clean_name = extract_week_and_title(activity_title)
+        week_number = week_number if week_number is not None else extracted_week
         week = f"{week_number}주차 " if week_number is not None else ""
-        return f"[{abbr}] {week}{clean_task_title(raw_title)} 확인 및 다운로드"
+        return f"[{abbr}] {week}{clean_name} 확인 및 다운로드"
 
-    extracted_week, clean_name = extract_week_and_title(raw_title)
+    extracted_week, clean_name = extract_week_and_title(activity_title)
     effective_week = (
         week_number if (week_number is not None and week_number > 0) else extracted_week
     )

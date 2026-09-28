@@ -382,7 +382,7 @@ def run_progress_pipeline(
     if current_time.tzinfo is None:
         current_time = current_time.replace(tzinfo=KST)
 
-    cache_path = (cfg.session_cache_path.parent if cfg else Path(".cache")) / "progress_cache.json"
+    cache_path = cfg.session_cache_path.parent / "progress_cache.json"
 
     # Fast-path cache return (D-16-14)
     if cached and not refresh:
@@ -396,7 +396,7 @@ def run_progress_pipeline(
         except Exception:
             pass
 
-    mappings = load_course_mappings()
+    mappings = load_course_mappings(cfg.course_mappings_path)
     client = get_authenticated_httpx_client(cfg)
     course_results: list[CourseProgress] = []
     errors: list[ErrorItem] = []

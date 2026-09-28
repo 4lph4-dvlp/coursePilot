@@ -10,6 +10,7 @@ import httpx
 from coursepilot.config import Settings, get_settings
 from coursepilot.course_mapping import load_course_mappings
 from coursepilot.materials.downloader import (
+    ViewOnlyMaterialError,
     download_material_file,
     get_authenticated_httpx_client,
     mark_material_viewed,
@@ -95,21 +96,13 @@ def process_course_materials(
         if dry_run:
             safe_name = sanitize_filename(item.suggested_filename or item.title)
             planned_path = target_dir / safe_name
-            if planned_path.exists():
-                status = MaterialStatus.SKIPPED
-            elif no_download:
-                status = MaterialStatus.VIEWED_ONLY
-            else:
-                status = MaterialStatus.DOWNLOADED
-
-            view_success = not item.is_completed
             results.append(
                 MaterialDownloadResult(
                     item=item,
-                    status=status,
+                    status=MaterialStatus.PLANNED,
                     filename=safe_name,
-                    saved_path=str(planned_path),
-                    view_success=view_success,
+                    saved_path=str(planned_path) if not no_download else "",
+                    view_success=False,
                 )
             )
             continue
@@ -156,6 +149,13 @@ def process_course_materials(
                     view_success=view_success,
                 )
             )
+        except ViewOnlyMaterialError as e:
+            results.append(MaterialDownloadResult(
+                item=item,
+                status=MaterialStatus.VIEWED_ONLY if view_success else MaterialStatus.FAILED,
+                view_success=view_success,
+                error_message=str(e),
+            ))
         except Exception as e:
             logger.exception("Failed to download material %s: %s", item.title, e)
             results.append(
