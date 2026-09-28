@@ -7,7 +7,7 @@ status: completed
 stopped_at: Phase 17 context gathered
 last_updated: "2026-09-26T18:20:50.717Z"
 last_activity: 2026-09-28
-last_activity_desc: Completed quick task 260928-f4x - Material, Scheduler, storage, and title repair
+last_activity_desc: Completed quick task 260928-np1 - Propose Notion completion after watch
 state_head: 836ecf6fd32296eab48d4af4ebda01ce95a4b6b1
 progress:
   total_phases: 5
@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-09-25)
 Phase: 16
 Plan: Not started
 Status: All phases complete
-Last activity: 2026-09-28 — Completed quick task 260928-f4x: Material, Scheduler, storage, and title repair
+Last activity: 2026-09-28 — Completed quick task 260928-np1: Propose Notion completion after watch
 
 Progress: [█████████████░░░░░░░] 11/17 phases ([████████░░] 80%)
 
@@ -114,6 +114,7 @@ None yet.
 
 - Historical D-26 credential blocker is no longer current: quick 260927-2wg verified fresh live check and Notion preview with zero errors. Actual sync application and download/player verification remain outside this quick task; Phase 17 is still pending.
 - [Quick 260928-f4x]: Material 2847 is LMS complete but the CSMSDoc viewer exposes no original file link. CoursePilot reports `viewed_only` rather than a download success. Scheduler title changes are previewed only when a unique LMS source matches; no live Notion write was made. Phase 17 remains pending.
+- [Quick 260928-np1]: Agent watch must propose exact Scheduler completion targets after playback and wait for a separate approval. The read-only preview found two candidates and made zero Notion writes. Source checkout storage is project-rooted; wheel fallback is the user's `~/.coursepilot`. macOS/Linux runtime was not verified. Phase 17 remains pending.
 
 ### Quick Tasks Completed
 
@@ -123,6 +124,7 @@ None yet.
 | 260927-3u6 | CoursePilot rebranding with legacy compatibility (419 tests; wheel verified) | 2026-09-27 | 1196e66 | Verified | [260927-3u6-rebrand-project-to-coursepilot-with-lega](./quick/260927-3u6-rebrand-project-to-coursepilot-with-lega/) |
 | 260927-4dc | CoursePilot single-identity cleanup (419 tests; isolated wheel verified) | 2026-09-27 | e02754a | Verified | [260927-4dc-remove-obsolete-product-aliases-and-bran](./quick/260927-4dc-remove-obsolete-product-aliases-and-bran/) |
 | 260928-f4x | Material, Scheduler, storage, and title repair (426 tests; live 2847 view-only) | 2026-09-28 | 836ecf6 | Verified with external file limit | [260928-f4x-coursepilot-four-issue-repair](./quick/260928-f4x-coursepilot-four-issue-repair/) |
+| 260928-np1 | Propose Notion completion after watch (428 tests; read-only live preview) | 2026-09-28 | 5f842f6 | Verified with OS runtime limit | [260928-np1-confirm-watch-notion-completion](./quick/260928-np1-confirm-watch-notion-completion/) |
 
 ## Session Continuity
 
