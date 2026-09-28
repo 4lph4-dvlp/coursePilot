@@ -155,10 +155,10 @@ status: complete
 
 Task 1 was `type="tracer"` (single production-quality commit + re-verified `<verify>` before expanding, per the tracer feedback gate — auto mode inactive, `human_verify_mode` default `end-of-phase`, tracer `<verify>` carried only `<automated>`, so it re-ran silently and continued to Task 2 with no checkpoint). Task 2 was `tdd="true"` (RED → GREEN → REFACTOR):
 
-1. **Task 1: End-to-end `sync --json` dry-run** - `faa32bd` (feat)
-2. **Task 2 RED: failing tests for --apply gate, unconfigured notice, Rich sync report** - `8442a2c` (test)
-2. **Task 2 GREEN: notice logic, render_sync_report, wire non-JSON sync path** - `3edbd98` (feat)
-2. **Task 2 REFACTOR: shared summary header between check/sync renderers** - `93b6871` (refactor)
+1. **Task 1: End-to-end `sync --json` dry-run** - `b5b90d4` (feat)
+2. **Task 2 RED: failing tests for --apply gate, unconfigured notice, Rich sync report** - `91d04cc` (test)
+2. **Task 2 GREEN: notice logic, render_sync_report, wire non-JSON sync path** - `7df787d` (feat)
+2. **Task 2 REFACTOR: shared summary header between check/sync renderers** - `95fc7de` (refactor)
 
 **Plan metadata:** committed after this SUMMARY.
 
@@ -182,7 +182,7 @@ None - plan executed exactly as written. All `<action>` details (module boundari
 
 ## Issues Encountered
 
-- The session was interrupted mid-Task-2 (between writing the RED tests and committing them) by an API rate limit. On resume, git state was verified (`faa32bd` committed for Task 1, RED test changes present but uncommitted in the working tree) before continuing — no rework was needed, the RED tests were re-run to reconfirm expected failures, then committed and GREEN proceeded normally.
+- The session was interrupted mid-Task-2 (between writing the RED tests and committing them) by an API rate limit. On resume, git state was verified (`b5b90d4` committed for Task 1, RED test changes present but uncommitted in the working tree) before continuing — no rework was needed, the RED tests were re-run to reconfirm expected failures, then committed and GREEN proceeded normally.
 
 ## User Setup Required
 
@@ -201,7 +201,7 @@ None - no external service configuration required. No new packages were installe
 - FOUND: src/coursepilot/cli.py
 - FOUND: tests/test_cli.py
 - FOUND: tests/test_reporter.py
-- FOUND commits: faa32bd, 8442a2c, 3edbd98, 93b6871
+- FOUND commits: b5b90d4, 91d04cc, 7df787d, 95fc7de
 - `uv run pytest -q tests/test_cli.py tests/test_reporter.py -x` green (33 tests)
 - `uv run pytest -q` green (full suite, 157 tests)
 

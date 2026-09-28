@@ -164,10 +164,10 @@ status: complete
 
 Each task was committed atomically:
 
-1. **Task 03-01-01: Domain Entities, Notion Enums & KST Validation (DOMN-01)** - `08718d5` (feat)
-2. **Task 03-01-02: Task Naming Rules & Smart Title Cleaning Engine (DOMN-03)** - `dd5e1f0` (feat)
-3. **Task 03-01-03: 24-Hour Urgency & Priority Decision Ladder (DOMN-02)** - `3629edc` (feat)
-4. **Task 03-01-04: DTO Transformer, Deadline Rescue, Memo Formatter & Package Facade (DOMN-01, DOMN-02, DOMN-03)** - `ae42a2b` (feat)
+1. **Task 03-01-01: Domain Entities, Notion Enums & KST Validation (DOMN-01)** - `79732fa` (feat)
+2. **Task 03-01-02: Task Naming Rules & Smart Title Cleaning Engine (DOMN-03)** - `3cfde78` (feat)
+3. **Task 03-01-03: 24-Hour Urgency & Priority Decision Ladder (DOMN-02)** - `79be098` (feat)
+4. **Task 03-01-04: DTO Transformer, Deadline Rescue, Memo Formatter & Package Facade (DOMN-01, DOMN-02, DOMN-03)** - `c31bc9d` (feat)
 
 ## Files Created/Modified
 

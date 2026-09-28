@@ -19,8 +19,8 @@ The user's explicit breaking-change request supersedes the preceding compatibili
 
 ## Commits
 
-- `7e23859` — runtime, packaging, source skill removal, fixture renames/references and regression tests.
-- `e02754a` — README and tracked planning terminology/current policy, including historical debug rename.
+- `066dce7` — runtime, packaging, source skill removal, fixture renames/references and regression tests.
+- `5d2cb53` — README and tracked planning terminology/current policy, including historical debug rename.
 
 Dependent fixture renames and their test references were committed with runtime changes so that the implementation commit is independently testable. Current task artifacts and STATE are recorded in the final lifecycle commit.
 

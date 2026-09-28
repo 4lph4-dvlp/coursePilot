@@ -44,13 +44,13 @@ Phase 2 Wave 1의 첫 번째 실행 계획(02-01)을 성공적으로 완료했�
 - `src/coursepilot/scraper/__init__.py`: 스크래퍼 패키지 진입점 생성
 - `src/coursepilot/scraper/models.py`: Pydantic v2 DTO 모델 및 Enum 선언 (`AttendanceStatus`, `SubmissionStatus`, `AssessmentType`, `CourseItem`, `LectureItem`, `AttachmentMeta`, `AssessmentItem`)
 - `tests/test_scraper_models.py`: 8개 테스트 케이스 작성 및 통과 검증 (기본값, 타입 검증, 직렬화/역직렬화)
-- **Commit:** `feat(02-01): scraper dependencies and core dto models` (`73fcd82`)
+- **Commit:** `feat(02-01): scraper dependencies and core dto models` (`e6109d8`)
 
 ### Task 02-01-02: Course List Extractor & Name Sanitization (SCRP-02, D-01, D-02, D-04)
 - `tests/fixtures/dashboard_coursemos.html`: KAU Coursemos 대시보드(진행 중 강좌, 종료 강좌, Canvas 링크, 분반/학기 태그) 모의 HTML fixture 작성
 - `src/coursepilot/scraper/course_list.py`: 분반 및 학기 표기를 분리/정제하는 `clean_course_name`, 과거 강좌 필터링 및 중복 ID 제거 기능의 `extract_courses_from_html`, 캐시 주입 및 스마트 대기를 지원하는 `extract_courses` 구현
 - `tests/test_course_list.py`: 4개 테스트 케이스 작성 및 통과 검증 (다양한 정규식 과목명 정제, fixture 파싱 및 종료 강좌 필터링, 캐시 주입, 네비게이션)
-- **Commit:** `feat(02-01): course list extractor and name sanitization` (`ee22a9e`)
+- **Commit:** `feat(02-01): course list extractor and name sanitization` (`e18e464`)
 
 ### Task 02-01-03: Page Navigator, Smart Wait, WAF Delays & Failure Debug Dumper (D-03, D-13, D-14, D-15, D-16)
 - `src/coursepilot/exceptions.py`: `CourseAccessDeniedError` 추가
@@ -58,7 +58,7 @@ Phase 2 Wave 1의 첫 번째 실행 계획(02-01)을 성공적으로 완료했�
 - `src/coursepilot/scraper/navigator.py`: `CourseNavigator` 구현 (0.2~0.5초 WAF 차단 방지 미세 딜레이, 15초 스마트 명시적 대기, 권한 없는 강좌 격리 및 스킵, 진도표 우선 및 메인 홈 폴백)
 - `tests/test_debug_dump.py`: 2개 테스트 케이스 작성 및 통과 검증
 - `tests/test_navigator.py`: 7개 테스트 케이스 작성 및 통과 검증 (정상 이동, 403 차단 및 경고 박스 감지, 진도표 폴백, 과제 모아보기 이동)
-- **Commit:** `feat(02-01): page navigator, smart wait, waf delays and debug snapshot dumper` (`40c3e72`)
+- **Commit:** `feat(02-01): page navigator, smart wait, waf delays and debug snapshot dumper` (`464f99b`)
 
 ## Deviations & Adaptations
 

@@ -7,7 +7,7 @@ execution: inline-codex-adapter
 
 # Explicit watch sync and unified private storage
 
-Code commit: `aa14345`.
+Code commit: `5d6edc9`.
 
 - The agent skill now uses `watch --update-notion` when the same user request explicitly authorizes playback and marking the completed Scheduler tasks. Ordinary watching remains no-write; later or unclear completion requests use a read-only preview and scoped approval. The runner only updates a matching page after actual playback reports completion.
 - Added read-only `watch scheduler-tasks --json` to identify incomplete Scheduler lecture pages and `watch --task-title` to target one exact scheduled video. Duplicate titles are excluded; missing LMS matches are not replaced with a different video.

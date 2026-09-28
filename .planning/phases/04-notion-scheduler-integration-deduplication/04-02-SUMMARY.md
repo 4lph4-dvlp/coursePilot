@@ -98,10 +98,10 @@ status: complete
 
 ## Task Commits
 
-1. **Task 1: Canonicalize and wire the Scheduler schema and property payloads** - `c6bd1a1` (test), `d6df06f` (feat)
-2. **Task 2: Plan title-only actions, execute allowed writes, and aggregate stable results** - `f4f5192` (test), `6b43f55` (feat)
-3. **Task 3: Verify the credentialed read-only dry-run against the live Scheduler** - `68bc402`, `1f583e2`, `8d7a146` (evidence/checkpoint)
-4. **Live compatibility fixes discovered during Task 3** - `cddf558`, `407e18c` (priority labels), `9b2a562`, `17f1986` (date normalization)
+1. **Task 1: Canonicalize and wire the Scheduler schema and property payloads** - `17648e6` (test), `690e987` (feat)
+2. **Task 2: Plan title-only actions, execute allowed writes, and aggregate stable results** - `714e34f` (test), `c7b463e` (feat)
+3. **Task 3: Verify the credentialed read-only dry-run against the live Scheduler** - `5719b3f`, `b8c537b`, `7d4a633` (evidence/checkpoint)
+4. **Live compatibility fixes discovered during Task 3** - `d429008`, `f77aca0` (priority labels), `e02b99e`, `ae6fad0` (date normalization)
 
 ## Files Created/Modified
 
@@ -129,7 +129,7 @@ status: complete
 - **Fix:** Added bidirectional API-boundary mapping while leaving domain values unchanged.
 - **Files modified:** `src/coursepilot/notion/mapper.py`, `tests/test_notion_mapper.py`
 - **Verification:** Mapper tests and live eight-property schema validation pass.
-- **Committed in:** `407e18c`
+- **Committed in:** `f77aca0`
 
 **2. Date-only values caused a false DueDate update**
 - **Found during:** Task 3 guarded live probe
@@ -137,7 +137,7 @@ status: complete
 - **Fix:** Attached or converted KST during Notion date parsing before action planning.
 - **Files modified:** `src/coursepilot/notion/mapper.py`, `tests/test_notion_mapper.py`
 - **Verification:** Regression test passes and the final live plan reports one unchanged skip with zero updates.
-- **Committed in:** `17f1986`
+- **Committed in:** `ae6fad0`
 
 ---
 

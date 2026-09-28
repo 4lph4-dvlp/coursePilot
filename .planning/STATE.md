@@ -8,7 +8,7 @@ stopped_at: Phase 17 context gathered
 last_updated: "2026-09-26T18:20:50.717Z"
 last_activity: 2026-09-28
 last_activity_desc: Completed quick task 260928-hm1 - Explicit watch sync and unified private storage
-state_head: aa14345991f697bf759cddfb1c682b74d790a2b1
+state_head: 5d6edc90a90e1b1a0310e6b457d2bed4ffd9c4c3
 progress:
   total_phases: 5
   completed_phases: 4
@@ -121,12 +121,12 @@ None yet.
 
 | # | Description | Date | Commit | Status | Directory |
 |---|-------------|------|--------|--------|-----------|
-| 260927-2wg | Complete LMS activity coverage and scoped preparation (409 tests; live 18/17) | 2026-09-27 | 25b18a6 | Verified | [260927-2wg-fix-course-activity-omissions-and-scoped](./quick/260927-2wg-fix-course-activity-omissions-and-scoped/) |
-| 260927-3u6 | CoursePilot rebranding with legacy compatibility (419 tests; wheel verified) | 2026-09-27 | 1196e66 | Verified | [260927-3u6-rebrand-project-to-coursepilot-with-lega](./quick/260927-3u6-rebrand-project-to-coursepilot-with-lega/) |
-| 260927-4dc | CoursePilot single-identity cleanup (419 tests; isolated wheel verified) | 2026-09-27 | e02754a | Verified | [260927-4dc-remove-obsolete-product-aliases-and-bran](./quick/260927-4dc-remove-obsolete-product-aliases-and-bran/) |
-| 260928-f4x | Material, Scheduler, storage, and title repair (426 tests; live 2847 view-only) | 2026-09-28 | 836ecf6 | Verified with external file limit | [260928-f4x-coursepilot-four-issue-repair](./quick/260928-f4x-coursepilot-four-issue-repair/) |
-| 260928-np1 | Propose Notion completion after watch (428 tests; read-only live preview) | 2026-09-28 | 5f842f6 | Verified with OS runtime limit | [260928-np1-confirm-watch-notion-completion](./quick/260928-np1-confirm-watch-notion-completion/) |
-| 260928-hm1 | Explicit watch sync, unified home storage, private mapping removal, five agent links (432 tests) | 2026-09-28 | aa14345 | Verified with history and OS runtime limits | [260928-hm1-unified-home-and-explicit-watch-sync](./quick/260928-hm1-unified-home-and-explicit-watch-sync/) |
+| 260927-2wg | Complete LMS activity coverage and scoped preparation (409 tests; live 18/17) | 2026-09-27 | 8e4ec3c | Verified | [260927-2wg-fix-course-activity-omissions-and-scoped](./quick/260927-2wg-fix-course-activity-omissions-and-scoped/) |
+| 260927-3u6 | CoursePilot rebranding with legacy compatibility (419 tests; wheel verified) | 2026-09-27 | 6cff93a | Verified | [260927-3u6-rebrand-project-to-coursepilot-with-lega](./quick/260927-3u6-rebrand-project-to-coursepilot-with-lega/) |
+| 260927-4dc | CoursePilot single-identity cleanup (419 tests; isolated wheel verified) | 2026-09-27 | 5d2cb53 | Verified | [260927-4dc-remove-obsolete-product-aliases-and-bran](./quick/260927-4dc-remove-obsolete-product-aliases-and-bran/) |
+| 260928-f4x | Material, Scheduler, storage, and title repair (426 tests; live 2847 view-only) | 2026-09-28 | 6cc69d5 | Verified with external file limit | [260928-f4x-coursepilot-four-issue-repair](./quick/260928-f4x-coursepilot-four-issue-repair/) |
+| 260928-np1 | Propose Notion completion after watch (428 tests; read-only live preview) | 2026-09-28 | 074b2cd | Verified with OS runtime limit | [260928-np1-confirm-watch-notion-completion](./quick/260928-np1-confirm-watch-notion-completion/) |
+| 260928-hm1 | Explicit watch sync, unified home storage, private mapping removal, five agent links (432 tests) | 2026-09-28 | 5d6edc9 | Verified with history and OS runtime limits | [260928-hm1-unified-home-and-explicit-watch-sync](./quick/260928-hm1-unified-home-and-explicit-watch-sync/) |
 
 ## Session Continuity
 

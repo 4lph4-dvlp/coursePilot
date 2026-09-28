@@ -40,7 +40,7 @@ Phase 1 Wave 1의 첫 번째 실행 계획(01-01)을 완벽히 수행했습니�
 - `config/course_mappings.json`: 독립된 과목명 약칭 매핑 JSON 파일 생성 (기본 3과목 매핑 등록)
 - `src/coursepilot/course_mapping.py`: `load_course_mappings` 및 `get_abbreviation` 구현. 미등록 과목 발견 시 에러 없이 원본명 반환 및 등록 권장 안내 로그(`logger.info`) 출력, 파일 누락/손상 시 기본 매핑 fallback
 - `tests/test_course_mapping.py`: 7개 테스트 케이스 작성 및 통과 검증 (정상 매핑, 공백 트리밍, 미등록 과목 fallback/로그, 파일 누락/손상/비dict 대응)
-- **Commit:** `feat(01-01): decoupled course name mapping with fallback & guidance` (`b9b0080`)
+- **Commit:** `feat(01-01): decoupled course name mapping with fallback & guidance` (`3f9f813`)
 
 ## Deviations & Adaptations
 

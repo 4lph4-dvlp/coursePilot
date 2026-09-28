@@ -7,7 +7,7 @@ execution: inline-codex-adapter
 
 # Material, Scheduler, storage, and title repair
 
-Code commit: `836ecf6`.
+Code commit: `6cc69d5`.
 
 - Material previews now report `planned`; actual CSMSDoc viewer only items report `viewed_only` with the missing original link explained. Module 2847 is included by the full inventory, though its LMS completion means the default incomplete list omits it.
 - Scheduler skill instructions use CoursePilot's existing notion-client token path for preview/apply and `watch sync-notion` for retroactive completion. Hermes has a junction to the edited source skill.

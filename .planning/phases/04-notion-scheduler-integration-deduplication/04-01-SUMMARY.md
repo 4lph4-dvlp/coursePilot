@@ -95,9 +95,9 @@ status: complete
 
 Each TDD task was committed as a failing test followed by its implementation:
 
-1. **Task 1: Prove one configured real-read dry-run path end to end** - `e628fed` (test), `8d4f9f1` (feat)
-2. **Task 2: Make Notion configuration explicit, masked, and safely disableable** - `d901ef9` (test), `78dd515` (feat)
-3. **Task 3: Harden target resolution, schema validation, pagination, and transport policy** - `5dc946f` (test), `fcaf22d` (feat)
+1. **Task 1: Prove one configured real-read dry-run path end to end** - `db6d623` (test), `0480ea1` (feat)
+2. **Task 2: Make Notion configuration explicit, masked, and safely disableable** - `a4932e8` (test), `1cc8837` (feat)
+3. **Task 3: Harden target resolution, schema validation, pagination, and transport policy** - `bf22b1d` (test), `bdedd0d` (feat)
 
 ## Files Created/Modified
 

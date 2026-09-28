@@ -19,9 +19,9 @@ Implemented the user's approved diagnosis through alpha-AOS and GSD quick --vali
 
 ## Task commits
 
-1. `6fb94f4` — full sections collection, normalized metadata, progress repair and unreleased-activity guards.
-2. `4d01fff` — material scheduling, supported scope/goal flags, source deduplication and 14 regression cases.
-3. `25b18a6` — application skill/JSON contract and README.
+1. `e6ecd5c` — full sections collection, normalized metadata, progress repair and unreleased-activity guards.
+2. `4b1b89b` — material scheduling, supported scope/goal flags, source deduplication and 14 regression cases.
+3. `8e4ec3c` — application skill/JSON contract and README.
 
 Existing pi changes in materials/runner.py (CourseNavigator configuration and CourseItem argument) were preserved and included because the repaired materials path depends on them. No unrelated user edits were reverted.
 

@@ -158,11 +158,11 @@ status: complete
 
 Task 1 was `type="tracer"` (single production-quality commit + re-verified `<verify>` before expanding, per the tracer feedback gate — auto mode inactive per config, `human_verify_mode` default `end-of-phase`, tracer `<verify>` carried only `<automated>`, so it re-ran silently and continued to Task 2 with no checkpoint). Tasks 2 and 3 were `tdd="true"` (RED -> GREEN, no REFACTOR needed — code was clean on first pass):
 
-1. **Task 1: agent-neutral SKILL.md and install-skill (claude, copy mode)** - `188b39d` (feat)
-2. **Task 2 RED: failing tests for SKILL.md briefing/sync/env/secrets body** - `2f17ef2` (test)
-2. **Task 2 GREEN: SKILL.md briefing, approval-gated sync, env diagnosis, secret rules** - `d9f741c` (feat)
-3. **Task 3 RED: failing tests for all-agent paths, --link, and safe re-install** - `75b3f6e` (test)
-3. **Task 3 GREEN: --link with loud junction fallback and safe re-install** - `8b37413` (feat)
+1. **Task 1: agent-neutral SKILL.md and install-skill (claude, copy mode)** - `330ffd5` (feat)
+2. **Task 2 RED: failing tests for SKILL.md briefing/sync/env/secrets body** - `4f513e6` (test)
+2. **Task 2 GREEN: SKILL.md briefing, approval-gated sync, env diagnosis, secret rules** - `d644fa6` (feat)
+3. **Task 3 RED: failing tests for all-agent paths, --link, and safe re-install** - `ca4b089` (test)
+3. **Task 3 GREEN: --link with loud junction fallback and safe re-install** - `e515713` (feat)
 
 **Plan metadata:** committed after this SUMMARY.
 
@@ -204,7 +204,7 @@ None - no external service configuration required. No new packages were installe
 - FOUND: skills/coursepilot/SKILL.md
 - FOUND: src/coursepilot/installer.py
 - FOUND: tests/test_installer.py
-- FOUND commits: 188b39d, 2f17ef2, d9f741c, 75b3f6e, 8b37413
+- FOUND commits: 330ffd5, 4f513e6, d644fa6, ca4b089, e515713
 - `uv run pytest -q tests/test_installer.py -x` green (21 tests)
 - `uv run python -m coursepilot install-skill --help` lists `--agent {antigravity|claude|codex|hermes|pi}` and `--link`
 - `uv run pytest` green (full suite, 178 tests)

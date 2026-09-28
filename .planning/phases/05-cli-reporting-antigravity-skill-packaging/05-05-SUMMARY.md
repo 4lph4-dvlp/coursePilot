@@ -144,9 +144,9 @@ status: complete
 
 Task 1 was `type="tracer"` (single commit; its own `<verify>` fails on this run because the real LMS environment returned a genuine `ConfigError` — documented truthfully per the plan's explicit instructions for this scenario, not retried). Tasks 2 and 3 were `type="auto"`:
 
-1. **Task 1: Live check/sync evidence (ConfigError blocker documented)** - `197dc38` (docs)
-2. **Task 2: JSON contract doc, SKILL.md pointer, README, PROJECT.md wording, contract tests** - `fb53989` (feat)
-3. **Task 3: Five-agent install + D-27 invocation evidence staging** - `72984f9` (docs)
+1. **Task 1: Live check/sync evidence (ConfigError blocker documented)** - `3760283` (docs)
+2. **Task 2: JSON contract doc, SKILL.md pointer, README, PROJECT.md wording, contract tests** - `3d64271` (feat)
+3. **Task 3: Five-agent install + D-27 invocation evidence staging** - `0a0ceed` (docs)
 
 **Plan metadata:** committed after this SUMMARY.
 
@@ -210,7 +210,7 @@ None beyond the documented D-26 blocker above.
 - FOUND: skills/coursepilot/JSON_CONTRACT.md
 - FOUND: tests/test_contract_doc.py
 - FOUND: .planning/WINDOWS.md
-- FOUND commits: 197dc38, fb53989, 72984f9
+- FOUND commits: 3760283, 3d64271, 0a0ceed
 - `uv run pytest -q tests/test_contract_doc.py -x` green (4 tests)
 - `uv run pytest` green (full suite, 182 tests)
 - Task 1's own automated `<verify>` FAILS (exit 2, real ConfigError) — documented as an intentional, plan-anticipated outcome, not a self-check failure

@@ -151,10 +151,10 @@ status: complete
 
 Task 1 was `type="tracer"` (single production-quality commit + re-verified `<verify>` before expanding, per the tracer feedback gate — auto mode inactive, `human_verify_mode` default `end-of-phase`, tracer `<verify>` carried only `<automated>`, so it re-ran silently and continued to Task 2 with no checkpoint). Task 2 was `tdd="true"` (RED → GREEN, no REFACTOR needed). Task 3 was `tdd="true"` but required no GREEN commit — all three tests passed against the unmodified 05-01 `scrape_course`, so there was no production code to change:
 
-1. **Task 1 (tracer): per-course error isolation** - `3f4e214` (feat)
-2. **Task 2 RED: failing tests for fatal-stage classification, zero-course warning** - `cf79703` (test)
-2. **Task 2 GREEN: validate_lms_settings, zero-course warning** - `f66cedf` (feat)
-3. **Task 3: real per-course scraping sequence, proven read-only** - `0b26832` (test)
+1. **Task 1 (tracer): per-course error isolation** - `846f470` (feat)
+2. **Task 2 RED: failing tests for fatal-stage classification, zero-course warning** - `0769fb0` (test)
+2. **Task 2 GREEN: validate_lms_settings, zero-course warning** - `0875b79` (feat)
+3. **Task 3: real per-course scraping sequence, proven read-only** - `9e3722b` (test)
 
 **Plan metadata:** committed after this SUMMARY.
 
@@ -191,7 +191,7 @@ None - no external service configuration required. No new packages were installe
 
 - FOUND: src/coursepilot/pipeline.py
 - FOUND: tests/test_pipeline.py
-- FOUND commits: 3f4e214, cf79703, f66cedf, 0b26832
+- FOUND commits: 846f470, 0769fb0, 0875b79, 9e3722b
 - `uv run pytest -q tests/test_pipeline.py -x` green (13 tests)
 - `uv run pytest` green (full suite, 147 tests)
 

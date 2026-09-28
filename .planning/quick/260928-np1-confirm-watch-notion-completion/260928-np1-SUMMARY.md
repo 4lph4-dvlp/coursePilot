@@ -7,7 +7,7 @@ execution: inline-codex-adapter
 
 # Propose Notion completion after watching
 
-Code commit: `5f842f6`.
+Code commit: `074b2cd`.
 
 - Agent watch runs never use `--update-notion`. After playback, the skill reads a `watch sync-notion --dry-run` preview and proposes exact Scheduler titles. A separate approval is required before applying only those titles with repeated `--task-title` options. The explicit direct CLI `watch --update-notion` override remains available.
 - Preview does not update Notion or local watch history. Already complete, absent, and ambiguous Scheduler titles are reported separately. Both completion paths now index the actual list returned by the Notion client and exclude duplicate titles.

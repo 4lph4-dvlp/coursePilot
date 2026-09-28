@@ -196,11 +196,11 @@ status: complete
 
 Task 1 was `type="tracer"` (single production-quality commit + re-verified `<verify>` before expanding, per the tracer feedback gate — auto mode inactive, `human_verify_mode` default `end-of-phase`, tracer `<verify>` carried only `<automated>`, so it re-ran silently and continued to Task 2 with no checkpoint). Tasks 2 and 3 were `tdd="true"` (RED → GREEN, no REFACTOR needed — code was clean on first pass):
 
-1. **Task 1: End-to-end `check --json`** - `de841c2` (feat)
-2. **Task 2 RED: failing tests for Rich briefing / UTF-8 / stderr** - `c7b7407` (test)
-2. **Task 2 GREEN: render_check_report, main(), __main__.py** - `591428c` (feat)
-3. **Task 3 RED: failing tests for exit codes / redaction** - `580f7dd` (test)
-3. **Task 3 GREEN: errors.py, guarded exception boundary in cli.py** - `f0a2956` (feat)
+1. **Task 1: End-to-end `check --json`** - `72e497c` (feat)
+2. **Task 2 RED: failing tests for Rich briefing / UTF-8 / stderr** - `0dbc9fe` (test)
+2. **Task 2 GREEN: render_check_report, main(), __main__.py** - `625e379` (feat)
+3. **Task 3 RED: failing tests for exit codes / redaction** - `bc1fc31` (test)
+3. **Task 3 GREEN: errors.py, guarded exception boundary in cli.py** - `41c026a` (feat)
 
 **Plan metadata:** committed after this SUMMARY.
 

@@ -37,7 +37,7 @@ Phase 1 Wave 2의 핵심 실행 계획(01-02)을 완수했습니다. Playwright 
   - `find_first_visible`: 화면에 노출된 첫 번째 요소 탐색
   - `perform_login`: 지정된 LMS URL 이동, 폼 필드 탐색, 자격증명 입력, 로그인 버튼 클릭, 로딩 대기, 에러 배너 탐색 및 `AuthenticationError` 예외 처리, 대시보드 진입 검증
 - `tests/test_auth.py`: 8개 단위 테스트 작성 및 통과 (우선순위 매칭, 폴백 탐색, 정상 로그인, 폼 누락 예외, 로그인 실패 에러 배너 검출, 대시보드 미확인 예외)
-- **Commit:** `feat(01-02): lms authentication engine with cascading multi-selectors` (`fc776b4`)
+- **Commit:** `feat(01-02): lms authentication engine with cascading multi-selectors` (`3d60023`)
 
 ### Task 01-02-02: Playwright Session Manager with Cache Invalidation, Auto-Healing & Retry (CONF-03, SCRP-01)
 - `src/coursepilot/session_manager.py`:
@@ -47,7 +47,7 @@ Phase 1 Wave 2의 핵심 실행 계획(01-02)을 완수했습니다. Playwright 
   - `_check_authenticated`: URL 및 대시보드 셀렉터 기반 세션 유효성 판별
   - `get_authenticated_page`: 유효 캐시 재사용, 만료 시 자동 재로그인 및 새 세션 저장(`.cache/session.json`), 헤드리스/헤드풀 브라우저 옵션 지원
 - `tests/test_session_manager.py`: 7개 단위 테스트 작성 및 통과 (캐시 유효성 검사, 캐시 재사용, 만료 캐시 자동 치유, 손상 캐시 복구, 네비게이션 1회 재시도 성공, 재시도 소진 시 예외, 컨텍스트 매니저 라이프사이클)
-- **Commit:** `feat(01-02): playwright session manager with cache invalidation, auto-healing & retry` (`822b4e2`)
+- **Commit:** `feat(01-02): playwright session manager with cache invalidation, auto-healing & retry` (`e8d3337`)
 
 ## Deviations & Adaptations
 
