@@ -11,7 +11,7 @@ from coursepilot.config import Settings, get_settings
 from coursepilot.errors import exit_code_for, safe_cli_error
 from coursepilot.installer import AGENT_SKILL_PATHS, InstallError, install_skill
 from coursepilot.notion import NotionSyncEngine
-from coursepilot.notion.client import NotionClient
+from coursepilot.notion.client import NotionClient, index_unique_pages_by_title
 from coursepilot.pipeline import PipelineResult, collect_tasks
 from coursepilot.progress.reporter import (
     render_course_matrix,
@@ -255,7 +255,7 @@ def install_skill_command(ctx: click.Context, agent: str, link: bool) -> None:
     "--update-notion",
     "update_notion",
     is_flag=True,
-    help="시청 완료된 강의의 Notion Scheduler 작업 상태를 '완료'로 변경합니다.",
+    help="명시적으로 지정한 경우 시청 완료 즉시 Notion 상태를 변경합니다 (에이전트 제안 흐름은 sync-notion 사용).",
 )
 @click.option(
     "--dry-run",
@@ -479,15 +479,34 @@ def watch_stop_command(ctx: click.Context, as_json: bool) -> None:
     help="동기화할 특정 과목명 필터",
 )
 @click.option(
+    "--task-title",
+    "task_titles",
+    multiple=True,
+    help="승인된 작업명만 정확히 선택합니다 (반복 가능).",
+)
+@click.option(
+    "--dry-run",
+    "dry_run",
+    is_flag=True,
+    help="Notion을 읽고 완료 변경 대상만 미리 봅니다. 아무것도 수정하지 않습니다.",
+)
+@click.option(
     "--json",
     "as_json",
     is_flag=True,
     help="결과를 JSON 형식으로 출력합니다.",
 )
 @click.pass_context
-def watch_sync_notion_command(ctx: click.Context, course_query: str | None, as_json: bool) -> None:
+def watch_sync_notion_command(
+    ctx: click.Context,
+    course_query: str | None,
+    task_titles: tuple[str, ...],
+    dry_run: bool,
+    as_json: bool,
+) -> None:
     """최근 시청 완료된 영상을 Notion Scheduler에 '완료'로 동기화합니다 (D-12-08)."""
     import json
+    from coursepilot.domain.models import TaskStatus
     from coursepilot.player.state import WatchStateManager
 
     out = Console()
@@ -504,10 +523,14 @@ def watch_sync_notion_command(ctx: click.Context, course_query: str | None, as_j
 
     sm = WatchStateManager()
     records = sm.get_recent_history(course_query=course_query, uncompleted_only=True)
+    if task_titles:
+        approved_titles = set(task_titles)
+        records = [rec for rec in records if rec.task_title in approved_titles]
+    records = list({rec.task_title: rec for rec in records}.values())
 
     if not records:
         if as_json:
-            click.echo(json.dumps({"synced_count": 0, "synced_tasks": []}, ensure_ascii=False, indent=2))
+            click.echo(json.dumps({"dry_run": dry_run, "planned_count": 0, "planned_tasks": [], "synced_count": 0, "synced_tasks": []}, ensure_ascii=False, indent=2))
         else:
             out.print("동기화할 최근 미완료 시청 기록이 없습니다.", markup=False, highlight=False)
         return
@@ -515,28 +538,64 @@ def watch_sync_notion_command(ctx: click.Context, course_query: str | None, as_j
     try:
         notion_client = NotionClient(settings=settings)
         target = notion_client.resolve_target()
-        existing_pages = notion_client.query_existing_pages(target.data_source_id)
+        existing_pages, ambiguous_titles = index_unique_pages_by_title(
+            notion_client.query_existing_pages(target.data_source_id)
+        )
     except Exception as e:
         err.print(f"[오류] Notion 데이터베이스 연결 실패: {e}", markup=False, highlight=False)
         if as_json:
             click.echo(json.dumps({"synced_count": 0, "error": str(e)}, ensure_ascii=False, indent=2))
         ctx.exit(1)
 
-    synced_titles: list[str] = []
+    planned = []
+    already_completed = []
+    unmatched = []
+    ambiguous = []
     for rec in records:
+        if rec.task_title in ambiguous_titles:
+            ambiguous.append(rec.task_title)
+            continue
         page = existing_pages.get(rec.task_title)
-        if page:
-            try:
-                notion_client.mark_task_completed(page.page_id)
-                synced_titles.append(rec.task_title)
-            except Exception as e:
-                err.print(f"[경고] 작업 '{rec.task_title}' Notion 완료 갱신 실패: {e}", markup=False, highlight=False)
+        if page is None:
+            unmatched.append(rec.task_title)
+        elif page.status == TaskStatus.COMPLETED:
+            already_completed.append(rec.task_title)
+        else:
+            planned.append((rec.task_title, page.page_id))
 
-    if synced_titles:
-        sm.mark_history_notion_synced(synced_titles)
+    planned_titles = [title for title, _ in planned]
+    if dry_run:
+        preview = {
+            "dry_run": True,
+            "planned_count": len(planned_titles),
+            "planned_tasks": planned_titles,
+            "already_completed_tasks": already_completed,
+            "unmatched_tasks": unmatched,
+            "ambiguous_tasks": ambiguous,
+            "synced_count": 0,
+            "synced_tasks": [],
+        }
+        if as_json:
+            click.echo(json.dumps(preview, ensure_ascii=False, indent=2))
+        else:
+            out.print(f"Notion 완료 변경 미리보기: {len(planned_titles)}개", markup=False, highlight=False)
+            for title in planned_titles:
+                out.print(f"  - {title}", markup=False, highlight=False)
+        return
+
+    synced_titles: list[str] = []
+    for title, page_id in planned:
+        try:
+            notion_client.mark_task_completed(page_id)
+            synced_titles.append(title)
+        except Exception as e:
+            err.print(f"[경고] 작업 '{title}' Notion 완료 갱신 실패: {e}", markup=False, highlight=False)
+
+    if synced_titles or already_completed:
+        sm.mark_history_notion_synced(synced_titles + already_completed)
 
     if as_json:
-        click.echo(json.dumps({"synced_count": len(synced_titles), "synced_tasks": synced_titles}, ensure_ascii=False, indent=2))
+        click.echo(json.dumps({"dry_run": False, "planned_count": len(planned_titles), "planned_tasks": planned_titles, "already_completed_tasks": already_completed, "unmatched_tasks": unmatched, "ambiguous_tasks": ambiguous, "synced_count": len(synced_titles), "synced_tasks": synced_titles}, ensure_ascii=False, indent=2))
     else:
         out.print(f"Notion Scheduler 동기화 완료: 총 {len(synced_titles)}개 작업 '완료' 처리됨.", markup=False, highlight=False)
         for title in synced_titles:

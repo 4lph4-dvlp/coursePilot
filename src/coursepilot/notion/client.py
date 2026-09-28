@@ -22,6 +22,25 @@ from coursepilot.scraper.date_parser import KST
 
 REQUEST_INTERVAL_SECONDS = 0.35
 READ_529_RETRIES = 2
+
+
+def index_unique_pages_by_title(
+    pages: list[ExistingPage],
+) -> tuple[dict[str, ExistingPage], set[str]]:
+    """Index only unambiguous Scheduler titles for completion updates."""
+    indexed: dict[str, ExistingPage] = {}
+    ambiguous: set[str] = set()
+    for page in pages:
+        if not page.title or page.title in ambiguous:
+            continue
+        if page.title in indexed:
+            indexed.pop(page.title)
+            ambiguous.add(page.title)
+        else:
+            indexed[page.title] = page
+    return indexed, ambiguous
+
+
 def _plain_text(parts: list[dict[str, Any]] | None) -> str:
     return "".join(str(part.get("plain_text", "")) for part in parts or [])
 
@@ -207,4 +226,3 @@ class NotionClient:
     def mark_task_completed(self, page_id: str) -> dict[str, Any]:
         """Update a page status to '완료' (Done)."""
         return self.update_page(page_id, {"상태": {"status": {"name": "완료"}}})
-

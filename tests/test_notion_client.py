@@ -14,8 +14,20 @@ from coursepilot.exceptions import (
     NotionTargetError,
     NotionTransportError,
 )
-from coursepilot.notion.client import NotionClient
+from coursepilot.notion.client import NotionClient, index_unique_pages_by_title
+from coursepilot.notion.models import ExistingPage
 from coursepilot.scraper.date_parser import KST
+
+
+def test_completion_title_index_excludes_ambiguous_pages():
+    pages = [
+        ExistingPage(page_id="one", title="same"),
+        ExistingPage(page_id="two", title="same"),
+        ExistingPage(page_id="three", title="unique"),
+    ]
+    indexed, ambiguous = index_unique_pages_by_title(pages)
+    assert set(indexed) == {"unique"}
+    assert ambiguous == {"same"}
 
 
 def _schema() -> dict:

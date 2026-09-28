@@ -375,6 +375,8 @@ JSON 계약 v1의 sync 절반 — 생성/수정/건너뜀 계획 (D-13, D-16).
 
 `watch` 명령의 실행 결과 객체입니다 (`src/coursepilot/player/runner.py`).
 
+`watch` 기본 실행은 Notion을 변경하지 않습니다. 시청 후 `watch sync-notion --dry-run --json`의 `planned_tasks`/`planned_count`로 완료 변경 대상을 확인하고, 승인 후 동일한 제목을 반복 `--task-title`로 지정해 적용합니다. 미리보기는 `dry_run: true`, `synced_count: 0`, 빈 `synced_tasks`를 반환하며 Notion이나 로컬 시청 이력을 수정하지 않습니다. `already_completed_tasks`는 Notion에서 이미 완료된 항목, `unmatched_tasks`는 해당 제목의 Scheduler 페이지가 없는 항목, `ambiguous_tasks`는 동일 제목 페이지가 둘 이상이라 안전하게 제외한 항목입니다. 실제 적용 결과는 `dry_run: false`와 `synced_tasks`/`synced_count`로 확인합니다.
+
 | 필드 | 타입 | Nullable | 의미 |
 |------|------|----------|------|
 | `course_id` | `str` | 아니오 | 대상 과목 고유 식별자 |

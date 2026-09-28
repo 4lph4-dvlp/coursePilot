@@ -7,6 +7,7 @@ from click.testing import CliRunner
 
 from coursepilot.cli import cli
 from coursepilot.config import Settings
+from coursepilot.notion.models import ExistingPage
 from coursepilot.player.models import PlaybackProgress, WatchHistoryRecord, WatchState
 from coursepilot.player.runner import (
     WatchResult,
@@ -149,13 +150,10 @@ def test_watch_course_vods_playback_and_notion_update(monkeypatch, sample_course
     )
 
     mock_notion_client = MagicMock()
-    mock_notion_page = MagicMock()
-    mock_notion_page.page_id = "page_123"
+    mock_notion_page = ExistingPage(page_id="page_123", title="[디시설] 4주차 1차시 강의 시청")
     
     # Task title: "[디시설] 4주차 1차시 강의 시청"
-    mock_notion_client.query_existing_pages.return_value = {
-        "[디시설] 4주차 1차시 강의 시청": mock_notion_page
-    }
+    mock_notion_client.query_existing_pages.return_value = [mock_notion_page]
     monkeypatch.setattr("coursepilot.player.runner.NotionClient", lambda settings: mock_notion_client)
 
     result = watch_course_vods(
@@ -288,6 +286,14 @@ def test_cli_watch_sync_notion_command(monkeypatch, tmp_path):
         task_title="[기전실] 2주차 1차시 강의 시청",
         notion_completed=False,
     )
+    sm.record_completed_video(
+        course_id="1103",
+        course_name="기초전자실험",
+        target_week="2주차",
+        video_title="2주차 2차시",
+        task_title="[기전실] 2주차 2차시 강의 시청",
+        notion_completed=False,
+    )
 
     settings = Settings(
         lms_username="test",
@@ -299,15 +305,25 @@ def test_cli_watch_sync_notion_command(monkeypatch, tmp_path):
     monkeypatch.setattr("coursepilot.cli.get_settings", lambda: settings)
 
     mock_notion_client = MagicMock()
-    mock_page = MagicMock()
-    mock_page.page_id = "p_99"
-    mock_notion_client.query_existing_pages.return_value = {
-        "[기전실] 2주차 1차시 강의 시청": mock_page
-    }
+    mock_notion_client.query_existing_pages.return_value = [
+        ExistingPage(page_id="p_99", title="[기전실] 2주차 1차시 강의 시청"),
+        ExistingPage(page_id="p_100", title="[기전실] 2주차 2차시 강의 시청"),
+    ]
     monkeypatch.setattr("coursepilot.cli.NotionClient", lambda settings: mock_notion_client)
 
     runner = CliRunner()
-    res = runner.invoke(cli, ["watch", "sync-notion", "--json"])
+    selected = "[기전실] 2주차 1차시 강의 시청"
+    preview = runner.invoke(cli, ["watch", "sync-notion", "--course", "기초전자실험", "--task-title", selected, "--dry-run", "--json"])
+    assert preview.exit_code == 0, preview.output
+    preview_data = json.loads(preview.output)
+    assert preview_data["dry_run"] is True
+    assert preview_data["planned_count"] == 1
+    assert preview_data["planned_tasks"] == [selected]
+    assert preview_data["synced_count"] == 0
+    mock_notion_client.mark_task_completed.assert_not_called()
+    assert len(sm.get_recent_history(uncompleted_only=True)) == 2
+
+    res = runner.invoke(cli, ["watch", "sync-notion", "--course", "기초전자실험", "--task-title", selected, "--json"])
     assert res.exit_code == 0, res.output
     data = json.loads(res.output)
     assert data["synced_count"] == 1
@@ -316,4 +332,4 @@ def test_cli_watch_sync_notion_command(monkeypatch, tmp_path):
 
     # History should now be marked as synced
     uncompleted = sm.get_recent_history(uncompleted_only=True)
-    assert len(uncompleted) == 0
+    assert [rec.task_title for rec in uncompleted] == ["[기전실] 2주차 2차시 강의 시청"]

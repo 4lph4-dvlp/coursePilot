@@ -9,8 +9,17 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 DEFAULT_LMS_URL = ""
 LMS_PROFILES = {"kau": "https://lxp.kau.ac.kr"}
-_source_root = Path(__file__).resolve().parents[2]
-PROJECT_ROOT = _source_root if (_source_root / "pyproject.toml").is_file() else Path.home() / ".coursepilot"
+
+
+def resolve_project_root(source_file: Path, home: Path | None = None) -> Path:
+    """Use the source checkout when present, otherwise one user data directory."""
+    source_root = source_file.resolve().parents[2]
+    if (source_root / "pyproject.toml").is_file() and (source_root / "src/coursepilot").is_dir():
+        return source_root
+    return (home or Path.home()) / ".coursepilot"
+
+
+PROJECT_ROOT = resolve_project_root(Path(__file__))
 
 
 class Settings(BaseSettings):

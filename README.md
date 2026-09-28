@@ -101,9 +101,9 @@ JSON 출력의 정확한 필드 구조는 [`skills/coursepilot/JSON_CONTRACT.md`
 
 `sync`는 기본적으로 **미리보기(dry-run)**입니다 — 생성/수정될 항목 목록만 보여주고 아무것도 쓰지 않습니다. 실제로 Notion에 반영하려면 명시적으로 `--apply`를 붙여야 합니다. 에이전트를 통해 대화로 요청하는 경우("노션에 올려줘")에도 스킬은 먼저 미리보기를 보여주고, 사용자의 명확한 승인을 받은 뒤에만 `--apply`를 실행합니다.
 
-Scheduler 조작의 표준 경로는 CoursePilot CLI입니다. `sync`와 `watch --update-notion`/`watch sync-notion`은 저장소 `.env`의 Notion 통합 토큰과 `notion-client` SDK를 사용합니다. 이미 시청한 강의를 나중에 완료 처리하려면 `watch sync-notion --course "과목명" --json`을 사용합니다. 다른 에이전트의 Notion MCP 접속은 이 CLI와 별도 인증·작업 이력을 사용하므로 CoursePilot Scheduler 작업에 섞지 않습니다.
+Scheduler 조작의 표준 경로는 CoursePilot CLI입니다. `sync`와 `watch sync-notion`은 `.env`의 Notion 통합 토큰과 `notion-client` SDK를 사용합니다. 에이전트는 시청 완료 후 `watch sync-notion --course "과목명" --dry-run --json`으로 변경할 작업을 제안하고, 사용자 승인 후 제안한 제목을 `--task-title`로 고정해 반영합니다. `watch --update-notion`은 직접 CLI에서 즉시 변경을 명시적으로 선택하는 경우에만 사용합니다. 다른 에이전트의 Notion MCP 접속은 이 CLI와 별도 인증·작업 이력을 사용하므로 CoursePilot Scheduler 작업에 섞지 않습니다.
 
-기본 세션·진도 캐시는 저장소 `.cache/`, 자료·영상 다운로드는 저장소 `downloads/`, 과목 약칭은 저장소 `config/course_mappings.json`에 고정됩니다. 다른 폴더에서 CLI를 호출해도 그 폴더에는 기본 파일이 생성되지 않습니다. 상대경로 `SESSION_CACHE_PATH`, `DOWNLOAD_DIR`, `COURSE_MAPPINGS_PATH`도 저장소 기준으로 해석하며 절대경로를 지정하면 그 경로를 사용합니다. 자료 `--dry-run`의 `planned`와 예정 저장 경로는 실제 다운로드가 아닙니다.
+소스 저장소에서 실행할 때 기본 세션·진도 캐시는 저장소 `.cache/`, 자료·영상 다운로드는 저장소 `downloads/`, 과목 약칭은 저장소 `config/course_mappings.json`에 있습니다. 설치된 휠에서 소스 저장소를 찾지 못하면 OS의 사용자 홈 아래 `~/.coursepilot/`을 기준으로 사용합니다. 이 경로는 `pathlib.Path`로 구성하므로 Windows·macOS·Linux의 경로 구분자를 따릅니다. 상대경로 `SESSION_CACHE_PATH`, `DOWNLOAD_DIR`, `COURSE_MAPPINGS_PATH`도 해당 기준 디렉터리에서 해석하고 절대경로 지정은 그대로 사용합니다. 현재 자동 테스트와 실사이트 검증은 Windows에서만 수행했습니다. 자료 `--dry-run`의 `planned`와 예정 저장 경로는 실제 다운로드가 아닙니다.
 
 일부 `ubfile`은 Coursemos 문서 뷰어로만 제공됩니다. 이때 CoursePilot는 원본 파일이 저장된 것처럼 표시하지 않고 `viewed_only`와 원인을 보고합니다. LMS 열람 완료와 로컬 파일 보관 여부는 별도 상태입니다.
 

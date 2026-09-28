@@ -15,7 +15,7 @@ from coursepilot.config import Settings
 from coursepilot.course_mapping import load_course_mappings
 from coursepilot.domain.models import TaskType
 from coursepilot.domain.naming import format_task_title
-from coursepilot.notion.client import NotionClient
+from coursepilot.notion.client import NotionClient, index_unique_pages_by_title
 from coursepilot.pipeline import scrape_course
 from coursepilot.player.models import PlaybackOptions, PlaybackProgress, WatchState
 from coursepilot.player.state import WatchStateManager
@@ -256,7 +256,11 @@ def watch_course_vods(
             try:
                 notion_client = NotionClient(settings=settings)
                 target = notion_client.resolve_target()
-                existing_notion_pages = notion_client.query_existing_pages(target.data_source_id)
+                existing_notion_pages, ambiguous_titles = index_unique_pages_by_title(
+                    notion_client.query_existing_pages(target.data_source_id)
+                )
+                if ambiguous_titles:
+                    logger.warning("Ambiguous Scheduler titles found; their completion updates will be skipped")
             except Exception as e:
                 logger.warning(f"Failed to query Notion for status update: {e}")
 

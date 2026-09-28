@@ -1,7 +1,7 @@
 """Tests for configuration loader (CONF-01)."""
 
 from pathlib import Path
-from coursepilot.config import PROJECT_ROOT, Settings, get_settings
+from coursepilot.config import PROJECT_ROOT, Settings, get_settings, resolve_project_root
 
 
 def test_default_values(clean_env):
@@ -35,6 +35,15 @@ def test_relative_storage_overrides_use_project_root(tmp_path: Path, monkeypatch
     assert settings.course_mappings_path == PROJECT_ROOT / "config/course_mappings.json"
     assert settings.download_dir == PROJECT_ROOT / "files"
     assert list(tmp_path.iterdir()) == []
+
+
+def test_wheel_fallback_uses_one_user_home_directory(tmp_path: Path):
+    source_file = tmp_path / "site-packages" / "coursepilot" / "config.py"
+    source_file.parent.mkdir(parents=True)
+    source_file.touch()
+    user_home = tmp_path / "user-home"
+    assert resolve_project_root(source_file, home=user_home) == user_home / ".coursepilot"
+    assert not (user_home / ".coursepilot").exists()
 
 
 def test_default_lms_url_requires_explicit_school_selection():
