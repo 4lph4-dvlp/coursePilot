@@ -10,7 +10,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from coursepilot.config import Settings, get_settings
+from coursepilot.config import Settings, get_settings, resolve_data_path
 from coursepilot.player.models import WatchHistoryRecord, WatchState
 
 logger = logging.getLogger(__name__)
@@ -21,7 +21,7 @@ class WatchStateManager:
 
     def __init__(self, cache_dir: Path | None = None, settings: Settings | None = None) -> None:
         self.settings = settings or get_settings()
-        self.cache_dir = Path(cache_dir) if cache_dir else self.settings.session_cache_path.parent
+        self.cache_dir = resolve_data_path(Path(cache_dir)) if cache_dir else self.settings.session_cache_path.parent
 
     def get_state_file_path(self) -> Path:
         """Returns the file path for real-time watch state."""

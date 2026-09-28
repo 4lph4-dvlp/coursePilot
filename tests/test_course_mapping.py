@@ -17,7 +17,7 @@ def test_normal_mapping():
     assert get_abbreviation("자료구조", mappings) == "자구"
 
 
-def test_current_course_aliases_are_available_from_default_and_config():
+def test_personal_course_aliases_live_in_user_config_not_package_defaults(tmp_path: Path):
     expected = {
         "공학수학II": "공수2",
         "자료구조및실습": "자구",
@@ -27,9 +27,11 @@ def test_current_course_aliases_are_available_from_default_and_config():
         "항공우주산업개론": "항산개",
         "항공산업우주개론": "항산개",
     }
-    configured = load_course_mappings()
+    config_path = tmp_path / "course_mappings.json"
+    config_path.write_text(json.dumps(expected, ensure_ascii=False), encoding="utf-8")
+    configured = load_course_mappings(config_path)
+    assert DEFAULT_MAPPINGS == {}
     for name, abbr in expected.items():
-        assert get_abbreviation(name, DEFAULT_MAPPINGS) == abbr
         assert get_abbreviation(name, configured) == abbr
 
 
@@ -47,7 +49,7 @@ def test_unregistered_course_fallback_and_logging(caplog):
 
     assert result == "우주항공공학개론"
     assert "신규 과목 '우주항공공학개론' 발견" in caplog.text
-    assert "config/course_mappings.json" in caplog.text
+    assert "~/.coursepilot/config/course_mappings.json" in caplog.text
 
 
 def test_load_existing_mapping_file(tmp_path: Path):

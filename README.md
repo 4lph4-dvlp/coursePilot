@@ -14,7 +14,7 @@
 
 - 저장소를 받은 후 `uv sync`를 실행하세요. `uv run coursepilot --help` 또는 `uv run python -m coursepilot --help`로 실행을 확인합니다.
 - 에이전트 스킬은 `uv run coursepilot install-skill --agent <id> --link`로 다시 연결하세요. 사용하지 않는 이전 스킬 연결은 직접 제거하고 에이전트를 새 세션으로 시작하세요. 복사 설치라면 `--link` 없이 재설치합니다.
-- `.env`의 키·직접 설정한 LMS 주소·세션/진척도 캐시·다운로드 경로·Notion 작업 ID는 그대로 유지됩니다. 예전 학교 기본값에 의존했다면 `LMS_URL` 또는 `LMS_PROFILE=kau`를 지정해야 합니다.
+- `~/.coursepilot/.env`의 키·직접 설정한 LMS 주소·세션/진척도 캐시·다운로드 경로·Notion 작업 ID는 그대로 유지됩니다. 예전 학교 기본값에 의존했다면 `LMS_URL` 또는 `LMS_PROFILE=kau`를 지정해야 합니다.
 - 로컬 저장소 폴더명과 Git 원격 주소는 자동으로 바꾸지 않습니다. 폴더를 나중에 옮긴 경우 연결형 스킬은 새 위치에서 재설치하세요.
 
 ## 요구 사항 (Requirements)
@@ -36,7 +36,7 @@
    uv run playwright install chromium
    ```
 
-3. `.env.example`을 `.env`로 복사한 뒤, 아래 키 값을 **직접** 채워 넣으세요. 이 값들은 절대 채팅이나 커밋에 공유하지 마세요.
+3. `.env.example`을 `~/.coursepilot/.env`로 복사한 뒤, 아래 키 값을 **직접** 채워 넣으세요. 이 값들은 절대 채팅이나 커밋에 공유하지 마세요.
 
    - `LMS_URL` — 학교의 Coursemos 기반 LMS 주소. 직접 지정하거나 `LMS_PROFILE=kau`를 선택하세요. 기본 학교는 없습니다.
    - `LMS_USERNAME` — LMS 학번/아이디
@@ -91,9 +91,9 @@ JSON 출력의 정확한 필드 구조는 [`skills/coursepilot/JSON_CONTRACT.md`
 ## 문제 해결 (Troubleshooting)
 
 - **수강 중인 과목을 찾지 못함 (`no_courses_found`)**:
-  로그인에는 성공했으나 과목이 0개인 경우 안내 문구가 표시됩니다. 저장소 `.env`의 `LMS_URL` 또는 선택한 `LMS_PROFILE`이 현재 학기 강의가 열리는 주소인지, 그리고 이번 학기 수강 신청된 과목이 있는지 확인하세요.
+  로그인에는 성공했으나 과목이 0개인 경우 안내 문구가 표시됩니다. `~/.coursepilot/.env`의 `LMS_URL` 또는 선택한 `LMS_PROFILE`이 현재 학기 강의가 열리는 주소인지, 그리고 이번 학기 수강 신청된 과목이 있는지 확인하세요.
 - **지원하지 않는 사이트 구조 (`UnsupportedLmsError`)**:
-  `LMS_URL`이 가리키는 사이트가 Coursemos(Moodle) 기반 사이트가 아닌 경우 치명적 오류(종료 코드 2)가 발생합니다. 저장소 `.env`의 `LMS_URL`을 확인하고 학교의 Coursemos LXP/LMS 주소로 수정하세요.
+  `LMS_URL`이 가리키는 사이트가 Coursemos(Moodle) 기반 사이트가 아닌 경우 치명적 오류(종료 코드 2)가 발생합니다. `~/.coursepilot/.env`의 `LMS_URL`을 확인하고 학교의 Coursemos LXP/LMS 주소로 수정하세요.
 - **인증 실패 (`AuthenticationError`)**:
   종료 코드 2와 함께 인증 오류가 발생하면 `.env`의 학번과 비밀번호, 그리고 `LMS_URL`이 맞는지 확인하세요. 필요시 `--relogin` 옵션으로 캐시를 지우거나 `--headed` 옵션으로 로그인 화면을 직접 확인하세요.
 
@@ -101,9 +101,11 @@ JSON 출력의 정확한 필드 구조는 [`skills/coursepilot/JSON_CONTRACT.md`
 
 `sync`는 기본적으로 **미리보기(dry-run)**입니다 — 생성/수정될 항목 목록만 보여주고 아무것도 쓰지 않습니다. 실제로 Notion에 반영하려면 명시적으로 `--apply`를 붙여야 합니다. 에이전트를 통해 대화로 요청하는 경우("노션에 올려줘")에도 스킬은 먼저 미리보기를 보여주고, 사용자의 명확한 승인을 받은 뒤에만 `--apply`를 실행합니다.
 
-Scheduler 조작의 표준 경로는 CoursePilot CLI입니다. `sync`와 `watch sync-notion`은 `.env`의 Notion 통합 토큰과 `notion-client` SDK를 사용합니다. 에이전트는 시청 완료 후 `watch sync-notion --course "과목명" --dry-run --json`으로 변경할 작업을 제안하고, 사용자 승인 후 제안한 제목을 `--task-title`로 고정해 반영합니다. `watch --update-notion`은 직접 CLI에서 즉시 변경을 명시적으로 선택하는 경우에만 사용합니다. 다른 에이전트의 Notion MCP 접속은 이 CLI와 별도 인증·작업 이력을 사용하므로 CoursePilot Scheduler 작업에 섞지 않습니다.
+Scheduler 조작의 표준 경로는 CoursePilot CLI입니다. `sync`와 `watch`는 `~/.coursepilot/.env`의 Notion 통합 토큰과 `notion-client` SDK를 사용합니다. 시청과 완료 처리를 함께 명시적으로 요청하면 에이전트도 `watch --update-notion`을 사용하며, 실제 시청 완료된 영상의 일치하는 작업만 완료 처리합니다. 단순 시청 요청이라면 시청 후 `watch sync-notion --dry-run --json`으로 변경 대상을 제안하고 사용자 승인 후 정확한 제목만 `--task-title`로 지정해 반영합니다. 다른 에이전트의 Notion MCP 접속은 이 CLI와 별도 인증·작업 이력을 사용하므로 CoursePilot Scheduler 작업에 섞지 않습니다.
 
-소스 저장소에서 실행할 때 기본 세션·진도 캐시는 저장소 `.cache/`, 자료·영상 다운로드는 저장소 `downloads/`, 과목 약칭은 저장소 `config/course_mappings.json`에 있습니다. 설치된 휠에서 소스 저장소를 찾지 못하면 OS의 사용자 홈 아래 `~/.coursepilot/`을 기준으로 사용합니다. 이 경로는 `pathlib.Path`로 구성하므로 Windows·macOS·Linux의 경로 구분자를 따릅니다. 상대경로 `SESSION_CACHE_PATH`, `DOWNLOAD_DIR`, `COURSE_MAPPINGS_PATH`도 해당 기준 디렉터리에서 해석하고 절대경로 지정은 그대로 사용합니다. 현재 자동 테스트와 실사이트 검증은 Windows에서만 수행했습니다. 자료 `--dry-run`의 `planned`와 예정 저장 경로는 실제 다운로드가 아닙니다.
+Scheduler에 등록된 미완료 영상 작업 전체를 시청할 때는 `watch scheduler-tasks --json`으로 읽기 전용 목록을 얻고, 각 작업을 `watch --course "<과목 ID>" --week N --task-title "<정확한 작업명>" --update-notion --json`으로 실행합니다. 목록의 다른 작업을 잘못 재생하지 않도록 작업명 일치 여부를 확인합니다.
+
+소스 저장소와 설치된 휠 모두 OS의 사용자 홈 아래 `~/.coursepilot/`에 개인 데이터를 둡니다. 자격 증명은 `.env`, 세션·진도·시청 이력은 `.cache/`, 자료·영상은 `downloads/`, 과목 약칭은 `config/course_mappings.json`입니다. `pathlib.Path.home()`을 사용하므로 Windows·macOS·Linux의 홈 위치를 따릅니다. 상대경로 `SESSION_CACHE_PATH`, `DOWNLOAD_DIR`, `COURSE_MAPPINGS_PATH`도 이 디렉터리에서 해석하고 절대경로 지정은 그대로 사용합니다. 현재 자동 테스트와 실사이트 검증은 Windows에서만 수행했습니다. 자료 `--dry-run`의 `planned`와 예정 저장 경로는 실제 다운로드가 아닙니다.
 
 일부 `ubfile`은 Coursemos 문서 뷰어로만 제공됩니다. 이때 CoursePilot는 원본 파일이 저장된 것처럼 표시하지 않고 `viewed_only`와 원인을 보고합니다. LMS 열람 완료와 로컬 파일 보관 여부는 별도 상태입니다.
 

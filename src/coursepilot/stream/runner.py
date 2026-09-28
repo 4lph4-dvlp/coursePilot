@@ -6,7 +6,7 @@ import logging
 from pathlib import Path
 from typing import Callable, Optional
 
-from coursepilot.config import Settings, get_settings
+from coursepilot.config import Settings, get_settings, resolve_output_dir
 from coursepilot.course_mapping import load_course_mappings
 from coursepilot.materials.filename_utils import sanitize_filename
 from coursepilot.pipeline import scrape_course
@@ -88,7 +88,7 @@ def run_vod_download_pipeline(
 ) -> VodDownloadRunResult:
     """Executes high-speed parallel VOD stream downloads without real-time playback delays (D-14-02)."""
     cfg = settings or get_settings()
-    output_root = Path(output_dir) if output_dir else cfg.download_dir
+    output_root = resolve_output_dir(output_dir, cfg.download_dir)
 
     if relogin and cfg.session_cache_path.exists():
         cfg.session_cache_path.unlink()

@@ -35,7 +35,7 @@ MINUTES_PER_DAY = 24 * MINUTES_PER_HOUR
 
 NO_COURSES_NOTICE_CODE = "no_courses_found"
 NO_COURSES_NOTICE_MESSAGE = (
-    "수강 중인 과목을 찾지 못했습니다. 저장소 .env의 LMS_URL 또는 선택한 LMS_PROFILE이 "
+    "수강 중인 과목을 찾지 못했습니다. ~/.coursepilot/.env의 LMS_URL 또는 선택한 LMS_PROFILE이 "
     "이번 학기 강의가 열리는 학교의 Coursemos LMS를 가리키는지, 그리고 현재 학기에 등록된 과목이 있는지 확인하세요."
 )
 
@@ -190,7 +190,7 @@ def to_json(report: CheckReport | SyncReport) -> str:
 
 _NOTION_DISABLED_NOTICE = (
     "NOTION_TOKEN, NOTION_DATABASE_NAME 또는 NOTION_DATABASE_ID 값이 비어 있습니다. "
-    "저장소의 .env 파일에 직접 입력한 뒤 다시 시도하세요."
+    "~/.coursepilot/.env 파일에 직접 입력한 뒤 다시 시도하세요."
 )
 
 SKIP_REASON_LABELS: dict[str, str] = {

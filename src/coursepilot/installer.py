@@ -18,6 +18,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 
+from coursepilot.config import resolve_data_root
 from coursepilot.exceptions import CoursePilotError
 
 SKILL_NAME = "coursepilot"
@@ -299,7 +300,6 @@ def _install_copy(source: Path, target: Path) -> None:
     content = skill_md.read_text(encoding="utf-8")
     content = content.replace(REPO_PLACEHOLDER, str(repo_root()))
     skill_md.write_text(content, encoding="utf-8")
-    (target / REPO_ROOT_FILE).write_text(f"{repo_root()}\n", encoding="utf-8")
 
 
 def install_skill(
@@ -339,10 +339,11 @@ def install_skill(
 
     if link:
         _create_link(src, target)
-        # The linked SKILL.md keeps its placeholder; it resolves the repo via
-        # this file instead (written into the source, i.e. the repo's own
-        # skills/coursepilot/ for the common no-source-override case).
-        (src / REPO_ROOT_FILE).write_text(f"{repo_root()}\n", encoding="utf-8")
+        # Linked SKILL.md keeps its placeholder. Store the local repository
+        # pointer with the user's private data, never in the source checkout.
+        data_root = resolve_data_root(home=home)
+        data_root.mkdir(parents=True, exist_ok=True)
+        (data_root / REPO_ROOT_FILE).write_text(f"{repo_root()}\n", encoding="utf-8")
         mode: Literal["copy", "link"] = "link"
     else:
         _install_copy(src, target)

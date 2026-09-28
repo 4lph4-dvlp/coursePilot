@@ -27,20 +27,20 @@ EXIT_PARTIAL = 1
 EXIT_FATAL = 2
 
 _AUTH_MESSAGE = (
-    "LMS 로그인에 실패했습니다. .env의 LMS 계정 정보를 직접 확인하거나 "
+    "LMS 로그인에 실패했습니다. ~/.coursepilot/.env의 LMS 계정 정보를 직접 확인하거나 "
     "--relogin 또는 --headed로 다시 시도하세요. "
-    "로그인 화면을 찾지 못한 경우 저장소 .env의 LMS_URL 또는 LMS_PROFILE이 학교의 Coursemos LMS를 선택하는지 확인하세요."
+    "로그인 화면을 찾지 못한 경우 ~/.coursepilot/.env의 LMS_URL 또는 LMS_PROFILE이 학교의 Coursemos LMS를 선택하는지 확인하세요."
 )
 _UNSUPPORTED_LMS_MESSAGE = (
     "LMS_URL에 설정된 사이트에서 Coursemos(Moodle) 강의 목록 구조를 찾지 못했습니다. "
-    "저장소 .env의 LMS_URL 또는 LMS_PROFILE이 학교의 Coursemos LMS를 선택하는지 확인하세요. "
+    "~/.coursepilot/.env의 LMS_URL 또는 LMS_PROFILE이 학교의 Coursemos LMS를 선택하는지 확인하세요. "
     "Canvas, Blackboard 등 다른 LMS 플랫폼은 지원하지 않습니다."
 )
 _NAV_TIMEOUT_MESSAGE = "LMS 페이지 응답이 지연되어 불러오지 못했습니다. 잠시 후 다시 시도하세요."
 _COURSE_ACCESS_MESSAGE = "이 과목 페이지에 접근할 수 없습니다(권한 없음 또는 비공개 과목)."
 _GENERIC_KNOWN_MESSAGE = "작업을 완료하지 못했습니다."
 _GENERIC_UNKNOWN_MESSAGE = "예기치 않은 오류가 발생했습니다."
-_VALIDATION_SUFFIX = "저장소의 .env 파일을 직접 확인하세요."
+_VALIDATION_SUFFIX = "~/.coursepilot/.env 파일을 직접 확인하세요."
 
 
 def _validation_error_message(error: ValidationError) -> str:

@@ -28,6 +28,13 @@ def sample_courses():
     ]
 
 
+@pytest.fixture
+def course_mapping_file(tmp_path):
+    path = tmp_path / "course_mappings.json"
+    path.write_text(json.dumps({"디지털시스템설계": "디시설", "기초전자실험": "기전실"}, ensure_ascii=False), encoding="utf-8")
+    return path
+
+
 def test_find_target_course(sample_courses):
     mappings = {"디지털시스템설계": "디시설", "기초전자실험": "기전실"}
     
@@ -90,8 +97,8 @@ def test_resolve_candidate_vods():
     assert skipped_idx2 == 1
 
 
-def test_watch_course_vods_dry_run(monkeypatch, sample_courses):
-    settings = Settings(lms_username="test", lms_password="pwd")
+def test_watch_course_vods_dry_run(monkeypatch, sample_courses, course_mapping_file):
+    settings = Settings(lms_username="test", lms_password="pwd", course_mappings_path=course_mapping_file)
     mock_session = MagicMock()
     mock_page = MagicMock()
     mock_session.get_authenticated_page.return_value = mock_page
@@ -119,14 +126,28 @@ def test_watch_course_vods_dry_run(monkeypatch, sample_courses):
     assert result.total_vods == 1
     assert mock_player.play_vod.call_count == 0
 
+    unmatched = watch_course_vods(
+        settings=settings,
+        course_query="디시설",
+        week_query="4",
+        task_title="[디시설] 4주차 2차시 강의 시청",
+        dry_run=True,
+        player=mock_player,
+        session_manager=mock_session,
+    )
+    assert unmatched.total_vods == 0
+    mock_player.play_vod.assert_not_called()
 
-def test_watch_course_vods_playback_and_notion_update(monkeypatch, sample_courses, tmp_path):
+
+@pytest.mark.parametrize("playback_completed", [True, False])
+def test_watch_course_vods_playback_and_notion_update(monkeypatch, sample_courses, tmp_path, course_mapping_file, playback_completed):
     settings = Settings(
         lms_username="test",
         lms_password="pwd",
         notion_token="test_token",
         notion_database_id="db_id",
         session_cache_path=tmp_path / "session.json",
+        course_mappings_path=course_mapping_file,
     )
     mock_session = MagicMock()
     mock_page = MagicMock()
@@ -146,7 +167,7 @@ def test_watch_course_vods_playback_and_notion_update(monkeypatch, sample_course
         duration=60.0,
         current_time=60.0,
         progress_percent=100.0,
-        is_completed=True,
+        is_completed=playback_completed,
     )
 
     mock_notion_client = MagicMock()
@@ -166,10 +187,44 @@ def test_watch_course_vods_playback_and_notion_update(monkeypatch, sample_course
         session_manager=mock_session,
     )
 
-    assert result.completed_vods == 1
+    assert result.completed_vods == int(playback_completed)
     assert mock_player.play_vod.call_count == 1
-    assert result.notion_updated_count == 1
-    mock_notion_client.mark_task_completed.assert_called_once_with("page_123")
+    assert result.notion_updated_count == int(playback_completed)
+    if playback_completed:
+        mock_notion_client.mark_task_completed.assert_called_once_with("page_123")
+    else:
+        mock_notion_client.mark_task_completed.assert_not_called()
+
+
+def test_scheduler_tasks_lists_only_unique_incomplete_lecture_pages(monkeypatch):
+    settings = Settings(notion_token="test_token", notion_database_id="db_id", _env_file=None)
+    monkeypatch.setattr("coursepilot.cli.get_settings", lambda: settings)
+    notion_client = MagicMock()
+    notion_client.query_existing_pages.return_value = [
+        ExistingPage(page_id="p1", title="[디시설] 4주차 1차시 강의 시청", status="진행 전"),
+        ExistingPage(page_id="p2", title="[디시설] 4주차 2차시 강의 시청", status="완료"),
+        ExistingPage(page_id="p3", title="[공수2] 3주차 1차시 강의 시청"),
+        ExistingPage(page_id="p4", title="[공수2] 3주차 1차시 강의 시청"),
+        ExistingPage(page_id="p5", title="[디시설] 4주차 과제 제출"),
+    ]
+    monkeypatch.setattr("coursepilot.cli.NotionClient", lambda settings: notion_client)
+
+    result = CliRunner().invoke(cli, ["watch", "scheduler-tasks", "--json"])
+    assert result.exit_code == 0, result.output
+    data = json.loads(result.output)
+    assert data["read_only"] is True
+    assert data["count"] == 1
+    assert data["tasks"][0] == {"title": "[디시설] 4주차 1차시 강의 시청", "course_abbr": "디시설", "week": 4, "clip": 1}
+    assert data["ambiguous_tasks"] == ["[공수2] 3주차 1차시 강의 시청"]
+    notion_client.mark_task_completed.assert_not_called()
+
+
+def test_explicit_notion_completion_requires_configuration_before_playback(monkeypatch):
+    settings = Settings(notion_token="", notion_database_id="", _env_file=None)
+    monkeypatch.setattr("coursepilot.cli.get_settings", lambda: settings)
+    result = CliRunner().invoke(cli, ["watch", "--course", "Example", "--update-notion", "--json"])
+    assert result.exit_code == 2
+    assert "~/.coursepilot/.env" in result.output
 
 
 def test_cli_watch_command_dry_run_json(monkeypatch, sample_courses):

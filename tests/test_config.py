@@ -1,7 +1,8 @@
 """Tests for configuration loader (CONF-01)."""
 
 from pathlib import Path
-from coursepilot.config import PROJECT_ROOT, Settings, get_settings, resolve_project_root
+import pytest
+from coursepilot.config import DATA_ROOT, Settings, get_settings, resolve_data_root, resolve_output_dir
 
 
 def test_default_values(clean_env):
@@ -18,12 +19,12 @@ def test_default_values(clean_env):
     assert settings.notion_api_key == ""
     assert settings.effective_notion_token == ""
     assert settings.is_notion_configured is False
-    assert settings.session_cache_path == PROJECT_ROOT / ".cache/session.json"
-    assert settings.course_mappings_path == PROJECT_ROOT / "config/course_mappings.json"
-    assert settings.download_dir == PROJECT_ROOT / "downloads"
+    assert settings.session_cache_path == DATA_ROOT / ".cache/session.json"
+    assert settings.course_mappings_path == DATA_ROOT / "config/course_mappings.json"
+    assert settings.download_dir == DATA_ROOT / "downloads"
 
 
-def test_relative_storage_overrides_use_project_root(tmp_path: Path, monkeypatch, clean_env):
+def test_relative_storage_overrides_use_data_root(tmp_path: Path, monkeypatch, clean_env):
     monkeypatch.chdir(tmp_path)
     settings = Settings(
         session_cache_path=Path("state/session.json"),
@@ -31,19 +32,28 @@ def test_relative_storage_overrides_use_project_root(tmp_path: Path, monkeypatch
         download_dir=Path("files"),
         _env_file=None,
     )
-    assert settings.session_cache_path == PROJECT_ROOT / "state/session.json"
-    assert settings.course_mappings_path == PROJECT_ROOT / "config/course_mappings.json"
-    assert settings.download_dir == PROJECT_ROOT / "files"
+    assert settings.session_cache_path == DATA_ROOT / "state/session.json"
+    assert settings.course_mappings_path == DATA_ROOT / "config/course_mappings.json"
+    assert settings.download_dir == DATA_ROOT / "files"
     assert list(tmp_path.iterdir()) == []
 
 
-def test_wheel_fallback_uses_one_user_home_directory(tmp_path: Path):
-    source_file = tmp_path / "site-packages" / "coursepilot" / "config.py"
-    source_file.parent.mkdir(parents=True)
-    source_file.touch()
+def test_source_and_wheel_use_one_user_home_directory(tmp_path: Path):
     user_home = tmp_path / "user-home"
-    assert resolve_project_root(source_file, home=user_home) == user_home / ".coursepilot"
+    assert resolve_data_root(home=user_home) == user_home / ".coursepilot"
     assert not (user_home / ".coursepilot").exists()
+
+
+def test_relative_output_override_stays_under_data_root(tmp_path: Path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    assert resolve_output_dir("exports", DATA_ROOT / "downloads") == DATA_ROOT / "exports"
+    assert resolve_output_dir(None, DATA_ROOT / "downloads") == DATA_ROOT / "downloads"
+    assert resolve_output_dir(tmp_path / "absolute", DATA_ROOT / "downloads") == tmp_path / "absolute"
+    with pytest.raises(ValueError):
+        resolve_output_dir("../outside", DATA_ROOT / "downloads")
+    with pytest.raises(ValueError):
+        Settings(download_dir=Path("../outside"), _env_file=None)
+    assert list(tmp_path.iterdir()) == []
 
 
 def test_default_lms_url_requires_explicit_school_selection():

@@ -9,7 +9,7 @@ description: "Manage university coursework through the local CoursePilot CLI: ch
 
 Repository root: `{{COURSEPILOT_REPO}}`
 
-위 Repository root 줄이 여전히 `{{COURSEPILOT_REPO}}`라는 글자 그대로라면(개발용 `--link` 설치인 경우), 이 스킬 폴더 안의 `repo-root.txt` 파일에 적힌 한 줄짜리 경로를 대신 읽어서 사용하세요.
+위 Repository root 줄이 여전히 `{{COURSEPILOT_REPO}}`라는 글자 그대로라면(`--link` 설치인 경우), 사용자 홈의 `~/.coursepilot/repo-root.txt`에 적힌 한 줄짜리 경로를 대신 읽어서 사용하세요.
 
 ## 2. 실행 규칙
 
@@ -20,7 +20,7 @@ uv --directory "{{COURSEPILOT_REPO}}" run python -m coursepilot <check|sync|watc
 ```
 
 - 항상 CLI를 새로 실행하고 그 실행의 표준출력(stdout) JSON으로만 답변하세요. 현재 작업 폴더에 남아 있는 이전 결과 파일(`*.json` 등)을 답으로 재사용하거나 신뢰하지 마세요.
-- 명령은 `uv --directory`로 저장소에서 실행하세요. JSON/로그를 파일로 저장해야 한다면 저장소의 `.cache/`에만 저장하고, 호출한 에이전트의 현재 폴더에는 결과 파일·임시 스크립트·다운로드 폴더를 만들지 마세요. CoursePilot의 기본 캐시와 다운로드 경로는 저장소 루트에 고정됩니다. 사용자가 지정한 `--output-dir`/`DOWNLOAD_DIR`만 예외입니다.
+- 명령은 `uv --directory`로 저장소에서 실행하세요. JSON/로그를 파일로 저장해야 한다면 `~/.coursepilot/.cache/`에만 저장하고, 호출한 에이전트의 현재 폴더에는 결과 파일·임시 스크립트·다운로드 폴더를 만들지 마세요. 기본 캐시·다운로드·설정 경로는 소스/휠 모두 `~/.coursepilot/` 아래에 고정됩니다. 사용자가 지정한 절대 `--output-dir`/`DOWNLOAD_DIR`만 예외입니다.
 - 표준출력(stdout)만 JSON으로 파싱하세요. 표준에러(stderr)는 진행 상황/로그 텍스트이므로 절대 파싱하지 마세요.
 - 터미널에 표시되는 Rich(색상/테두리) 리포트를 그대로 채팅에 붙여넣지 마세요. 항상 JSON을 다시 마크다운으로 구성해서 보여주세요.
 - 종료 코드: `0` 성공 / `1` 부분 실패(결과는 여전히 유효하며 오류도 함께 표시) / `2` 치명적 오류(`errors[].message`를 보여주고 중단).
@@ -32,9 +32,9 @@ uv --directory "{{COURSEPILOT_REPO}}" run python -m coursepilot <check|sync|watc
 2. uv가 있다면 다음을 직접(사용자에게 시키지 말고) 실행해 의존성을 준비하세요:
    - `uv --directory "{{COURSEPILOT_REPO}}" sync`
    - `uv --directory "{{COURSEPILOT_REPO}}" run playwright install chromium`
-3. 저장소 루트에 `.env` 파일이 **존재하는지만** 확인하세요 — 절대 그 내용을 열거나, 출력하거나, 복사하지 마세요.
-4. 학교는 자동 선택되지 않습니다. 도구는 저장소 `.env`의 `LMS_URL`을 우선 사용하고, 주소가 없으면 선택적 `LMS_PROFILE`을 적용합니다. 현재 `LMS_PROFILE=kau`는 한국항공대 https://lxp.kau.ac.kr 을 선택합니다. 주소와 프로필이 모두 없으면 사용자가 학교 주소를 직접 설정하도록 안내하세요. 현재 Coursemos 계열만 구현되어 있으며 Canvas, Blackboard 등은 지원한다고 주장하지 마세요.
-5. 종료 코드 `2`에 `ConfigError`가 포함되어 있거나 `.env`가 없다면, 어떤 키를 채워야 하는지만 알려주고(`.env.example`을 복사해서 시작하라고 안내) 값은 사용자가 직접 채우게 하세요.
+3. `~/.coursepilot/.env` 파일이 **존재하는지만** 확인하세요 — 절대 그 내용을 열거나, 출력하거나, 복사하지 마세요.
+4. 학교는 자동 선택되지 않습니다. 도구는 `~/.coursepilot/.env`의 `LMS_URL`을 우선 사용하고, 주소가 없으면 선택적 `LMS_PROFILE`을 적용합니다. 현재 `LMS_PROFILE=kau`는 한국항공대 https://lxp.kau.ac.kr 을 선택합니다. 주소와 프로필이 모두 없으면 사용자가 학교 주소를 직접 설정하도록 안내하세요. 현재 Coursemos 계열만 구현되어 있으며 Canvas, Blackboard 등은 지원한다고 주장하지 마세요.
+5. 종료 코드 `2`에 `ConfigError`가 포함되어 있거나 `.env`가 없다면, 어떤 키를 채워야 하는지만 알려주고(저장소의 `.env.example`을 `~/.coursepilot/.env`로 복사해서 시작하라고 안내) 값은 사용자가 직접 채우게 하세요.
 6. 학번/아이디, LMS 비밀번호, Notion 토큰, 세션 쿠키는 절대 요청, 반복, 저장하지 마세요. 사용자가 대화 중 실수로 비밀 값을 붙여넣더라도 그 값을 다시 출력하지 말고, `.env`로 옮기고 즉시 해당 값을 재발급(로테이션)하라고 안내하세요.
 
 ## 4. 브리핑 — 예: "과제 확인해줘"
@@ -42,7 +42,7 @@ uv --directory "{{COURSEPILOT_REPO}}" run python -m coursepilot <check|sync|watc
 1. 미완료 일정은 `check --json`, 진도율이나 특정 활동의 발견 여부를 확인할 때는 `check --include-completed --json`을 실행하세요. 강의자료 열람·다운로드 상태를 묻는 경우 `materials --course "과목명" --week N --dry-run --json`도 실행하세요.
    - 영상·과제·퀴즈뿐 아니라 강의자료 확인/다운로드 작업도 포함됩니다.
    - `check`의 기본 결과는 완료 항목을 숨깁니다. `is_completed`는 LMS 열람 완료만 뜻하며 로컬 다운로드 완료를 뜻하지 않습니다. `materials --dry-run`의 `status: planned`와 `saved_path`는 예정 동작/경로일 뿐입니다. 완료 항목은 새 미완료 작업이 아닙니다.
-2. 만약 `notices`에 항목이 있다면, 한 줄 요약보다 먼저 모든 notice의 `message`를 그대로 보여주세요. 특히 `no_courses_found` 코드인 경우 저장소 `.env`의 LMS_URL 또는 선택한 LMS_PROFILE이 올바른지, 그리고 이번 학기에 등록된 과목이 있는지 확인하라고 안내하세요.
+2. 만약 `notices`에 항목이 있다면, 한 줄 요약보다 먼저 모든 notice의 `message`를 그대로 보여주세요. 특히 `no_courses_found` 코드인 경우 `~/.coursepilot/.env`의 LMS_URL 또는 선택한 LMS_PROFILE이 올바른지, 그리고 이번 학기에 등록된 과목이 있는지 확인하라고 안내하세요.
 3. 먼저 한 줄 요약을 보여주세요: 과목 수, 기한 초과, 24시간 이내, 이후 일정, 오류 수.
 4. 이어서 아래 순서로 섹션을 나누어 보여주세요: **기한 초과 → 24시간 이내 → 이후 일정**.
 5. 각 섹션은 과목별로 묶어 마크다운 표로 만드세요. 표 컬럼은 항상 `과목 | 작업 | 마감일 | 남은 시간` 순서를 지키세요.
@@ -53,7 +53,7 @@ uv --directory "{{COURSEPILOT_REPO}}" run python -m coursepilot <check|sync|watc
 
 ## 5. 노션 동기화 — 예: "노션에 올려줘"
 
-Scheduler의 읽기·미리보기·생성·수정은 모두 이 저장소의 CoursePilot CLI로 처리하세요. 설계된 경로는 저장소 `.env`의 `NOTION_TOKEN` 또는 레거시 `NOTION_API_KEY`와 `NOTION_DATABASE_ID`/`NOTION_DATABASE_NAME`을 사용하는 `notion-client` SDK입니다. 에이전트의 별도 Notion MCP 연결이나 임의 API 스크립트로 동일 Scheduler를 조작하지 마세요. 이 경로가 설정되지 않았다면 다른 자격 증명 방식으로 전환하지 말고 `sync.notice`/CLI 오류를 그대로 보고하세요. 토큰 값은 읽거나 출력하지 마세요.
+Scheduler의 읽기·미리보기·생성·수정은 모두 이 저장소의 CoursePilot CLI로 처리하세요. 설계된 경로는 `~/.coursepilot/.env`의 `NOTION_TOKEN` 또는 레거시 `NOTION_API_KEY`와 `NOTION_DATABASE_ID`/`NOTION_DATABASE_NAME`을 사용하는 `notion-client` SDK입니다. 에이전트의 별도 Notion MCP 연결이나 임의 API 스크립트로 동일 Scheduler를 조작하지 마세요. 이 경로가 설정되지 않았다면 다른 자격 증명 방식으로 전환하지 말고 `sync.notice`/CLI 오류를 그대로 보고하세요. 토큰 값은 읽거나 출력하지 마세요.
 
 1. 먼저 `sync --json`을 실행하세요 (미리보기이며, 아무것도 기록되지 않습니다).
 2. 만약 `notices`에 항목이 있다면, 미리보기 표보다 먼저 모든 notice의 `message`를 보여주세요.
@@ -75,7 +75,7 @@ Scheduler의 읽기·미리보기·생성·수정은 모두 이 저장소의 Cou
 - 예: `check --course-week "자료구조:5" --course-week "기초전자실험:5" --prepare-by 2026-10-02 --json`. 같은 범위 옵션으로 `sync --json` 미리보기를 실행하고, 적용 승인 후에도 동일한 범위를 유지하세요.
 - 임시 Python 스크립트로 범위를 다시 추정하거나 공식 마감을 수정하지 마세요. `sync --include-completed`는 완료 항목을 `lms_completed`로 건너뛰며 새 페이지를 생성하지 않습니다.
 
-## 6. 동영상 강의 자동 시청 — 예: "기초전자실험 이번주 영상 시청해줘", "디시설 4주차 강의 들어줘", "영상 시청 후 노션 완료를 제안해줘"
+## 6. 동영상 강의 자동 시청 — 예: "기초전자실험 이번주 영상 시청해줘", "디시설 4주차 강의 들어줘", "영상 시청 완료 후 노션도 완료 처리해줘"
 
 현재 지원하는 Coursemos VOD의 출석 인정에는 실제 영상 재생과 진도 하트비트 세션 유지가 필요합니다. 한국항공대 검증 환경에서는 1.0배속으로 영상 길이만큼 시간이 소요됩니다. 이 검증 결과를 다른 학교·플랫폼에도 확인 없이 일반화하지 마세요.
 
@@ -85,7 +85,7 @@ Scheduler의 읽기·미리보기·생성·수정은 모두 이 저장소의 Cou
    - `watch` 명령은 재생 완료까지 오랜 시간이 걸리므로, 메인 대화 세션을 블로킹하지 마세요.
    - 에이전트의 **백그라운드 태스크(또는 서브에이전트)**로 실행하세요:
      ```
-     uv --directory "{{COURSEPILOT_REPO}}" run python -m coursepilot watch --course "<과목명>" --week <current|all|주차번호> --json
+     uv --directory "{{COURSEPILOT_REPO}}" run python -m coursepilot watch --course "<과목명>" --week <current|all|주차번호> [--update-notion] --json
      ```
    - 백그라운드 태스크를 시작하자마자, 사용자에게 즉시 안내 메시지를 출력하세요:
      > "💡 **[과목명] [주차]** 미시청 VOD 시청을 백그라운드에서 시작했습니다. 영상 길이만큼 시간이 소요되며, 완료될 때까지 다른 작업을 자유롭게 요청하시거나 진행하실 수 있습니다."
@@ -97,16 +97,24 @@ Scheduler의 읽기·미리보기·생성·수정은 모두 이 저장소의 Cou
      - `current`: 미시청 VOD가 존재하는 가장 빠른 주차를 자동 탐색.
      - `all`: 모든 주차의 미시청 VOD를 순차 재생.
      - `N` (예: `4`): 특정 주차의 미시청 VOD 재생.
-   - 에이전트 실행에서는 `--update-notion`을 붙이지 마세요. 사용자가 시청 전 "노션에도 완료 처리해줘"라고 말했어도 실제 시청 완료 결과를 확인한 뒤 변경 대상을 제안하고 별도 승인을 받으세요. 이 플래그는 CLI를 직접 쓰는 사람이 즉시 변경을 명시적으로 선택할 때만 남겨 둔 옵션입니다.
+   - 사용자가 같은 요청에서 **시청과 시청 완료 작업의 Scheduler 상태 변경을 명시적으로 지시한 경우** `--update-notion`을 붙이세요. 이 요청 자체가 해당 범위의 완료 처리 승인입니다. 실제 재생 결과 `is_completed`인 영상만 갱신하며 실패·중단·건너뛴 영상은 갱신하지 않습니다. 단순 시청 요청이나 완료 처리 여부가 불분명한 요청에는 붙이지 마세요.
+   - `--task-title "<Scheduler의 정확한 작업명>"`을 지정하면 그 작업과 일치하는 미시청 영상만 재생합니다. 선택 결과가 0개면 다른 영상을 대신 재생하지 마세요.
    - `--dry-run`: 실제 영상을 재생하지 않고 대상 영상 목록과 이미 완료되어 건너뛸 영상 목록만 미리 확인할 때 사용.
+
+### Scheduler에 등록된 영상 작업 전부 시청
+
+- "스케줄러의 영상 재생 작업을 모두 시청하고 완료 처리해줘"처럼 **전체 범위와 완료 처리**를 함께 명시했다면, 먼저 읽기 전용 `watch scheduler-tasks --json`으로 Scheduler의 미완료 강의 작업명·과목 약칭·주차·차시를 확인하세요.
+- `check --json`의 수강 과목과 사용자 약칭 파일로 각 과목을 LMS 과목 ID에 대응시키세요. 약칭이 여러 과목과 일치하거나 대상 과목을 찾지 못하면 해당 작업은 건너뛰고 알려주세요.
+- 각 작업을 `watch --course "<과목 ID>" --week <주차> --task-title "<정확한 작업명>" --update-notion --json`으로 실행하세요. 정확히 일치하는 미시청 영상이 0개면 다른 영상을 재생하지 마세요. 각 결과의 `completed_vods`와 `notion_updated_count`를 확인하고 실패·미일치 항목을 보고하세요. 이미 LMS에서 완료된 영상은 재생 대상이 아니므로 완료 처리된 것으로 추정하지 마세요.
 
 3. **완료 보고**:
    - 백그라운드 작업이 완료되면 다음 내용을 요약하여 사용자에게 보고하세요:
      - 대상 과목명 및 주차
      - 시청 완료 영상 수 / 대상 영상 수 (건너뛴 영상 수)
      - 각 영상 제목 및 시청 시간
-     - Notion Scheduler는 아직 변경하지 않았다는 점
-   - 시청 완료 후 `watch sync-notion --course "<과목명>" --dry-run --json`을 실행해 `planned_tasks`와 건너뛴 항목을 확인하세요. 완료로 바꿀 정확한 작업명과 개수를 제안한 뒤 사용자 승인을 기다리세요. `planned_count: 0`이면 변경을 제안하지 마세요.
+     - `--update-notion`을 사용했다면 실제 Notion 완료 처리 수와 시청 완료 수의 차이. 완료 처리되지 않은 영상이나 매칭 실패도 알려주세요.
+     - 사용하지 않았다면 Notion Scheduler는 아직 변경하지 않았다는 점.
+   - 사용자가 완료 처리를 명시하지 않은 시청에서는 시청 완료 후 `watch sync-notion --course "<과목명>" --dry-run --json`으로 `planned_tasks`와 건너뛴 항목을 확인하세요. 완료로 바꿀 정확한 작업명과 개수를 제안한 뒤 사용자 승인을 기다리세요. `planned_count: 0`이면 변경을 제안하지 마세요.
    - 승인 후에는 미리보기에서 제안한 제목 각각을 `--task-title "<정확한 작업명>"`으로 반복 지정해 `watch sync-notion --course "<과목명>" ... --json`을 실행하세요. 범위가 바뀌었거나 오류가 생기면 적용하지 말고 다시 미리보세요.
 
 ### 이미 시청한 강의의 Notion 완료 상태 반영

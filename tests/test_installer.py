@@ -103,7 +103,7 @@ def test_resolve_path_copy_install_renders_repo_root(fake_home: Path) -> None:
     assert content.count(str(repo_root())) >= 2
 
     repo_root_file = fake_home / ".claude" / "skills" / "coursepilot" / REPO_ROOT_FILE
-    assert repo_root_file.read_text(encoding="utf-8").strip() == str(repo_root())
+    assert not repo_root_file.exists()
 
     # The repo's own copy must still carry the placeholder.
     own = skill_source_dir() / "SKILL.md"
@@ -296,7 +296,8 @@ def test_link_real_filesystem_reflects_source_edits(fake_home: Path, tmp_src: Pa
     target = fake_home / ".claude" / "skills" / SKILL_NAME
     assert (target / "NEW_FILE.md").read_text(encoding="utf-8") == "hello"
 
-    assert (tmp_src / REPO_ROOT_FILE).read_text(encoding="utf-8").strip() == str(repo_root())
+    assert not (tmp_src / REPO_ROOT_FILE).exists()
+    assert (fake_home / ".coursepilot" / REPO_ROOT_FILE).read_text(encoding="utf-8").strip() == str(repo_root())
 
 
 def test_link_windows_junction_fallback(

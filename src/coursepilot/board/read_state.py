@@ -6,7 +6,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field
 
-from coursepilot.config import PROJECT_ROOT
+from coursepilot.config import DATA_ROOT, resolve_data_path
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ class BoardReadStateManager:
         max_entries_per_course: int = 200,
     ) -> None:
         self.state_file_path = (
-            Path(state_file_path) if state_file_path else PROJECT_ROOT / ".cache/board_read_state.json"
+            resolve_data_path(Path(state_file_path)) if state_file_path else DATA_ROOT / ".cache/board_read_state.json"
         )
         self.max_entries = max_entries_per_course
         self._state = self._load()

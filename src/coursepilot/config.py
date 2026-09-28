@@ -11,22 +11,38 @@ DEFAULT_LMS_URL = ""
 LMS_PROFILES = {"kau": "https://lxp.kau.ac.kr"}
 
 
-def resolve_project_root(source_file: Path, home: Path | None = None) -> Path:
-    """Use the source checkout when present, otherwise one user data directory."""
-    source_root = source_file.resolve().parents[2]
-    if (source_root / "pyproject.toml").is_file() and (source_root / "src/coursepilot").is_dir():
-        return source_root
+def resolve_data_root(home: Path | None = None) -> Path:
+    """Keep private CoursePilot data under the user's home on every install type."""
     return (home or Path.home()) / ".coursepilot"
 
 
-PROJECT_ROOT = resolve_project_root(Path(__file__))
+DATA_ROOT = resolve_data_root()
+# Backward-compatible internal name for callers that import PROJECT_ROOT.
+PROJECT_ROOT = DATA_ROOT
+
+
+def resolve_output_dir(output_dir: Path | str | None, default_dir: Path) -> Path:
+    """Keep relative explicit output paths under the user data root."""
+    if output_dir is None:
+        return default_dir
+    return resolve_data_path(Path(output_dir))
+
+
+def resolve_data_path(requested: Path) -> Path:
+    """Resolve a user path, refusing relative traversal outside ~/.coursepilot."""
+    if requested.is_absolute():
+        return requested
+    resolved = (DATA_ROOT / requested).resolve()
+    if not resolved.is_relative_to(DATA_ROOT.resolve()):
+        raise ValueError("상대 경로는 ~/.coursepilot 안에 있어야 합니다.")
+    return resolved
 
 
 class Settings(BaseSettings):
     """Application configuration loaded from environment variables and .env file."""
 
     model_config = SettingsConfigDict(
-        env_file=PROJECT_ROOT / ".env",
+        env_file=DATA_ROOT / ".env",
         env_file_encoding="utf-8",
         extra="ignore",
     )
@@ -46,11 +62,10 @@ class Settings(BaseSettings):
         self.lms_url = self.lms_url.strip()
         if not self.lms_url and self.lms_profile:
             self.lms_url = LMS_PROFILES[self.lms_profile]
-        # Relative overrides are relative to CoursePilot, never the invoking agent's CWD.
+        # Relative overrides are relative to private CoursePilot data, never the caller's CWD.
         for field_name in ("session_cache_path", "course_mappings_path", "download_dir"):
             path = getattr(self, field_name)
-            if not path.is_absolute():
-                setattr(self, field_name, PROJECT_ROOT / path)
+            setattr(self, field_name, resolve_data_path(path))
         return self
 
     # Execution Options

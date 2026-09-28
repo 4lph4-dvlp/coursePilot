@@ -215,7 +215,7 @@ def install_skill_command(ctx: click.Context, agent: str, link: bool) -> None:
         highlight=False,
     )
     out.print(
-        "LMS 주소: 저장소 .env의 LMS_URL을 학교 주소로 지정하거나 LMS_PROFILE=kau를 선택하세요. 학교는 자동 선택되지 않습니다. 현재 Coursemos 계열을 지원합니다.",
+        "LMS 주소: ~/.coursepilot/.env의 LMS_URL을 학교 주소로 지정하거나 LMS_PROFILE=kau를 선택하세요. 학교는 자동 선택되지 않습니다. 현재 Coursemos 계열을 지원합니다.",
         markup=False,
         highlight=False,
     )
@@ -252,10 +252,17 @@ def install_skill_command(ctx: click.Context, agent: str, link: bool) -> None:
     help="시청할 주차 내 특정 영상 번호 (1-based, 예: 2)",
 )
 @click.option(
+    "--task-title",
+    "task_title",
+    type=str,
+    default=None,
+    help="Scheduler 작업명과 정확히 일치하는 미시청 영상만 재생합니다.",
+)
+@click.option(
     "--update-notion",
     "update_notion",
     is_flag=True,
-    help="명시적으로 지정한 경우 시청 완료 즉시 Notion 상태를 변경합니다 (에이전트 제안 흐름은 sync-notion 사용).",
+    help="재생과 완료 처리를 함께 명시적으로 요청한 경우, 실제 시청 완료된 작업만 즉시 Notion에서 완료 처리합니다.",
 )
 @click.option(
     "--dry-run",
@@ -314,6 +321,7 @@ def watch_group(
     course_query: str | None,
     week_query: str,
     video_index: int | None,
+    task_title: str | None,
     update_notion: bool,
     download: bool,
     quality: str,
@@ -343,6 +351,10 @@ def watch_group(
         }
     )
 
+    if update_notion and not dry_run and not settings.is_notion_configured:
+        err.print("[오류] Notion 완료 처리를 요청했지만 ~/.coursepilot/.env에 Scheduler 연동이 설정되지 않았습니다.", markup=False, highlight=False)
+        ctx.exit(2)
+
     if relogin and settings.session_cache_path.exists():
         settings.session_cache_path.unlink()
 
@@ -357,6 +369,7 @@ def watch_group(
         course_query=course_query,
         week_query=week_query,
         video_index=video_index,
+        task_title=task_title,
         dry_run=dry_run,
         update_notion=update_notion,
         download=download,
@@ -393,6 +406,55 @@ def watch_group(
 
     exit_code = 1 if result.error_message or (result.total_vods > 0 and result.completed_vods < result.total_vods and not dry_run) else 0
     ctx.exit(exit_code)
+
+
+@watch_group.command("scheduler-tasks")
+@click.option("--json", "as_json", is_flag=True, help="결과를 JSON 형식으로 출력합니다.")
+@click.pass_context
+def watch_scheduler_tasks_command(ctx: click.Context, as_json: bool) -> None:
+    """Read incomplete Scheduler lecture tasks without changing Notion."""
+    import json
+    import re
+
+    from coursepilot.domain.models import TaskStatus
+
+    settings = get_settings()
+    if not settings.is_notion_configured:
+        click.echo("[오류] ~/.coursepilot/.env에 Notion Scheduler 연동이 설정되지 않았습니다.", err=True)
+        ctx.exit(2)
+    try:
+        notion_client = NotionClient(settings=settings)
+        target = notion_client.resolve_target()
+        pages, ambiguous_titles = index_unique_pages_by_title(
+            notion_client.query_existing_pages(target.data_source_id)
+        )
+    except Exception as exc:
+        click.echo(f"[오류] Scheduler 조회 실패: {exc}", err=True)
+        ctx.exit(1)
+
+    title_pattern = re.compile(r"^\[([^\]]+)\] (\d+)주차 (\d+)차시 강의 시청$")
+    tasks = []
+    for title, page in pages.items():
+        match = title_pattern.fullmatch(title)
+        if match is None or page.status == TaskStatus.COMPLETED:
+            continue
+        tasks.append({
+            "title": title,
+            "course_abbr": match.group(1),
+            "week": int(match.group(2)),
+            "clip": int(match.group(3)),
+        })
+    tasks.sort(key=lambda task: (task["course_abbr"], task["week"], task["clip"]))
+    ambiguous = sorted(title for title in ambiguous_titles if title_pattern.fullmatch(title))
+    result = {"tasks": tasks, "count": len(tasks), "ambiguous_tasks": ambiguous, "read_only": True}
+    if as_json:
+        click.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    else:
+        click.echo(f"Scheduler 미완료 영상 작업: {len(tasks)}개")
+        for task in tasks:
+            click.echo(f"  - {task['title']}")
+        if ambiguous:
+            click.echo(f"제목 중복으로 제외: {len(ambiguous)}개")
 
 
 @watch_group.command("status")
@@ -514,7 +576,7 @@ def watch_sync_notion_command(
     settings = get_settings()
 
     if not settings.is_notion_configured:
-        msg = "Notion 설정이 되어 있지 않습니다. .env의 NOTION_TOKEN 및 NOTION_DATABASE_ID를 확인하세요."
+        msg = "Notion 설정이 되어 있지 않습니다. ~/.coursepilot/.env의 NOTION_TOKEN 및 NOTION_DATABASE_ID를 확인하세요."
         if as_json:
             click.echo(json.dumps({"synced_count": 0, "error": msg}, ensure_ascii=False, indent=2))
         else:

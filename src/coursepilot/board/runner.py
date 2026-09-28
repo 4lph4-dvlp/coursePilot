@@ -19,7 +19,7 @@ from coursepilot.board.models import (
 )
 from coursepilot.board.read_state import BoardReadStateManager
 from coursepilot.board.text_converter import extract_summary_preview
-from coursepilot.config import Settings, get_settings
+from coursepilot.config import Settings, get_settings, resolve_output_dir
 from coursepilot.course_mapping import load_course_mappings
 from coursepilot.materials.downloader import (
     download_material_file,
@@ -351,7 +351,7 @@ def view_board_article(
             # Optional attachment download (D-15-08)
             if download_attachments and target_post.attachments:
                 save_dir = (
-                    Path(output_dir) if output_dir else cfg.download_dir
+                    resolve_output_dir(output_dir, cfg.download_dir)
                 ) / found_course.clean_name / "notices"
                 save_dir.mkdir(parents=True, exist_ok=True)
 

@@ -11,7 +11,7 @@ from typing import Callable
 
 from pydantic import BaseModel, Field
 
-from coursepilot.config import Settings
+from coursepilot.config import Settings, resolve_output_dir
 from coursepilot.course_mapping import load_course_mappings
 from coursepilot.domain.models import TaskType
 from coursepilot.domain.naming import format_task_title
@@ -167,6 +167,7 @@ def watch_course_vods(
     course_query: str,
     week_query: str | int | None = "current",
     video_index: int | None = None,
+    task_title: str | None = None,
     *,
     dry_run: bool = False,
     update_notion: bool = False,
@@ -222,6 +223,20 @@ def watch_course_vods(
         week_label, candidate_vods, skipped_count = resolve_candidate_vods(
             lectures, week_query, video_index=video_index
         )
+        if task_title is not None:
+            selected = [
+                vod for vod in candidate_vods
+                if format_task_title(
+                    course_name=target_course.clean_name,
+                    raw_title=vod.title,
+                    task_type=TaskType.LECTURE,
+                    week_number=vod.week_number,
+                    clip_number=vod.clip_number,
+                    course_mappings=mappings,
+                ) == task_title
+            ]
+            skipped_count += len(candidate_vods) - len(selected)
+            candidate_vods = selected
 
         result = WatchResult(
             course_id=target_course.course_id,
@@ -264,7 +279,7 @@ def watch_course_vods(
             except Exception as e:
                 logger.warning(f"Failed to query Notion for status update: {e}")
 
-        output_root = Path(output_dir) if output_dir else settings.download_dir
+        output_root = resolve_output_dir(output_dir, settings.download_dir)
 
         # 5. Sequentially play unwatched VODs (D-12-01)
         for idx, vod in enumerate(candidate_vods, start=1):

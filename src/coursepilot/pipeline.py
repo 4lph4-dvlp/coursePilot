@@ -54,7 +54,7 @@ def validate_lms_settings(settings: Settings) -> None:
     if missing:
         keys = ", ".join(missing)
         raise ConfigError(
-            f"{keys} 값이 비어 있습니다. 저장소의 .env 파일에 직접 입력한 뒤 다시 시도하세요."
+            f"{keys} 값이 비어 있습니다. ~/.coursepilot/.env 파일에 직접 입력한 뒤 다시 시도하세요."
         )
 
 

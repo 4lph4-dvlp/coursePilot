@@ -4,21 +4,11 @@ import json
 import logging
 from pathlib import Path
 
-from coursepilot.config import PROJECT_ROOT
+from coursepilot.config import DATA_ROOT, resolve_data_path
 
 logger = logging.getLogger("coursepilot.course_mapping")
 
-DEFAULT_MAPPINGS: dict[str, str] = {
-    "공학수학2": "공수2",
-    "공학수학II": "공수2",
-    "자료구조": "자구",
-    "자료구조및실습": "자구",
-    "디지털시스템설계": "디시설",
-    "확률및랜덤변수": "확랜",
-    "기초전자실험": "기전실",
-    "항공우주산업개론": "항산개",
-    "항공산업우주개론": "항산개",
-}
+DEFAULT_MAPPINGS: dict[str, str] = {}
 
 
 def load_course_mappings(path: Path | str | None = None) -> dict[str, str]:
@@ -26,9 +16,8 @@ def load_course_mappings(path: Path | str | None = None) -> dict[str, str]:
 
     Falls back to default mappings gracefully if the file is missing or invalid.
     """
-    file_path = Path(path) if path is not None else PROJECT_ROOT / "config/course_mappings.json"
-    if not file_path.is_absolute():
-        file_path = PROJECT_ROOT / file_path
+    file_path = Path(path) if path is not None else DATA_ROOT / "config/course_mappings.json"
+    file_path = resolve_data_path(file_path)
     if not file_path.exists():
         logger.warning(f"과목 매핑 파일({file_path})을 찾을 수 없습니다. 기본 매핑을 사용합니다.")
         return DEFAULT_MAPPINGS.copy()
@@ -56,6 +45,6 @@ def get_abbreviation(course_name: str, mappings: dict[str, str]) -> str:
 
     logger.info(
         f"신규 과목 '{clean_name}' 발견: 축약어가 등록되어 있지 않아 원본 이름을 유지합니다. "
-        "원하는 경우 'config/course_mappings.json'에 약칭을 등록하여 주십시오."
+        "원하는 경우 '~/.coursepilot/config/course_mappings.json'에 약칭을 등록하여 주십시오."
     )
     return clean_name

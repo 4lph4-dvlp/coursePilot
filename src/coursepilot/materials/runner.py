@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Callable
 import httpx
 
-from coursepilot.config import Settings, get_settings
+from coursepilot.config import Settings, get_settings, resolve_output_dir
 from coursepilot.course_mapping import load_course_mappings
 from coursepilot.materials.downloader import (
     ViewOnlyMaterialError,
@@ -189,10 +189,7 @@ def run_materials_pipeline(
     """Orchestrates materials viewing and downloading across courses and weeks."""
     cfg = settings or get_settings()
 
-    if output_dir:
-        output_root = Path(output_dir)
-    else:
-        output_root = cfg.download_dir
+    output_root = resolve_output_dir(output_dir, cfg.download_dir)
 
     if relogin and cfg.session_cache_path.exists():
         try:
