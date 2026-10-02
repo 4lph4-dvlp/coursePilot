@@ -1,7 +1,7 @@
 {
   "contract": "1.0.0",
   "flavor": "core",
-  "milestone": "v1.0 — Completed)",
+  "milestone": "v2.0",
   "phases": [
     {
       "number": "1",
@@ -81,7 +81,7 @@
     {
       "number": "16",
       "name": "Comprehensive Activity Progress Dashboard",
-      "status": "pending"
+      "status": "complete"
     },
     {
       "number": "17",
@@ -90,9 +90,9 @@
     }
   ],
   "next": {
-    "command": "/gsd-progress",
+    "command": "/gsd:progress",
     "label": "Show progress",
     "reason": "Unsure of state — showing progress"
   },
-  "updated_at": "2026-09-26T01:42:03.274Z"
+  "updated_at": "2026-10-02T17:42:06.175Z"
 }

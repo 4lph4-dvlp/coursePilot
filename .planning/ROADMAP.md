@@ -31,6 +31,7 @@
 - [x] **Phase 14: Pure-Python VOD Stream Downloader Integration** - 최소 설치 환경 유지를 위한 순수 파이썬 HLS/m3u8 스트림 캡처 및 백그라운드 영상 로컬 다운로더 구현 (completed 2026-09-25)
 - [x] **Phase 15: Course Announcements & Q&A Board Briefing** - 과목별 `ubboard`(공지사항 및 질문과 답변) 파싱, 최근 3개 기본 및 사용자 맞춤 스코프 브리핑 CLI 구현 (completed 2026-09-26)
 - [ ] **Phase 16: Comprehensive Activity Progress Dashboard** - 전체 학습활동(동영상+과제+퀴즈+자료) 종합 진척도 계산, 전체/지나온 주차/이번 주차 진척도 대시보드(`progress`) 구현
+- [ ] **Phase 16.1: Independent Notion Scheduler Module and Agent Skill** - Scheduler 연동을 별도 저장소의 독립 패키지·스킬로 분리하고 CoursePilot 및 학업 외 작업에서 재사용
 - [ ] **Phase 17: Universal Skill Packaging, Multi-Agent Deployment & End-to-End Verification** - 전체 신규 기능을 `SKILL.md` 및 `JSON_CONTRACT.md`에 반영, 5개 에이전트 일괄 재배포 및 E2E 실사이트 검증
 
 ## Phase Details
@@ -431,16 +432,34 @@ Plans:
 
 ---
 
+### Phase 16.1: Independent Notion Scheduler Module and Agent Skill (INSERTED)
+
+**Goal:** 기존 Notion Scheduler 연동을 별도 저장소의 독립 패키지와 Agent Skill로 분리하여 학업 및 비학업 작업에 재사용하고, CoursePilot의 동기화·완료 처리 안전 규칙을 유지한다.
+**Requirements**: TBD
+**Depends on:** Phase 16
+**Success Criteria** (what must be TRUE):
+
+  1. 독립 패키지와 스킬이 학업 외 Scheduler 작업의 조회·생성·수정·완료 처리를 지원한다.
+  2. CoursePilot이 독립 패키지를 사용하며 기존 중복 방지와 보호 필드 규칙을 유지한다.
+  3. 직접 API를 기본 경로로 유지하고 공식 원격 MCP의 기능·토큰 비용을 실제 작업 단위로 비교해 선택 근거를 기록한다.
+
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run $gsd-plan-phase 16.1 to break down)
+
 ### Phase 17: Universal Skill Packaging, Multi-Agent Deployment & End-to-End Verification
 
 **Goal**: 전체 신규 기능을 `SKILL.md` 및 `JSON_CONTRACT.md`에 반영, 5개 에이전트 일괄 재배포 및 E2E 실사이트 검증
-**Depends on**: Phase 16
+**Depends on**: Phase 16.1
 **Requirements**: SKIL-04, VERIF-03
 **Success Criteria** (what must be TRUE):
 
   1. `skills/coursepilot/SKILL.md` 및 `JSON_CONTRACT.md`에 신규 서브커맨드(`progress`, `notices`, `qna`, 다운로드 옵션 등)가 완벽히 문서화된다.
   2. 5개 AI 에이전트(Claude Code, Codex, Antigravity, Pi, Hermes)에 업데이트된 스킬이 정상 재배포된다.
   3. 실제 LXP 환경에서 신규 기능들의 E2E 통합 테스트를 통과한다.
+  4. CoursePilot 스킬의 Scheduler 사용 경로와 E2E 검증이 Phase 16.1의 독립 패키지 연동을 반영한다.
 
 **Plans**: 0/1 plans executed
 
@@ -449,7 +468,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 16.1 → 17
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -469,4 +488,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 14. Pure-Python VOD Stream Downloader Integration | 2/2 | Complete    | 2026-09-25 |
 | 15. Course Announcements & Q&A Board Briefing | 2/2 | Complete    | 2026-09-26 |
 | 16. Comprehensive Activity Progress Dashboard | 2/2 | Complete    | 2026-09-26 |
+| 16.1. Independent Notion Scheduler Module and Agent Skill | 0/0 | Not planned |  |
 | 17. Universal Skill Packaging, Multi-Agent Deployment & End-to-End Verification | 0/1 | Planned |  |
