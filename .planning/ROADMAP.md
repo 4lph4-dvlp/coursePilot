@@ -435,7 +435,7 @@ Plans:
 ### Phase 16.1: Independent Notion Scheduler Module and Agent Skill (INSERTED)
 
 **Goal:** 기존 Notion Scheduler 연동을 별도 저장소의 독립 패키지와 Agent Skill로 분리하여 학업 및 비학업 작업에 재사용하고, CoursePilot의 동기화·완료 처리 안전 규칙을 유지한다.
-**Requirements**: TBD
+**Requirements**: SCHD-01, SCHD-02, SCHD-03, SCHD-04, SCHD-05
 **Depends on:** Phase 16
 **Success Criteria** (what must be TRUE):
 
