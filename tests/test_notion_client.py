@@ -81,7 +81,7 @@ def _api_error(status: int, code: str = "internal_server_error") -> APIResponseE
 
 
 def test_sdk_uses_only_bounded_builtin_429_retry() -> None:
-    with patch("coursepilot.notion.client.Client") as client_cls:
+    with patch("notion_scheduler.client.Client") as client_cls:
         NotionClient(
             settings=Settings(
                 notion_token="token", notion_database_id="db-id", _env_file=None

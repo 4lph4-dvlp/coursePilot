@@ -173,7 +173,7 @@ dependencies = [
     { name = "httpx" },
     { name = "lxml" },
     { name = "m3u8" },
-    { name = "notion-client" },
+    { name = "notion-scheduler" },
     { name = "playwright" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
@@ -198,7 +198,7 @@ requires-dist = [
     { name = "httpx", specifier = ">=0.28.0" },
     { name = "lxml", specifier = ">=5.2.0" },
     { name = "m3u8", specifier = ">=6.0.0" },
-    { name = "notion-client", specifier = ">=2.2.1" },
+    { name = "notion-scheduler", editable = "../notion-scheduler" },
     { name = "playwright", specifier = ">=1.42.0" },
     { name = "pydantic", specifier = ">=2.6.0" },
     { name = "pydantic-settings", specifier = ">=2.2.0" },
@@ -573,6 +573,23 @@ sdist = { url = "https://files.pythonhosted.org/packages/c0/e3/4ac01384e86e2c381
 wheels = [
     { url = "https://files.pythonhosted.org/packages/08/08/12645b24044301cb0d7908ec068c55c0d5724f39372891a1a27d630fdf50/notion_client-3.1.0-py2.py3-none-any.whl", hash = "sha256:7e3935f4dbc11231d8ad1fe404112e278501520342eaa35f86456f0df44a8aca", size = 23092, upload-time = "2026-05-12T08:54:43.135Z" },
 ]
+
+[[package]]
+name = "notion-scheduler"
+version = "0.1.0"
+source = { editable = "../notion-scheduler" }
+dependencies = [
+    { name = "notion-client" },
+    { name = "python-dotenv" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "notion-client", specifier = ">=3.1,<4" },
+    { name = "pytest", marker = "extra == 'test'", specifier = ">=8,<9" },
+    { name = "python-dotenv", specifier = ">=1,<2" },
+]
+provides-extras = ["test"]
 
 [[package]]
 name = "packaging"
