@@ -34,7 +34,8 @@ def test_clean_lecture_title():
     assert clean_lecture_title("3차시 미분방정식 개요 (웹콘텐츠)") == "3차시 미분방정식 개요"
 
 
-def test_parse_lectures_from_progress_table(course):
+def test_parse_lectures_from_progress_table(course, monkeypatch):
+    monkeypatch.setattr("coursepilot.scraper.date_parser.get_current_kst_time", lambda: datetime(2026, 9, 23, 12, tzinfo=KST))
     fixture_path = Path(__file__).parent / "fixtures" / "progress_report.html"
     html_content = fixture_path.read_text(encoding="utf-8")
 
@@ -91,7 +92,8 @@ def test_parse_lectures_from_progress_table(course):
     assert l6.is_overdue is False
 
 
-def test_parse_lectures_from_course_sections_fallback(course):
+def test_parse_lectures_from_course_sections_fallback(course, monkeypatch):
+    monkeypatch.setattr("coursepilot.scraper.date_parser.get_current_kst_time", lambda: datetime(2026, 9, 23, 12, tzinfo=KST))
     mock_section_html = """
     <div class="course-content">
       <ul class="topics">
@@ -420,4 +422,3 @@ def test_merge_ublogs_completion(course):
 
     assert merged[1].status == AttendanceStatus.INCOMPLETE
     assert merged[1].progress_percent == 0.0
-

@@ -27,7 +27,8 @@ def course():
     )
 
 
-def test_parse_assessment_list():
+def test_parse_assessment_list(monkeypatch):
+    monkeypatch.setattr("coursepilot.scraper.date_parser.get_current_kst_time", lambda: datetime(2026, 9, 24, 12, tzinfo=KST))
     fixture_path = Path(__file__).parent / "fixtures" / "assignment_list.html"
     html_content = fixture_path.read_text(encoding="utf-8")
 
@@ -253,4 +254,3 @@ def test_enrich_assessment_detail_marks_hidden_grade_quiz_as_submitted():
     enriched = enrich_assessment_detail(item, detail_html, base_url="https://lxp.kau.ac.kr")
     assert enriched.status == SubmissionStatus.SUBMITTED
     assert enriched.is_overdue is False
-

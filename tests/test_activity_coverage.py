@@ -153,7 +153,8 @@ def test_dashboard_navigation_and_unknown_layout_are_not_silent(sample_settings)
         validate_activity_coverage(dashboard, course)
 
 
-def test_current_completion_is_not_overridden_by_same_name_material_record():
+def test_current_completion_is_not_overridden_by_same_name_material_record(monkeypatch):
+    monkeypatch.setattr("coursepilot.scraper.date_parser.get_current_kst_time", lambda: NOW)
     cid = "1125"
     course = CourseItem(course_id=cid, raw_name="공수2", clean_name="공수2", url=f"https://lxp.kau.ac.kr/course/view.php?id={cid}")
     lectures = parse_lectures_from_course_sections(section_html(BASELINE[cid][1]), course)
