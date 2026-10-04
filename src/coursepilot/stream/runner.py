@@ -93,7 +93,7 @@ def run_vod_download_pipeline(
     if relogin and cfg.session_cache_path.exists():
         cfg.session_cache_path.unlink()
 
-    sm = SessionManager(settings=cfg, headful=headful, relogin=relogin)
+    sm = SessionManager(settings=cfg, headful=headful)
     run_result = VodDownloadRunResult(dry_run=dry_run)
 
     with sm:

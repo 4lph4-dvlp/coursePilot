@@ -76,6 +76,35 @@ def test_cli_download_vod_dry_run_json():
         assert parsed["courses"][0]["items"][0]["title"] == "어휘분석기 구현"
 
 
+def test_vod_pipeline_opens_session_with_supported_arguments(tmp_path):
+    from coursepilot.stream.runner import run_vod_download_pipeline
+
+    class SessionStub:
+        def __init__(self, settings, headful):
+            self.settings = settings
+            self.headful = headful
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return None
+
+        def get_authenticated_page(self):
+            return object()
+
+    settings = MagicMock()
+    with (
+        patch("coursepilot.stream.runner.get_settings", return_value=settings),
+        patch("coursepilot.stream.runner.SessionManager", SessionStub),
+        patch("coursepilot.stream.runner.extract_courses", return_value=[]),
+    ):
+        result = run_vod_download_pipeline(dry_run=True, output_dir=tmp_path)
+
+    assert result.total_courses == 0
+    assert result.dry_run is True
+
+
 def test_cli_watch_download_options_passed():
     runner = CliRunner()
     with patch("coursepilot.player.runner.watch_course_vods") as mock_watch:
