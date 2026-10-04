@@ -435,19 +435,23 @@ Plans:
 ### Phase 16.1: Independent Notion Scheduler Module and Agent Skill (INSERTED)
 
 **Goal:** 기존 Notion Scheduler 연동을 별도 저장소의 독립 패키지와 Agent Skill로 분리하여 학업 및 비학업 작업에 재사용하고, CoursePilot의 동기화·완료 처리 안전 규칙을 유지한다.
-**Requirements**: SCHD-01, SCHD-02, SCHD-03, SCHD-04, SCHD-05
+**Requirements**: SCHD-01, SCHD-02, SCHD-03, SCHD-04, SCHD-05, SCHD-06
 **Depends on:** Phase 16
 **Success Criteria** (what must be TRUE):
 
   1. 독립 패키지와 스킬이 학업 외 Scheduler 작업의 조회·생성·수정·완료 처리를 지원한다.
   2. CoursePilot이 독립 패키지를 사용하며 기존 중복 방지와 보호 필드 규칙을 유지한다.
   3. 직접 API를 기본 경로로 유지하고 공식 원격 MCP의 기능·토큰 비용을 실제 작업 단위로 비교해 선택 근거를 기록한다.
+  4. 사용자가 변경한 개인 Scheduler의 `tag`를 지원하고 삭제된 `선택`을 요구하지 않으며, CoursePilot 자동 동기화가 `tag`를 보존한다.
 
-**Plans:** 0 plans
+**Plans:** 4 plans
 
 Plans:
 
-- [ ] TBD (run $gsd-plan-phase 16.1 to break down)
+- [x] 16.1-01 — 독립 패키지와 일반 작업 서비스
+- [x] 16.1-02 — JSON CLI와 Agent Skill
+- [x] 16.1-03 — CoursePilot 연결과 API/MCP 비교
+- [x] 16.1-04 — 현재 개인 Scheduler 스키마 반영 및 UAT 격차 해소
 
 ### Phase 17: Universal Skill Packaging, Multi-Agent Deployment & End-to-End Verification
 

@@ -18,7 +18,7 @@
 - ✓ 수강 중인 전체 과목 목록 및 주차별 강의 수강 상태(진행도, 마감일) 파싱 — Phase 2
 - ✓ 각 과목별 과제 목록 및 제출 여부, 제출 마감일 파싱 — Phase 2
 - ✓ 24시간 이내 마감 임박 항목 감지 및 우선순위/경고 리포트 기능 — Phase 3
-- ✓ 통일화된 작업 이름 규칙(예: `[{과목약어}] {N}주차 강의 시청`, `[{과목약어}] {과제명} 제출`) 및 노션 속성(`선택`=루틴/이벤트, `구분`=학업, `DueDate`, `우선순위`, `상태`=시작 전) 자동 매핑 — Phase 3
+- ✓ 통일화된 작업 이름 규칙(예: `[{과목약어}] {N}주차 강의 시청`, `[{과목약어}] {과제명} 제출`) 및 현재 노션 속성(`구분`=학업, `DueDate`, `우선순위`, `상태`=시작 전) 자동 매핑 — Phase 3, 16.1
 - ✓ Notion `Scheduler` 연동, 정규화 제목 기반 기등록 항목 중복 방지, 보호 필드 보존 및 실데이터 읽기/쓰기 0건 드라이런 — Phase 4
 
 ### Active
@@ -37,7 +37,7 @@
 - **제품 범위**: 대학별 학업 일정·활동 관리. 현재 연결 구현은 Coursemos 계열 LMS 및 Notion Scheduler이며 다른 LMS 연결은 향후 확장 대상입니다.
 - **학교 선택**: LMS_URL을 명시하거나 선택적 LMS_PROFILE=kau 사용. 기본 학교 없음; 기존 URL·캐시·활동 ID 보존.
 - **Notion 데이터베이스**: `Scheduler` (database container: `21d53280-64be-80e9-827a-e6fd0f85499a`, data source: `21d53280-64be-80ec-af4e-000b679f03bb`)
-  - 필드: `이름`(Title), `선택`(Select: 루틴/이벤트), `구분`(Multi-select: 학업 등), `DueDate`(Date), `Plan`(Date), `우선순위`(Select: 🔴 긴급 (P1)/🟡 중요 (P2)/🔵 보통 (P3)/⚪ 낮음 (P4)), `상태`(Status: 시작 전/진행 중/완료/폐기), `메모`(Text)
+  - 현재 필드: `이름`(Title), `구분`(Multi-select: 학업 등), `tag`(Multi-select: NotionCL/기전실/상담), `DueDate`(Date), `Plan`(Date), `우선순위`(Select: 🔴 긴급 (P1)/🟡 중요 (P2)/🔵 보통 (P3)/⚪ 낮음 (P4)), `상태`(Status: 시작 전/진행 중/완료/폐기), `메모`(Text). 사용자가 `선택`을 삭제했으며 CoursePilot 자동 동기화는 `tag`를 보존한다.
   - 기존 네이밍 관례: `[공수2] 3주차 강의 시청`, `[자구] 3주차 강의 시청`, `[디시설] 2주차 개념 강의 정리` 등 `[{과목약어}] ...` 브래킷 표기법 준수
 - **동작 방식**: 범용 Agent Skill(`skills/coursepilot/SKILL.md`)을 `install-skill` 명령으로 Claude Code, Codex, Antigravity, Pi, Hermes(그 외 SKILL.md를 지원하는 모든 에이전트 포함)에 설치하고, 에이전트가 자연어 요청을 받으면 `python -m coursepilot check|sync --json`을 직접 실행해 버전이 명시된 JSON(schema_version 1)을 읽어 채팅창에 브리핑하며, 사용자가 승인한 뒤에만 Notion에 동기화. 제품·패키지·명령·스킬은 CoursePilot 단일 이름만 제공하며 호환 별칭은 없습니다.
 
@@ -52,7 +52,7 @@
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
 | Playwright 헤드리스 브라우저 사용 | SPA 및 자바스크립트 렌더링 기반 대학 LMS의 동적 요소를 안정적으로 크롤링하기 위함 | ✓ Validated (Phase 1, 2) |
-| 기존 Notion Scheduler DB 스키마 직접 준수 | 사용자가 이미 사용하는 스케줄러 환경에 자연스럽게 통합되어 추가 마이그레이션이 불필요함 | ✓ Validated (Phase 4) |
+| 현재 Notion Scheduler DB 스키마 직접 준수 | 사용자가 변경한 스케줄러 환경에 자연스럽게 통합되어 추가 마이그레이션이 불필요함 | ✓ Validated (Phase 4, 16.1) |
 | 과목명 약칭 매핑 테이블 적용 | 노션의 기존 네이밍 스타일(`[공수2]`, `[자구]`)을 그대로 유지하기 위함 | ✓ Validated (Phase 1, 3) |
 | 순수 도메인 계층 격리 (Pure Domain Layer) | I/O(Playwright, Notion API) 없는 결정론적 테스트 및 빠른 단위 테스트 보장 | ✓ Implemented (Phase 3) |
 | 24시간 긴급도 우선순위 사다리 (P1~P4) | 마감 24시간 이내 미완료 항목은 P1, 지연 항목은 P4로 자동 분류 | ✓ Implemented (Phase 3) |

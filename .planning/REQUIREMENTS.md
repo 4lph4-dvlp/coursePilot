@@ -28,7 +28,7 @@
 
 - [x] **NOTN-01**: Notion Scheduler DB(`21d53280-64be-80ec-af4e-000b679f03bb`)의 기존 페이지를 조회하여 작업명과 마감일(DueDate)을 확인한다.
 - [x] **NOTN-02**: 중복 등록 방지: 기존에 등록된 항목은 건너뛰고(`Skip`), 신규 미완료 항목만 선별하여 등록한다.
-- [x] **NOTN-03**: 대상 DB 스키마 속성(`선택`=루틴/이벤트, `구분`=학업, `DueDate`, `우선순위`=P1~P4, `상태`=시작 전, `메모`=URL)을 정확히 매핑하여 새 페이지를 생성한다.
+- [x] **NOTN-03**: 현재 대상 DB 스키마 속성(`구분`=학업, `DueDate`, `우선순위`=P1~P4, `상태`=시작 전, `메모`=URL)을 정확히 매핑하여 새 페이지를 생성한다. 삭제된 `선택`은 보내지 않고 개인 `tag` 값은 보존한다.
 - [x] **NOTN-04**: 노션에 실제 등록하기 전 파싱 결과와 등록 예정 목록을 미리 확인할 수 있는 드라이런(`--dry-run`) 모드를 지원한다.
 
 ### CLI & Universal Agent Skill Packaging (SKIL)
@@ -70,6 +70,7 @@
 - [ ] **SCHD-03**: 명시적 사용자 작업에서는 `Plan`과 `상태` 수정이 가능하되 CoursePilot 자동 동기화에서는 두 필드를 보호하고 기존 미리보기·중복 방지·시청 완료 동작을 유지한다.
 - [ ] **SCHD-04**: 직접 Notion API를 기본 실행 경로로 사용하고 공식 원격 MCP는 대화형 선택 경로로 문서화한다.
 - [ ] **SCHD-05**: 대표 작업별 API와 원격 MCP의 기능·모델 토큰·도구 호출·시간을 측정하여 관찰값과 측정 불가 항목을 구분해 기록한다.
+- [x] **SCHD-06**: 사용자가 변경한 개인 Scheduler 스키마(`선택` 삭제, `tag` 다중 선택 추가)를 독립 스킬과 CoursePilot에서 지원한다. `tag`는 명시적 일반 작업에서만 수정하고 자동 동기화에서는 보존한다.
 
 ### Advanced Automation & Notifications
 
@@ -121,6 +122,7 @@
 | SCHD-03 | Phase 16.1 | Pending |
 | SCHD-04 | Phase 16.1 | Pending |
 | SCHD-05 | Phase 16.1 | Pending |
+| SCHD-06 | Phase 16.1 | Complete |
 | NOTF-01 | Future | Backlog |
 | CAL-01 | Future | Backlog |
 | MOBI-01 | Future | Backlog |
@@ -133,5 +135,4 @@
 
 ---
 *Requirements defined: 2026-09-21*
-*Last updated: 2026-10-03 for Milestone 4 (Phase 16.1)*
-
+*Last updated: 2026-10-04 for Phase 16.1 Scheduler schema update*
