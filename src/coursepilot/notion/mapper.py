@@ -99,7 +99,6 @@ def to_create_properties(task: SyncTask) -> dict[str, Any]:
     """Serialize a task without Plan or page children (D-08)."""
     fields: dict[str, Any] = {
         "title": task.title,
-        "selection": task.selection.value,
         "category": task.category,
         "priority": PRIORITY_LABELS[task.priority],
         "status": task.status.value,

@@ -29,7 +29,7 @@ class TaskPriority(str, Enum):
 
 
 class TaskSelect(str, Enum):
-    """Notion '선택' select property (D-05)."""
+    """Internal LMS task classification retained for domain behavior."""
 
     ROUTINE = "루틴"  # Video lectures
     EVENT = "이벤트"  # Assignments, quizzes, exams, forums

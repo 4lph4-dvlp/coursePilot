@@ -57,8 +57,8 @@ def _task(*, due_date: datetime | None = None, memo: str = "memo") -> SyncTask:
 def test_schema_contract_validates_all_eight_properties_and_options() -> None:
     assert set(SCHEDULER_SCHEMA) == {
         "이름",
-        "선택",
         "구분",
+        "tag",
         "DueDate",
         "Plan",
         "우선순위",
@@ -68,11 +68,11 @@ def test_schema_contract_validates_all_eight_properties_and_options() -> None:
     validate_scheduler_schema(_schema())
 
     broken = _schema()
-    broken["선택"]["select"]["options"] = [{"name": "루틴"}]
+    broken["tag"]["type"] = "select"
     broken["메모"]["type"] = "title"
     with pytest.raises(NotionSchemaError) as exc_info:
         validate_scheduler_schema(broken)
-    assert "이벤트" in str(exc_info.value)
+    assert "tag" in str(exc_info.value)
     assert "메모" in str(exc_info.value)
 
 
@@ -124,7 +124,6 @@ def test_create_properties_are_exact_memo_only_and_kst_serialized() -> None:
 
     assert set(properties) == {
         "이름",
-        "선택",
         "구분",
         "DueDate",
         "우선순위",
@@ -135,6 +134,7 @@ def test_create_properties_are_exact_memo_only_and_kst_serialized() -> None:
     assert properties["우선순위"] == {"select": {"name": "🔴 긴급 (P1)"}}
     assert properties["메모"]["rich_text"][0]["text"]["content"] == "x" * 1950
     assert "Plan" not in properties
+    assert "tag" not in properties
     assert "children" not in properties
     assert "DueDate" not in to_create_properties(_task(due_date=None))
 

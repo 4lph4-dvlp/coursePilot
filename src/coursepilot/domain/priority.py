@@ -63,7 +63,7 @@ def calculate_priority(
 
 
 def get_task_selection(task_type: TaskType) -> TaskSelect:
-    """Maps activity type to Notion '선택' property (D-05)."""
+    """Classify the LMS activity for internal task behavior."""
     if task_type == TaskType.LECTURE:
         return TaskSelect.ROUTINE
     return TaskSelect.EVENT

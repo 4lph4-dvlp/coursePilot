@@ -33,14 +33,11 @@ def test_completion_title_index_excludes_ambiguous_pages():
 def _schema() -> dict:
     return {
         "이름": {"type": "title", "title": {}},
-        "선택": {
-            "type": "select",
-            "select": {"options": [{"name": "루틴"}, {"name": "이벤트"}]},
-        },
         "구분": {
             "type": "multi_select",
             "multi_select": {"options": [{"name": "학업"}]},
         },
+        "tag": {"type": "multi_select", "multi_select": {"options": [{"name": "NotionCL"}]}},
         "DueDate": {"type": "date", "date": {}},
         "Plan": {"type": "date", "date": {}},
         "우선순위": {
