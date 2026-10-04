@@ -13,7 +13,7 @@
 ## 업데이트 및 스킬 연결
 
 - 이 저장소와 별도 `notion-scheduler` 저장소를 같은 상위 디렉터리에 둔 뒤 `uv sync`를 실행하세요. `uv run coursepilot --help` 또는 `uv run python -m coursepilot --help`로 실행을 확인합니다.
-- 에이전트 스킬은 `uv run coursepilot install-skill --agent <id> --link`로 다시 연결하세요. 사용하지 않는 이전 스킬 연결은 직접 제거하고 에이전트를 새 세션으로 시작하세요. 복사 설치라면 `--link` 없이 재설치합니다.
+- 에이전트 스킬은 이 체크아웃에서 `uv run coursepilot install-skill --all`로 다시 연결하세요. 각 에이전트의 설치 결과를 확인하고 새 세션으로 시작하세요. 개별 복사 설치는 `--agent <id>`로 계속 사용할 수 있습니다.
 - `~/.coursepilot/.env`의 키·직접 설정한 LMS 주소·세션/진척도 캐시·다운로드 경로·Notion 작업 ID는 그대로 유지됩니다. 예전 학교 기본값에 의존했다면 `LMS_URL` 또는 `LMS_PROFILE=kau`를 지정해야 합니다.
 - 로컬 저장소 폴더명과 Git 원격 주소는 자동으로 바꾸지 않습니다. 폴더를 나중에 옮긴 경우 연결형 스킬은 새 위치에서 재설치하세요.
 
@@ -120,6 +120,10 @@ Scheduler에 등록된 미완료 영상 작업 전체를 시청할 때는 `watch
 | Antigravity | `python -m coursepilot install-skill --agent antigravity` | `~/.gemini/antigravity/skills/coursepilot` | 빈 폴더에서 재확인 대기 |
 | Pi | `python -m coursepilot install-skill --agent pi` | `~/.pi/agent/skills/coursepilot` | 새 이름 설치 테스트 통과; 에이전트 재발견 확인 대기 |
 | Hermes | `python -m coursepilot install-skill --agent hermes` | `$HERMES_HOME/skills/coursepilot` (또는 Windows `%LOCALAPPDATA%\hermes\skills\coursepilot`, 그 외 `~/.hermes/skills/coursepilot`) | 새 이름 설치 테스트 통과; 에이전트 재발견 확인 대기 |
+
+`uv run coursepilot install-skill --all`은 위 다섯 대상에 **현재 체크아웃의** `skills/coursepilot/`를 링크합니다. 이미 존재하는 에이전트 홈만 사용하고, 없는 홈은 만들지 않고 `skip`으로 기록합니다. 기존 CoursePilot 복사본은 링크로 교체하지만 다른 스킬이 자리한 대상은 건드리지 않고 `failure`로 기록합니다. 하나가 실패해도 나머지 네 대상을 계속 시도합니다. 각 행의 상태·이유·대상 경로와 합계가 출력되며 다섯 곳 모두 `success`일 때만 종료 코드 0, 일부 `skip`/`failure`면 1, `--agent`와 `--all`을 함께 쓰는 잘못된 호출은 2입니다.
+
+저장소를 옮긴 뒤 링크가 끊어지면 대상의 `SKILL.md`와 `JSON_CONTRACT.md`를 열어 진단하세요. 현재 체크아웃에서 `uv run coursepilot install-skill --all`을 다시 실행하면 끊어진 링크를 현재 소스로 고치고 두 문서의 읽기 가능 여부를 검사합니다. 다른 체크아웃을 자동 탐색하지 않습니다. 설치 뒤에는 각 에이전트를 재시작하거나 새 세션에서 스킬을 다시 발견하게 하세요. `notion-scheduler` 스킬 상태는 별도 선택 항목으로 표시되며 없어도 CoursePilot의 학업 명령 설치는 실패하지 않습니다. 일반 Scheduler 작업용 독립 스킬은 공개 배포가 준비되면 별도로 설치하세요.
 
 설치가 끝나면 **해당 에이전트를 재시작(또는 새 세션 시작)**한 뒤 "과제 확인해줘"처럼 자연어로 요청해 보세요. 상세 확인 결과는 `.planning/phases/05-cli-reporting-antigravity-skill-packaging/05-AGENT-SKILL-EVIDENCE.md`에 기록됩니다.
 

@@ -479,3 +479,32 @@ def test_batch_cli_reports_all_rows_and_partial_exit(fake_home: Path) -> None:
     assert "success=4" in result.output and "skip=1" in result.output
     assert "notion-scheduler" in result.output
     assert CliRunner().invoke(cli, ["install-skill", "--all", "--agent", "codex"]).exit_code == 2
+
+
+def test_batch_five_successes_and_optional_scheduler(fake_home: Path) -> None:
+    for agent in AGENT_SKILL_PATHS:
+        resolve_agent_home(agent, home=fake_home, env={}, platform="linux").mkdir(parents=True)
+    optional = resolve_install_target("codex", home=fake_home, env={}, platform="linux").parent / "notion-scheduler"
+    optional.mkdir(parents=True)
+    (optional / "SKILL.md").write_text("optional", encoding="utf-8")
+    batch = install_skill_batch(home=fake_home, env={}, platform="linux")
+    assert len(batch.items) == 5
+    assert all(item.status == "success" and item.link_source == skill_source_dir() for item in batch.items)
+    assert [row.readable for row in batch.scheduler_skill] == [False, True, False, False, False]
+
+
+def test_batch_preserves_foreign_link(fake_home: Path) -> None:
+    resolve_agent_home("claude", home=fake_home, env={}, platform="linux").mkdir(parents=True)
+    other_source = fake_home / "other-skill"
+    other_source.mkdir()
+    (other_source / "SKILL.md").write_text("---\nname: other\n---\n", encoding="utf-8")
+    target = resolve_install_target("claude", home=fake_home, env={}, platform="linux")
+    target.parent.mkdir(parents=True)
+    if os.name == "nt":
+        subprocess.run(["cmd", "/c", "mklink", "/J", str(target), str(other_source)], check=True, capture_output=True)
+    else:
+        os.symlink(other_source, target, target_is_directory=True)
+    batch = install_skill_batch(home=fake_home, env={}, platform="linux")
+    assert batch.items[0].status == "failure"
+    assert target.resolve() == other_source.resolve()
+    assert (target / "SKILL.md").read_text(encoding="utf-8").find("name: other") >= 0
