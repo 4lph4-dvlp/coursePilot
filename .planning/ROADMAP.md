@@ -466,17 +466,23 @@ Plans:
   3. 실제 LXP 환경에서 신규 기능들의 E2E 통합 테스트를 통과한다.
   4. CoursePilot 스킬의 Scheduler 사용 경로와 E2E 검증이 Phase 16.1의 독립 패키지 연동을 반영한다.
 
-**Plans**: 0/4 plans executed
+**Plans**: 3/4 plans executed
 
 Plans:
+
+- [x] 17-01-PLAN.md
+- [x] 17-02-PLAN.md
+- [x] 17-03-PLAN.md
+- [ ] 17-04-PLAN.md
+
 **Wave 1**
 
-- [ ] 17-01 — Progress skill and JSON contract tracer
+- [x] 17-01 — Progress skill and JSON contract tracer
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 17-02 — Board, download, watch, and Scheduler contract expansion
-- [ ] 17-03 — Safe five-agent linked deployment
+- [x] 17-02 — Board, download, watch, and Scheduler contract expansion
+- [x] 17-03 — Safe five-agent linked deployment
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -508,4 +514,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 15. Course Announcements & Q&A Board Briefing | 2/2 | Complete    | 2026-09-26 |
 | 16. Comprehensive Activity Progress Dashboard | 2/2 | Complete    | 2026-09-26 |
 | 16.1. Independent Notion Scheduler Module and Agent Skill | 4/4 | Complete    | 2026-10-04 |
-| 17. Universal Skill Packaging, Multi-Agent Deployment & End-to-End Verification | 0/4 | Planned |  |
+| 17. Universal Skill Packaging, Multi-Agent Deployment & End-to-End Verification | 3/4 | In Progress|  |
