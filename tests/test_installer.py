@@ -165,6 +165,16 @@ def test_skill_body_untrusted_data_rule() -> None:
     assert "표시" in body
 
 
+def test_installed_source_link_exposes_progress_contract(fake_home: Path) -> None:
+    agent_home = fake_home / ".codex"
+    agent_home.mkdir()
+    source = skill_source_dir()
+    result = install_skill("codex", link=True, home=fake_home, source=source)
+    assert result.target.resolve() == source.resolve()
+    assert "progress --refresh --json" in (result.target / "SKILL.md").read_text(encoding="utf-8")
+    assert '"command": "progress"' in (result.target / "JSON_CONTRACT.md").read_text(encoding="utf-8")
+
+
 def test_skill_body_agent_neutral() -> None:
     body = _skill_body((skill_source_dir() / "SKILL.md").read_text(encoding="utf-8"))
     for term in _AGENT_SPECIFIC_DENYLIST:

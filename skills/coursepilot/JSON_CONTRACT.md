@@ -2,6 +2,50 @@
 
 이 문서는 `python -m coursepilot check --json`, `python -m coursepilot sync --json`, 그리고 `python -m coursepilot watch --json`이 표준출력(stdout)에 출력하는 JSON의 정확한 구조를 설명합니다. 실제 소스는 `src/coursepilot/report_models.py`와 `src/coursepilot/player/runner.py`의 Pydantic 모델이며, 이 문서는 그 모델을 사람이 읽을 수 있게 옮긴 참조 자료입니다. `skills/coursepilot/SKILL.md`는 이 문서를 가리킵니다.
 
+## `progress` — 종합 학업 현황
+
+호출: `uv --directory "{{COURSEPILOT_REPO}}" run python -m coursepilot progress --refresh --json`. `--course`, `--week`, `--detail`로 범위를 좁힐 수 있습니다. `--refresh`는 캐시 대신 새로 수집합니다.
+
+`ProgressReport`의 `schema_version`은 `1`, `command`는 `progress`입니다. 최상위 `status`는 `success`, `partial_success`, `error` 중 하나입니다. `generated_at`은 생성 시각, `is_cached`는 캐시 여부, `errors`는 수집 오류, `notices`는 사용자 안내입니다. `summary`는 `DashboardSummary`, `courses`는 과목별 `CourseProgress` 목록입니다.
+
+| 필드 | 의미 |
+|---|---|
+| `summary.total_courses` | 발견된 수강 과목 수 |
+| `current_open_rate`, `current_open_completed`, `current_open_total` | 현재 공개된 활동의 완료율, 완료 수, 전체 수 |
+| `past_weeks_rate`, `past_weeks_completed`, `past_weeks_total` | 지난 주차 활동의 완료율과 건수 |
+| `semester_overall_rate`, `semester_completed`, `semester_total` | 학기 전체 완료율과 건수 |
+| `missed_past_count`, `current_week_todo_count` | 지난 주차 미완료 수와 이번 주 할 일 수 |
+| `activity_totals`, `activity_breakdown` | `vod`, `assignment`, `quiz`, `material`별 `completed`, `total`, `rate` |
+| `course_id`, `course_name`, `course_abbr`, `current_week` | 과목 식별자, 이름, 약칭, 현재 주차 |
+| `current_week_items`, `missed_past_items`, `all_items` | 이번 주, 지난 주 미완료, 전체 활동 목록 |
+| `CourseProgress.status`, `error_message` | 과목별 `ok`/`error`와 오류 설명 |
+
+정상 예시 (`ProgressReport` 모델로 검증):
+
+```json
+{
+  "schema_version": 1, "command": "progress", "status": "success",
+  "generated_at": "2026-10-04T12:00:00+09:00", "is_cached": false,
+  "summary": {"total_courses": 1, "current_open_rate": 100.0, "current_open_completed": 1, "current_open_total": 1, "past_weeks_rate": 100.0, "past_weeks_completed": 1, "past_weeks_total": 1, "semester_overall_rate": 100.0, "semester_completed": 2, "semester_total": 2, "missed_past_count": 0, "current_week_todo_count": 0, "activity_totals": {"vod": {"completed": 2, "total": 2, "rate": 100.0}}},
+  "courses": [{"course_id": "example", "course_name": "예시 과목", "course_abbr": "예시", "current_week": 2, "current_open_rate": 100.0, "current_open_completed": 1, "current_open_total": 1, "past_weeks_rate": 100.0, "past_weeks_completed": 1, "past_weeks_total": 1, "semester_overall_rate": 100.0, "semester_completed": 2, "semester_total": 2, "activity_breakdown": {"vod": {"completed": 2, "total": 2, "rate": 100.0}}, "current_week_items": [{"course_id": "example", "activity_type": "vod", "week_number": 2, "title": "이번 주 영상", "is_completed": true}], "missed_past_items": [], "all_items": [{"course_id": "example", "activity_type": "vod", "week_number": 1, "title": "지난 주 영상", "is_completed": true}, {"course_id": "example", "activity_type": "vod", "week_number": 2, "title": "이번 주 영상", "is_completed": true}], "status": "ok"}],
+  "errors": [], "notices": []
+}
+```
+
+주의 예시: 한 과목의 수집 실패는 완료를 증명하지 않습니다.
+
+```json
+{
+  "schema_version": 1, "command": "progress", "status": "partial_success",
+  "generated_at": "2026-10-04T12:00:00+09:00", "is_cached": false,
+  "summary": {"total_courses": 1, "current_open_rate": 0.0, "current_open_completed": 0, "current_open_total": 0, "past_weeks_rate": 0.0, "past_weeks_completed": 0, "past_weeks_total": 0, "semester_overall_rate": 0.0, "semester_completed": 0, "semester_total": 0, "missed_past_count": 0, "current_week_todo_count": 0, "activity_totals": {}},
+  "courses": [{"course_id": "example", "course_name": "예시 과목", "course_abbr": "예시", "current_week": 0, "current_open_rate": 0.0, "current_open_completed": 0, "current_open_total": 0, "past_weeks_rate": 0.0, "past_weeks_completed": 0, "past_weeks_total": 0, "semester_overall_rate": 0.0, "semester_completed": 0, "semester_total": 0, "activity_breakdown": {}, "current_week_items": [], "missed_past_items": [], "all_items": [], "status": "error", "error_message": "수집 실패"}],
+  "errors": [{"scope": "course", "code": "collection_failed", "message": "수집 실패", "course_id": "example"}], "notices": []
+}
+```
+
+종료 코드 `1`은 `status: success`와 `summary.missed_past_count > 0`에서도 나옵니다. 이때는 수집 실패가 아니라 지난 주차 미완료 알림입니다. `partial_success`/`error`, `errors`, 과목별 `status: error`이면 수집 실패를 먼저 설명하세요. 항목이 0개여도 전체 과목의 정상 수집을 확인하기 전에는 완료라고 단정하지 마세요.
+
 ## 버전 규칙 (Versioning)
 
 - 현재 스키마 버전은 `schema_version: 1`입니다.

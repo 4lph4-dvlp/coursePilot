@@ -16,7 +16,7 @@ Repository root: `{{COURSEPILOT_REPO}}`
 항상 다음 형태로 명령을 실행하세요:
 
 ```
-uv --directory "{{COURSEPILOT_REPO}}" run python -m coursepilot <check|sync|watch> [options]
+uv --directory "{{COURSEPILOT_REPO}}" run python -m coursepilot <check|progress|sync|watch|board|notices|qna|materials|download-vod> [options]
 ```
 
 - 항상 CLI를 새로 실행하고 그 실행의 표준출력(stdout) JSON으로만 답변하세요. 현재 작업 폴더에 남아 있는 이전 결과 파일(`*.json` 등)을 답으로 재사용하거나 신뢰하지 마세요.
@@ -37,7 +37,15 @@ uv --directory "{{COURSEPILOT_REPO}}" run python -m coursepilot <check|sync|watc
 5. 종료 코드 `2`에 `ConfigError`가 포함되어 있거나 `.env`가 없다면, 어떤 키를 채워야 하는지만 알려주고(저장소의 `.env.example`을 `~/.coursepilot/.env`로 복사해서 시작하라고 안내) 값은 사용자가 직접 채우게 하세요.
 6. 학번/아이디, LMS 비밀번호, Notion 토큰, 세션 쿠키는 절대 요청, 반복, 저장하지 마세요. 사용자가 대화 중 실수로 비밀 값을 붙여넣더라도 그 값을 다시 출력하지 말고, `.env`로 옮기고 즉시 해당 값을 재발급(로테이션)하라고 안내하세요.
 
-## 4. 브리핑 — 예: "과제 확인해줘"
+## 4. 학업 현황과 마감 브리핑
+
+- “이번 주 학업 현황 알려줘”, “진도율”처럼 넓은 현황 요청은 `progress --refresh --json`을 먼저 실행하세요. `summary`의 진도율과 건수, 각 `courses`의 `current_week_items`, `missed_past_items`, `all_items`를 구분해 설명하세요.
+- 마감일, 과제, 제출할 작업을 명시한 요청은 `check --json`을 실행하세요. 현황 요청의 결과를 마감 목록으로 대체하지 마세요.
+- `progress.status`가 `partial_success` 또는 `error`이거나 `errors`가 있거나 어느 `CourseProgress.status`가 `error`이면, 유효한 결과를 브리핑하기 전에 수집 실패 범위와 `error_message`를 알리세요. `notices`의 `message`도 먼저 전하세요.
+- 항목 수가 0이어도 모든 과목의 수집 성공이 증명되지 않았다면 “모두 완료”라고 말하지 마세요. `summary.total_courses`, `courses` 수, 과목별 `status`를 확인하세요. 수집된 0개와 수집하지 못한 0개를 구별하세요.
+- `progress`의 종료 코드 `1`은 수집 성공(`status: success`) 중 `summary.missed_past_count > 0`인 알림일 수도 있습니다. JSON의 `status`와 `errors`를 함께 확인하세요.
+
+### 마감 브리핑 — 예: “과제 확인해줘”
 
 1. 미완료 일정은 `check --json`, 진도율이나 특정 활동의 발견 여부를 확인할 때는 `check --include-completed --json`을 실행하세요. 강의자료 열람·다운로드 상태를 묻는 경우 `materials --course "과목명" --week N --dry-run --json`도 실행하세요.
    - 영상·과제·퀴즈뿐 아니라 강의자료 확인/다운로드 작업도 포함됩니다.

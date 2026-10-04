@@ -11,6 +11,7 @@ from pydantic import BaseModel
 
 from coursepilot.installer import AGENT_SKILL_PATHS
 from coursepilot.report_models import CheckReport, SyncReport
+from coursepilot.progress.models import ProgressReport
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CONTRACT_DOC = REPO_ROOT / "skills" / "coursepilot" / "JSON_CONTRACT.md"
@@ -78,6 +79,21 @@ def test_json_contract_doc_examples_validate() -> None:
         CheckReport.model_validate(payload)
     for payload in sync_payloads:
         SyncReport.model_validate(payload)
+
+    progress_payloads = [p for p in parsed if p.get("command") == "progress"]
+    assert {p["status"] for p in progress_payloads} >= {"success", "partial_success"}
+    for payload in progress_payloads:
+        assert payload["schema_version"] == 1
+        ProgressReport.model_validate(payload)
+
+
+def test_progress_skill_route_and_failure_guard() -> None:
+    body = SKILL_MD.read_text(encoding="utf-8")
+    assert "progress --refresh --json" in body
+    assert "check --json" in body
+    assert "이번 주 학업 현황" in body
+    assert "CourseProgress.status" in body
+    assert "모두 완료" in body
 
 
 def test_json_contract_readme_lists_every_agent() -> None:
