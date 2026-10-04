@@ -358,6 +358,7 @@ Plans:
 **Plans**: 2/2 plans executed
 
 Plans:
+
 **Wave 1**
 
 - [x] 14-01-PLAN.md — 순수 파이썬 HLS 매니페스트 파서, RFC 8216 AES-128 복호화 및 원자적 TS 세그먼트 다운로더 엔진
@@ -465,7 +466,21 @@ Plans:
   3. 실제 LXP 환경에서 신규 기능들의 E2E 통합 테스트를 통과한다.
   4. CoursePilot 스킬의 Scheduler 사용 경로와 E2E 검증이 Phase 16.1의 독립 패키지 연동을 반영한다.
 
-**Plans**: 0/1 plans executed
+**Plans**: 0/4 plans executed
+
+Plans:
+**Wave 1**
+
+- [ ] 17-01 — Progress skill and JSON contract tracer
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 17-02 — Board, download, watch, and Scheduler contract expansion
+- [ ] 17-03 — Safe five-agent linked deployment
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 17-04 — Live LXP, Scheduler, and agent routing verification
 
 ---
 
@@ -493,4 +508,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 15. Course Announcements & Q&A Board Briefing | 2/2 | Complete    | 2026-09-26 |
 | 16. Comprehensive Activity Progress Dashboard | 2/2 | Complete    | 2026-09-26 |
 | 16.1. Independent Notion Scheduler Module and Agent Skill | 4/4 | Complete    | 2026-10-04 |
-| 17. Universal Skill Packaging, Multi-Agent Deployment & End-to-End Verification | 0/1 | Planned |  |
+| 17. Universal Skill Packaging, Multi-Agent Deployment & End-to-End Verification | 0/4 | Planned |  |
