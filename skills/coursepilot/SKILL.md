@@ -1,6 +1,6 @@
 ---
 name: coursepilot
-description: "Manage university coursework through the local CoursePilot CLI: check lectures, materials, assignments, quizzes and deadlines; preview or apply Notion Scheduler sync; inspect progress; and run explicitly requested material downloads or VOD viewing. Use for '과제 확인해줘', '미완료 강의 알려줘', '노션에 올려줘' or coursework-management requests. Currently supports Coursemos-family LMS configured by LMS_URL or an optional school profile; other LMS integrations require separate implementation."
+description: "Use this skill for Korean coursework requests such as '진도율', '공지', 'Q&A', '과제 확인해줘', '미완료 강의 알려줘', and '노션에 올려줘'. Run the local CoursePilot CLI to check lectures, materials, assignments, quizzes, deadlines, announcements, questions, and progress; preview or apply academic Notion Scheduler sync; or perform explicitly requested material downloads and VOD viewing. Supports Coursemos-family LMS configured by LMS_URL or an optional school profile."
 ---
 
 # CoursePilot
