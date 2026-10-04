@@ -96,6 +96,17 @@ def test_progress_skill_route_and_failure_guard() -> None:
     assert "모두 완료" in body
 
 
+def test_board_download_and_scheduler_skill_routes() -> None:
+    body = SKILL_MD.read_text(encoding="utf-8")
+    for route in ("notices --json", "qna --json", "board --json", "materials --course", "download-vod --course"):
+        assert route in body
+    for status in ("downloaded", "skipped", "viewed_only", "failed", "planned"):
+        assert f"`{status}`" in body
+    assert "saved_path" in body and "실제 존재" in body
+    assert "notion-scheduler" in body
+    assert "../notion-scheduler" not in body
+
+
 def test_json_contract_readme_lists_every_agent() -> None:
     """README.md's install table lists every AGENT_SKILL_PATHS agent id and its skills_dir path."""
     content = README.read_text(encoding="utf-8")

@@ -47,6 +47,19 @@ uv --directory "{{COURSEPILOT_REPO}}" run python -m coursepilot <check|progress|
 
 ### 마감 브리핑 — 예: “과제 확인해줘”
 
+### 공지·질문 게시판
+
+- “공지”는 `notices --json`, “Q&A”, “질문”, “답변”은 `qna --json`, 게시판 전체 현황은 `board --json`을 실행하세요. 기본값은 전체 수강 과목의 게시판당 최근 3개입니다. 사용자가 범위를 정하면 `--course`, `--limit N`, `--all`을 사용하세요.
+- 과목별로 제목·작성자·작성일·링크를 보여주고, Q&A는 `is_answered`, `is_my_question`, `replies`를 구분하세요. `errors`가 있거나 종료 코드가 `1`이면 누락된 과목/게시판을 먼저 알리세요. 전체 목록을 읽은 것으로 표현하지 마세요.
+- `--view`와 `--detail`은 본문 조회가 필요할 때 사용하세요. `--mark-read`와 `--download-attachments`는 로컬 상태나 파일을 바꾸므로 사용자 요청 범위를 확인하세요.
+
+### 자료와 VOD 다운로드
+
+- 자료는 `materials --course "과목명" --week N --dry-run --json`, 영상은 `download-vod --course "과목명" --week N --dry-run --json`으로 대상과 경로를 먼저 확인하세요. 실제 다운로드는 사용자가 명시했을 때만 `--dry-run`을 빼고 실행하세요. 자료 열람만 원하면 `materials --no-download --json`을 사용하세요.
+- 자료 항목의 `status`는 `downloaded`, `skipped`, `viewed_only`, `failed`, `planned`를 구분하세요. VOD의 `status`는 `downloaded`, `skipped`, `failed`입니다. `planned` 경로와 `viewed_only`는 내려받은 파일이 아닙니다.
+- 실제 실행 뒤에는 각 항목의 `status`, `saved_path`, `error_message`를 확인하고, `downloaded`이면서 `saved_path`가 비어 있지 않고 해당 파일이 실제 존재할 때에만 저장 성공으로 보고하세요. `failed`는 오류 이유를, `skipped`는 건너뛴 이유를 항목별로 설명하세요. 예정 경로를 실제 파일처럼 말하지 마세요.
+- 일반 개인 Scheduler 작업의 필드·조회·수정은 별도 `notion-scheduler` 스킬의 책임입니다. CoursePilot은 학업 `sync`와 시청 완료 연동만 안내합니다.
+
 1. 미완료 일정은 `check --json`, 진도율이나 특정 활동의 발견 여부를 확인할 때는 `check --include-completed --json`을 실행하세요. 강의자료 열람·다운로드 상태를 묻는 경우 `materials --course "과목명" --week N --dry-run --json`도 실행하세요.
    - 영상·과제·퀴즈뿐 아니라 강의자료 확인/다운로드 작업도 포함됩니다.
    - `check`의 기본 결과는 완료 항목을 숨깁니다. `is_completed`는 LMS 열람 완료만 뜻하며 로컬 다운로드 완료를 뜻하지 않습니다. `materials --dry-run`의 `status: planned`와 `saved_path`는 예정 동작/경로일 뿐입니다. 완료 항목은 새 미완료 작업이 아닙니다.
