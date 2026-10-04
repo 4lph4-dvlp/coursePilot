@@ -177,7 +177,7 @@
 
 `materials --dry-run`은 방문·다운로드를 실행하지 않습니다. 공개된 자료의 `status`는 `planned`, `view_success`는 `false`, `downloaded_count`와 `viewed_count`는 0입니다. `saved_path`는 예정 경로이며 실제 파일 생성 증거가 아닙니다. `item.is_completed`는 LMS 열람 상태입니다. 실행 모드의 `status: downloaded`와 비어 있지 않은 `saved_path`만 다운로드 결과로 해석하세요.
 
-Coursemos 문서 뷰어가 원본 파일 링크를 제공하지 않을 때 실행 결과는 `status: viewed_only`, 빈 `saved_path`, 설명이 담긴 `error_message`입니다. LMS 열람 완료는 `view_success: true`로 나타나며, 이미 완료된 활동도 여기에 포함됩니다. 이는 로컬 파일 다운로드 성공이 아닙니다.
+Coursemos 문서 뷰어에 `파일 다운로드` 버튼이 있으면 인증된 브라우저에서 내려받고 파일이 생성된 경우 `status: downloaded`와 `saved_path`를 반환합니다. 버튼이나 다운로드 가능한 파일을 확인하지 못하면 `status: viewed_only`, 빈 `saved_path`, 설명이 담긴 `error_message`를 반환합니다. LMS 열람 완료는 `view_success: true`로 나타나며, 이미 완료된 활동도 여기에 포함됩니다. 열람 완료 자체는 로컬 파일 다운로드 성공이 아닙니다.
 
 유일한 LMS 원본 URL로 기존 Notion 페이지를 식별한 경우 제목 변경은 `sync.update[].changes`에 `field: "이름"`으로 나타납니다. 새 제목이 다른 페이지와 충돌하면 `title_collision` 오류가 나며 해당 작업은 수정하지 않습니다. `상태`와 `Plan`은 계속 보호됩니다.
 

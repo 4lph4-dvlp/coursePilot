@@ -189,6 +189,30 @@ def test_view_only_material_is_not_reported_as_downloaded_or_failed(
     assert not result.items[0].saved_path
 
 
+@patch("coursepilot.materials.runner.download_material_via_browser")
+@patch("coursepilot.materials.runner.download_material_file", side_effect=ViewOnlyMaterialError("브라우저 필요"))
+def test_viewer_material_uses_browser_download(
+    mock_http_download, mock_browser_download, tmp_path: Path, sample_course, sample_materials
+):
+    saved_path = tmp_path / "W1" / "lecture.pdf"
+    mock_browser_download.return_value = (saved_path, 14, False)
+    page = MagicMock()
+    result = process_course_materials(
+        course=sample_course,
+        materials=[sample_materials[0]],
+        target_week="1주차",
+        output_root=tmp_path,
+        client=MagicMock(spec=httpx.Client),
+        page=page,
+    )
+    assert result.items[0].status == MaterialStatus.DOWNLOADED
+    assert result.items[0].saved_path == str(saved_path)
+    assert result.items[0].filesize == 14
+    mock_browser_download.assert_called_once_with(
+        page, sample_materials[0], tmp_path / sample_course.clean_name / "W1"
+    )
+
+
 @patch("coursepilot.materials.runner.download_material_file")
 @patch("coursepilot.materials.runner.mark_material_viewed")
 def test_process_course_materials_error_isolation(

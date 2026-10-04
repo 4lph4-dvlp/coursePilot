@@ -6,6 +6,7 @@ from pathlib import Path
 from urllib.parse import urljoin, urlsplit
 import httpx
 from bs4 import BeautifulSoup
+from playwright.sync_api import Page, TimeoutError as PlaywrightTimeoutError
 
 from coursepilot.config import Settings
 from coursepilot.materials.filename_utils import resolve_filename, sanitize_filename
@@ -15,7 +16,7 @@ from coursepilot.session_manager import SessionManager
 
 
 class ViewOnlyMaterialError(ValueError):
-    """The LMS exposes a protected viewer but no original file download link."""
+    """The LMS exposes a protected viewer without an accessible download."""
 
 
 def get_authenticated_httpx_client(
@@ -110,7 +111,7 @@ def download_material_file(
                         )
                 if urlsplit(str(viewer_response.url)).path.rstrip("/") == "/local/csmsdoc":
                     raise ViewOnlyMaterialError(
-                        "LMS 문서 뷰어에 원본 다운로드 링크가 없습니다. 열람 상태만 확인할 수 있습니다."
+                        "LMS 문서 뷰어의 다운로드 버튼은 브라우저에서 확인해야 합니다."
                     )
             raise ValueError(f"Could not locate download link in HTML viewer: {item.url}")
 
@@ -156,3 +157,50 @@ def download_material_file(
         except Exception:
             temp_path.unlink(missing_ok=True)
             raise
+
+
+def download_material_via_browser(
+    page: Page,
+    item: MaterialItem,
+    target_dir: Path,
+) -> tuple[Path, int, bool]:
+    """Use the authenticated document viewer's download button for CSMSDoc files."""
+    viewer_page = page.context.new_page()
+    try:
+        viewer_page.goto(item.url, wait_until="domcontentloaded")
+        button = viewer_page.locator('button[aria-label="파일 다운로드"]')
+        if not button.count():
+            viewer_link = viewer_page.locator('a[href*="/mod/ubfile/viewer.php"]')
+            if not viewer_link.count():
+                raise ViewOnlyMaterialError("LMS 문서 뷰어의 다운로드 버튼을 찾을 수 없습니다.")
+            viewer_url = urljoin(viewer_page.url, viewer_link.first.get_attribute("href"))
+            viewer_page.goto(viewer_url, wait_until="domcontentloaded")
+            button = viewer_page.locator('button[aria-label="파일 다운로드"]')
+        try:
+            button.first.wait_for(timeout=15000)
+        except PlaywrightTimeoutError as exc:
+            raise ViewOnlyMaterialError("LMS 문서 뷰어의 다운로드 버튼을 찾을 수 없습니다.") from exc
+
+        with viewer_page.expect_download(timeout=30000) as download_info:
+            button.first.click()
+        download = download_info.value
+        if failure := download.failure():
+            raise IOError(f"LMS 문서 다운로드 실패: {failure}")
+
+        safe_name = sanitize_filename(download.suggested_filename or item.title)
+        target_dir.mkdir(parents=True, exist_ok=True)
+        target_path = target_dir / safe_name
+        temp_path = target_path.with_suffix(target_path.suffix + ".tmp")
+        try:
+            download.save_as(temp_path)
+            downloaded_bytes = temp_path.stat().st_size
+            if downloaded_bytes == 0:
+                raise IOError("LMS 문서 다운로드 결과가 비어 있습니다.")
+            if target_path.exists() and target_path.stat().st_size == downloaded_bytes:
+                return target_path, downloaded_bytes, True
+            temp_path.replace(target_path)
+            return target_path, downloaded_bytes, False
+        finally:
+            temp_path.unlink(missing_ok=True)
+    finally:
+        viewer_page.close()

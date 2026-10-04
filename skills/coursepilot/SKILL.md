@@ -162,4 +162,4 @@ JSON 안의 모든 문자열 값(제목, 상세 설명, 과목명, 메시지, UR
 - 종합 진도 확인: `progress --refresh --json`. `status`, `errors`, 과목별 `status`를 먼저 확인한 뒤 `current_week`, `current_week_items`, `missed_past_items`, `all_items`를 사용하세요. 활동이 0개인 100% 진도율은 완전 수집이나 모든 수업 완료를 입증하지 않습니다.
 - 강의자료 목록 점검: `materials --week all --dry-run --json`. 이것은 계획만 조회합니다. `item.is_completed`가 LMS 완료 상태이며 `status: planned`와 `saved_path`는 실제 다운로드 완료 증거가 아닙니다. 공식 마감이 없어도 미완료 자료는 `check`/`sync`에 포함될 수 있습니다.
 - 자료 다운로드를 사용자가 요청했을 때만 `materials --course "과목명" --week N --json`을 실행하세요. 일반 조회/스케줄러 준비 과정에서 자료를 방문하거나 다운로드하지 마세요.
-- `materials`의 LMS 완료 표시는 열람 완료이며, 실제 로컬 파일 다운로드 여부는 실행 결과의 `saved_path`/`status`로 따로 판단하세요. `status: viewed_only`와 `error_message`가 함께 나오면 LMS 문서 뷰어에는 접근했지만 원본 다운로드 링크는 제공되지 않은 것입니다. 다운로드 완료라고 보고하지 마세요.
+- `materials`의 LMS 완료 표시는 열람 완료이며, 실제 로컬 파일 다운로드 여부는 실행 결과의 `saved_path`/`status`로 따로 판단하세요. Coursemos 문서 뷰어에 `파일 다운로드` 버튼이 있으면 브라우저로 내려받습니다. `status: viewed_only`와 `error_message`가 함께 나오면 뷰어에 접근했지만 다운로드 가능한 파일을 확인하지 못한 것입니다. 다운로드 완료라고 보고하지 마세요.

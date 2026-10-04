@@ -107,7 +107,7 @@ Scheduler에 등록된 미완료 영상 작업 전체를 시청할 때는 `watch
 
 소스 저장소와 설치된 휠 모두 OS의 사용자 홈 아래 `~/.coursepilot/`에 개인 데이터를 둡니다. 자격 증명은 `.env`, 세션·진도·시청 이력은 `.cache/`, 자료·영상은 `downloads/`, 과목 약칭은 `config/course_mappings.json`입니다. `pathlib.Path.home()`을 사용하므로 Windows·macOS·Linux의 홈 위치를 따릅니다. 상대경로 `SESSION_CACHE_PATH`, `DOWNLOAD_DIR`, `COURSE_MAPPINGS_PATH`도 이 디렉터리에서 해석하고 절대경로 지정은 그대로 사용합니다. 현재 자동 테스트와 실사이트 검증은 Windows에서만 수행했습니다. 자료 `--dry-run`의 `planned`와 예정 저장 경로는 실제 다운로드가 아닙니다.
 
-일부 `ubfile`은 Coursemos 문서 뷰어로만 제공됩니다. 이때 CoursePilot는 원본 파일이 저장된 것처럼 표시하지 않고 `viewed_only`와 원인을 보고합니다. LMS 열람 완료와 로컬 파일 보관 여부는 별도 상태입니다.
+일부 `ubfile`은 Coursemos 문서 뷰어로 제공됩니다. 뷰어의 `파일 다운로드` 버튼이 있으면 CoursePilot가 인증된 브라우저에서 파일을 저장합니다. 버튼이나 다운로드 가능한 파일을 확인하지 못한 경우에만 `viewed_only`와 원인을 보고합니다. LMS 열람 완료와 로컬 파일 보관 여부는 별도 상태입니다.
 
 ## 에이전트 스킬 설치 (Agent Skill Installation)
 
@@ -115,11 +115,11 @@ Scheduler에 등록된 미완료 영상 작업 전체를 시청할 때는 `watch
 
 | 에이전트 | 설치 명령 | 설치 경로 (예시) | 상태 |
 |----------|-----------|-------------------|------|
-| Claude Code | `python -m coursepilot install-skill --agent claude` | `~/.claude/skills/coursepilot` | 새 이름 설치 테스트 통과; 에이전트 재발견 확인 대기 |
-| Codex | `python -m coursepilot install-skill --agent codex` | `~/.codex/skills/coursepilot` | 새 이름 설치 테스트 통과; 에이전트 재발견 확인 대기 |
-| Antigravity | `python -m coursepilot install-skill --agent antigravity` | `~/.gemini/antigravity/skills/coursepilot` | 빈 폴더에서 재확인 대기 |
-| Pi | `python -m coursepilot install-skill --agent pi` | `~/.pi/agent/skills/coursepilot` | 새 이름 설치 테스트 통과; 에이전트 재발견 확인 대기 |
-| Hermes | `python -m coursepilot install-skill --agent hermes` | `$HERMES_HOME/skills/coursepilot` (또는 Windows `%LOCALAPPDATA%\hermes\skills\coursepilot`, 그 외 `~/.hermes/skills/coursepilot`) | 새 이름 설치 테스트 통과; 에이전트 재발견 확인 대기 |
+| Claude Code | `python -m coursepilot install-skill --agent claude` | `~/.claude/skills/coursepilot` | 링크·문서 확인; 진도율 CLI 선택 후 세션 미완료, 공지·Q&A 경로 미통과 |
+| Codex | `python -m coursepilot install-skill --agent codex` | `~/.codex/skills/coursepilot` | 링크·문서 확인; 세 요청의 CLI 경로 미통과 |
+| Antigravity | `python -m coursepilot install-skill --agent antigravity` | `~/.gemini/antigravity/skills/coursepilot` | 링크·문서 확인; IDE의 에이전트 세션 미검증 |
+| Pi | `python -m coursepilot install-skill --agent pi` | `~/.pi/agent/skills/coursepilot` | 링크·문서 확인; 진도율·공지 경로 통과, Q&A 미통과 |
+| Hermes | `python -m coursepilot install-skill --agent hermes` | `$HERMES_HOME/skills/coursepilot` (또는 Windows `%LOCALAPPDATA%\hermes\skills\coursepilot`, 그 외 `~/.hermes/skills/coursepilot`) | 링크·문서 확인; CLI 실행 불가로 세션 미검증 |
 
 `uv run coursepilot install-skill --all`은 위 다섯 대상에 **현재 체크아웃의** `skills/coursepilot/`를 링크합니다. 이미 존재하는 에이전트 홈만 사용하고, 없는 홈은 만들지 않고 `skip`으로 기록합니다. 기존 CoursePilot 복사본은 링크로 교체하지만 다른 스킬이 자리한 대상은 건드리지 않고 `failure`로 기록합니다. 하나가 실패해도 나머지 네 대상을 계속 시도합니다. 각 행의 상태·이유·대상 경로와 합계가 출력되며 다섯 곳 모두 `success`일 때만 종료 코드 0, 일부 `skip`/`failure`면 1, `--agent`와 `--all`을 함께 쓰는 잘못된 호출은 2입니다.
 

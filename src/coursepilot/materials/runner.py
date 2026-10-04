@@ -6,12 +6,14 @@ import logging
 from pathlib import Path
 from typing import Callable
 import httpx
+from playwright.sync_api import Page
 
 from coursepilot.config import Settings, get_settings, resolve_output_dir
 from coursepilot.course_mapping import load_course_mappings
 from coursepilot.materials.downloader import (
     ViewOnlyMaterialError,
     download_material_file,
+    download_material_via_browser,
     get_authenticated_httpx_client,
     mark_material_viewed,
 )
@@ -74,6 +76,7 @@ def process_course_materials(
     dry_run: bool = False,
     no_download: bool = False,
     progress_callback: Callable[[str], None] | None = None,
+    page: Page | None = None,
 ) -> CourseMaterialsResult:
     """Processes a list of materials for a single course, handling smart visits and downloads."""
     results: list[MaterialDownloadResult] = []
@@ -137,7 +140,14 @@ def process_course_materials(
             continue
 
         try:
-            saved_path, size, is_skipped = download_material_file(client, item, target_dir)
+            try:
+                saved_path, size, is_skipped = download_material_file(client, item, target_dir)
+            except ViewOnlyMaterialError:
+                if page is None:
+                    raise
+                saved_path, size, is_skipped = download_material_via_browser(
+                    page, item, target_dir
+                )
             status = MaterialStatus.SKIPPED if is_skipped else MaterialStatus.DOWNLOADED
             results.append(
                 MaterialDownloadResult(
@@ -236,6 +246,7 @@ def run_materials_pipeline(
                     dry_run=dry_run,
                     no_download=no_download,
                     progress_callback=progress_callback,
+                    page=page,
                 )
                 course_results.append(course_res)
     finally:

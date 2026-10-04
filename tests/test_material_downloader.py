@@ -10,6 +10,7 @@ from coursepilot.config import Settings
 from coursepilot.materials.downloader import (
     ViewOnlyMaterialError,
     download_material_file,
+    download_material_via_browser,
     get_authenticated_httpx_client,
     mark_material_viewed,
 )
@@ -179,9 +180,40 @@ def test_coursemos_document_viewer_reports_no_original_file(tmp_path: Path, samp
     client.get.return_value = viewer
 
     target = tmp_path / "W1"
-    with pytest.raises(ViewOnlyMaterialError, match="원본 다운로드 링크"):
+    with pytest.raises(ViewOnlyMaterialError, match="브라우저에서 확인"):
         download_material_file(client, sample_item, target)
     assert not target.exists()
+
+
+def test_coursemos_document_viewer_button_saves_file(tmp_path: Path, sample_item):
+    page = MagicMock()
+    viewer_page = page.context.new_page.return_value
+    viewer_page.url = sample_item.url
+    button = MagicMock()
+    button.count.side_effect = [0, 1]
+    viewer_link = MagicMock()
+    viewer_link.count.return_value = 1
+    viewer_link.first.get_attribute.return_value = "/mod/ubfile/viewer.php?id=8001"
+    viewer_page.locator.side_effect = [button, viewer_link, button]
+    download = viewer_page.expect_download.return_value.__enter__.return_value.value
+    download.suggested_filename = "lecture.pdf"
+    download.failure.return_value = None
+    download.save_as.side_effect = lambda path: Path(path).write_bytes(b"real pdf bytes")
+
+    saved_path, size, skipped = download_material_via_browser(
+        page, sample_item, tmp_path / "W1"
+    )
+
+    assert saved_path.read_bytes() == b"real pdf bytes"
+    assert size == 14
+    assert skipped is False
+    assert not saved_path.with_suffix(".pdf.tmp").exists()
+    viewer_page.goto.assert_any_call(
+        "https://lxp.kau.ac.kr/mod/ubfile/viewer.php?id=8001",
+        wait_until="domcontentloaded",
+    )
+    button.first.click.assert_called_once()
+    viewer_page.close.assert_called_once()
 
 
 def test_download_material_file_cleanup_on_error(tmp_path: Path, sample_item):
