@@ -9,7 +9,7 @@ from rich.console import Console
 
 from coursepilot.config import Settings, get_settings
 from coursepilot.errors import exit_code_for, safe_cli_error
-from coursepilot.installer import AGENT_SKILL_PATHS, InstallError, install_skill
+from coursepilot.installer import AGENT_SKILL_PATHS, InstallError, install_skill, install_skill_batch
 from coursepilot.notion import NotionSyncEngine
 from coursepilot.notion.client import NotionClient, index_unique_pages_by_title
 from coursepilot.pipeline import PipelineResult, collect_tasks
@@ -186,7 +186,7 @@ def sync(ctx: click.Context, as_json: bool, headed: bool, relogin: bool, apply_c
     "--agent",
     "agent",
     type=click.Choice(sorted(AGENT_SKILL_PATHS)),
-    required=True,
+    required=False,
     help="스킬을 설치할 에이전트를 선택하세요.",
 )
 @click.option(
@@ -195,11 +195,37 @@ def sync(ctx: click.Context, as_json: bool, headed: bool, relogin: bool, apply_c
     is_flag=True,
     help="복사 대신 심볼릭 링크(또는 Windows 접합점)로 설치합니다 (개발용).",
 )
+@click.option("--all", "all_agents", is_flag=True, help="존재하는 다섯 에이전트 홈에 소스 링크를 일괄 설치합니다.")
 @click.pass_context
-def install_skill_command(ctx: click.Context, agent: str, link: bool) -> None:
+def install_skill_command(ctx: click.Context, agent: str | None, link: bool, all_agents: bool) -> None:
     """이 저장소의 coursepilot 스킬을 에이전트의 사용자 스킬 폴더에 설치합니다 (D-21..D-23)."""
     err = Console(stderr=True)
     out = Console()
+
+    if all_agents == bool(agent):
+        raise click.UsageError("--agent 또는 --all 중 하나만 지정하세요.")
+    if all_agents:
+        try:
+            batch = install_skill_batch()
+        except InstallError as error:
+            err.print(str(error), markup=False, highlight=False)
+            ctx.exit(1)
+        out.print("에이전트 | 상태 | 대상 | 이유 | 소스", markup=False, highlight=False)
+        for item in batch.items:
+            out.print(
+                f"{item.display_name} ({item.agent}) | {item.status} | {item.target} | {item.reason} | {item.link_source or '-'}",
+                markup=False, highlight=False,
+            )
+        success = sum(item.status == "success" for item in batch.items)
+        skip = sum(item.status == "skip" for item in batch.items)
+        failure = sum(item.status == "failure" for item in batch.items)
+        out.print(f"합계: success={success}, skip={skip}, failure={failure}", markup=False, highlight=False)
+        for optional in batch.scheduler_skill:
+            out.print(
+                f"notion-scheduler ({optional.agent}): {'readable' if optional.readable else 'optional missing'} | {optional.target}",
+                markup=False, highlight=False,
+            )
+        ctx.exit(0 if success == len(AGENT_SKILL_PATHS) else 1)
 
     try:
         result = install_skill(agent, link=link)

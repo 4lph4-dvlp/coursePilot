@@ -18,6 +18,7 @@ from coursepilot.installer import (
     REPO_ROOT_FILE,
     SKILL_NAME,
     install_skill,
+    install_skill_batch,
     repo_root,
     resolve_agent_home,
     resolve_install_target,
@@ -415,3 +416,66 @@ def test_path_missing_agent_home_warns(tmp_path: Path, tmp_src: Path, monkeypatc
     invoke_result = runner.invoke(cli, ["install-skill", "--agent", "hermes"])
     assert invoke_result.exit_code == 0
     assert "경고" in invoke_result.output
+
+
+def test_batch_attempts_all_five_and_skips_absent_home(fake_home: Path) -> None:
+    for agent in AGENT_SKILL_PATHS:
+        if agent != "pi":
+            resolve_agent_home(agent, home=fake_home, env={}, platform="linux").mkdir(parents=True)
+    batch = install_skill_batch(home=fake_home, env={}, platform="linux")
+    assert [item.agent for item in batch.items] == list(AGENT_SKILL_PATHS)
+    assert [item.status for item in batch.items].count("success") == 4
+    missing = next(item for item in batch.items if item.agent == "pi")
+    assert missing.status == "skip" and "missing" in missing.reason
+    assert not resolve_agent_home("pi", home=fake_home, env={}, platform="linux").exists()
+    for item in batch.items:
+        assert item.target.name == "coursepilot"
+        if item.status == "success":
+            assert item.link_source == skill_source_dir()
+            assert (item.target / "SKILL.md").is_file()
+            assert (item.target / "JSON_CONTRACT.md").is_file()
+
+
+def test_batch_mixed_results_preserve_foreign_and_repair_links(fake_home: Path) -> None:
+    for agent in ("claude", "codex", "antigravity", "hermes"):
+        resolve_agent_home(agent, home=fake_home, env={}, platform="linux").mkdir(parents=True)
+    foreign = resolve_install_target("claude", home=fake_home, env={}, platform="linux")
+    foreign.mkdir(parents=True)
+    (foreign / "SKILL.md").write_text("---\nname: unrelated\n---\nforeign\n", encoding="utf-8")
+    before = (foreign / "SKILL.md").read_bytes()
+
+    prior = resolve_install_target("codex", home=fake_home, env={}, platform="linux")
+    prior.mkdir(parents=True)
+    (prior / "SKILL.md").write_text("---\nname: coursepilot\n---\nold\n", encoding="utf-8")
+
+    broken = resolve_install_target("antigravity", home=fake_home, env={}, platform="linux")
+    broken.parent.mkdir(parents=True)
+    old_source = fake_home / "moved-checkout" / "coursepilot"
+    if os.name == "nt":
+        subprocess.run(["cmd", "/c", "mklink", "/J", str(broken), str(old_source)], check=True, capture_output=True)
+    else:
+        os.symlink(old_source, broken, target_is_directory=True)
+    assert not broken.exists()
+
+    batch = install_skill_batch(home=fake_home, env={}, platform="linux")
+    assert [item.status for item in batch.items] == ["failure", "success", "success", "skip", "success"]
+    assert (foreign / "SKILL.md").read_bytes() == before
+    assert prior.resolve() == skill_source_dir().resolve()
+    assert broken.resolve() == skill_source_dir().resolve()
+    assert "broken" in batch.items[2].reason
+    assert all(item.reason and item.target for item in batch.items)
+    assert len(batch.scheduler_skill) == 5
+
+
+def test_batch_cli_reports_all_rows_and_partial_exit(fake_home: Path) -> None:
+    for agent in AGENT_SKILL_PATHS:
+        resolve_agent_home(agent, home=fake_home).mkdir(parents=True, exist_ok=True)
+    # Pi remains absent after removing only its empty fake home.
+    resolve_agent_home("pi", home=fake_home).rmdir()
+    result = CliRunner().invoke(cli, ["install-skill", "--all"])
+    assert result.exit_code == 1
+    for agent in AGENT_SKILL_PATHS:
+        assert f"({agent})" in result.output
+    assert "success=4" in result.output and "skip=1" in result.output
+    assert "notion-scheduler" in result.output
+    assert CliRunner().invoke(cli, ["install-skill", "--all", "--agent", "codex"]).exit_code == 2

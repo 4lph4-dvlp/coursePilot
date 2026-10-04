@@ -101,6 +101,96 @@ class InstallResult(BaseModel):
     agent_home_found: bool
 
 
+class BatchInstallItem(BaseModel):
+    """One independently attempted agent target in a linked batch install."""
+
+    model_config = ConfigDict(frozen=True)
+
+    agent: str
+    display_name: str
+    status: Literal["success", "skip", "failure"]
+    target: Path
+    reason: str
+    link_source: Path | None = None
+
+
+class OptionalSkillStatus(BaseModel):
+    """Readability of a separately installed, optional agent skill."""
+
+    model_config = ConfigDict(frozen=True)
+
+    agent: str
+    target: Path
+    readable: bool
+
+
+class BatchInstallReport(BaseModel):
+    """Complete batch outcome; optional Scheduler status never changes success."""
+
+    model_config = ConfigDict(frozen=True)
+
+    items: list[BatchInstallItem]
+    scheduler_skill: list[OptionalSkillStatus]
+
+
+def install_skill_batch(
+    *,
+    home: Path | None = None,
+    env: dict[str, str] | None = None,
+    platform: str | None = None,
+) -> BatchInstallReport:
+    """Link this checkout's CoursePilot skill to every existing agent home."""
+    source = skill_source_dir()
+    if not (source / "JSON_CONTRACT.md").is_file():
+        raise InstallError(f"스킬 계약 문서를 찾을 수 없습니다: {source / 'JSON_CONTRACT.md'}")
+
+    items: list[BatchInstallItem] = []
+    scheduler: list[OptionalSkillStatus] = []
+    for agent, target_info in AGENT_SKILL_PATHS.items():
+        target = resolve_install_target(agent, home=home, env=env, platform=platform)
+        agent_home = resolve_agent_home(agent, home=home, env=env, platform=platform)
+        scheduler_target = target.parent / "notion-scheduler"
+        scheduler.append(OptionalSkillStatus(
+            agent=agent,
+            target=scheduler_target,
+            readable=(scheduler_target / "SKILL.md").is_file(),
+        ))
+        if not agent_home.is_dir():
+            items.append(BatchInstallItem(
+                agent=agent, display_name=target_info.display_name, status="skip",
+                target=target, reason="agent home missing",
+            ))
+            continue
+
+        broken_link = _is_link_or_junction(target) and not target.exists()
+        if _is_link_or_junction(target) and target.exists():
+            if _frontmatter_name(target / "SKILL.md") != SKILL_NAME:
+                items.append(BatchInstallItem(
+                    agent=agent, display_name=target_info.display_name, status="failure",
+                    target=target, reason="foreign or unreadable skill link; left untouched",
+                ))
+                continue
+        try:
+            install_skill(agent, link=True, home=home, source=source, env=env, platform=platform)
+            if target.resolve() != source.resolve():
+                raise InstallError("설치 링크가 현재 저장소 소스를 가리키지 않습니다")
+            for doc_name in ("SKILL.md", "JSON_CONTRACT.md"):
+                (target / doc_name).read_text(encoding="utf-8")
+        except (InstallError, OSError, UnicodeError) as error:
+            items.append(BatchInstallItem(
+                agent=agent, display_name=target_info.display_name, status="failure",
+                target=target, reason=str(error),
+            ))
+            continue
+        items.append(BatchInstallItem(
+            agent=agent, display_name=target_info.display_name, status="success",
+            target=target,
+            reason="broken source link repaired" if broken_link else "linked docs readable",
+            link_source=source,
+        ))
+    return BatchInstallReport(items=items, scheduler_skill=scheduler)
+
+
 def repo_root() -> Path:
     """Resolve this repository's root directory."""
     source_root = Path(__file__).resolve().parents[2]
@@ -241,11 +331,11 @@ def _prepare_replace(target: Path) -> None:
     identifies it as our skill; anything else at the target is refused
     without modification (T-05-15).
     """
-    if not target.exists() and not target.is_symlink():
-        return
-
     if _is_link_or_junction(target):
         _remove_link(target)
+        return
+
+    if not target.exists() and not target.is_symlink():
         return
 
     if target.is_dir():
