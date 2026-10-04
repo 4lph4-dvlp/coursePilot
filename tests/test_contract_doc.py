@@ -12,6 +12,10 @@ from pydantic import BaseModel
 from coursepilot.installer import AGENT_SKILL_PATHS
 from coursepilot.report_models import CheckReport, SyncReport
 from coursepilot.progress.models import ProgressReport
+from coursepilot.board.models import BoardReport
+from coursepilot.materials.models import MaterialsRunResult
+from coursepilot.stream.models import VodDownloadRunResult
+from coursepilot.player.runner import WatchResult
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CONTRACT_DOC = REPO_ROOT / "skills" / "coursepilot" / "JSON_CONTRACT.md"
@@ -85,6 +89,37 @@ def test_json_contract_doc_examples_validate() -> None:
     for payload in progress_payloads:
         assert payload["schema_version"] == 1
         ProgressReport.model_validate(payload)
+
+    for command in ("board", "notices", "qna"):
+        board_payloads = [p for p in parsed if p.get("command") == command]
+        assert len(board_payloads) >= 2, command
+        for payload in board_payloads:
+            BoardReport.model_validate(payload)
+
+    material_payloads = [p for p in parsed if "total_materials" in p]
+    vod_payloads = [p for p in parsed if "courses" in p and "total_vods" in p and "course_id" not in p]
+    watch_payloads = [p for p in parsed if "playback_results" in p or ("course_id" in p and "total_vods" in p and "downloaded_count" not in p)]
+    assert len(material_payloads) >= 2
+    assert len(vod_payloads) >= 2
+    assert len(watch_payloads) >= 2
+    for payload in material_payloads:
+        assert "schema_version" not in payload and "command" not in payload
+        MaterialsRunResult.model_validate(payload)
+    for payload in vod_payloads:
+        assert "schema_version" not in payload and "command" not in payload
+        VodDownloadRunResult.model_validate(payload)
+    for payload in watch_payloads:
+        WatchResult.model_validate(payload)
+
+
+def test_new_contract_sections_cover_models() -> None:
+    content = CONTRACT_DOC.read_text(encoding="utf-8")
+    for command in ("progress", "board", "notices", "qna", "materials", "download-vod", "watch"):
+        assert f"## `{command}`" in content
+    models = (ProgressReport, BoardReport, MaterialsRunResult, VodDownloadRunResult, WatchResult)
+    fields = set().union(*(_collect_model_field_names(model) for model in models))
+    missing = sorted(name for name in fields if f"`{name}`" not in content)
+    assert not missing, missing
 
 
 def test_progress_skill_route_and_failure_guard() -> None:

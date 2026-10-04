@@ -46,6 +46,108 @@
 
 종료 코드 `1`은 `status: success`와 `summary.missed_past_count > 0`에서도 나옵니다. 이때는 수집 실패가 아니라 지난 주차 미완료 알림입니다. `partial_success`/`error`, `errors`, 과목별 `status: error`이면 수집 실패를 먼저 설명하세요. 항목이 0개여도 전체 과목의 정상 수집을 확인하기 전에는 완료라고 단정하지 마세요.
 
+## `board` — 공지와 Q&A 통합
+
+호출: `coursepilot board --json` (전체 과목, 게시판당 최근 3개). `--course`, `--limit N`, `--all`, `--detail`, `--view ID`, `--unread-only`, `--unanswered`, `--my`로 범위를 조정합니다. 목록은 `BoardReport`이며 `schema_version: 1`, `command: "board"`입니다. `summary`는 `total_courses`, `total_notices`, `unread_notices`, `total_questions`, `unanswered_questions`, `my_questions`를 담습니다. `courses`의 `course_id`, `course_name`, `course_abbr`, `notices`, `qna`에서 글을 확인합니다. 글은 `post_id`, `bwid`, `board_id`, `board_type`, `title`, `author`, `created_at`, `hit_count`, `url`, `is_read`, `is_my_question`, `is_answered`, `is_secret`, `summary_preview`, `content`, `attachments`, `replies`를 담습니다. `errors`가 비어 있지 않으면 종료 코드 `1`이며 일부 수집이 실패했습니다. `--view`의 단건 결과는 별도 `BoardPostItem`입니다.
+
+정상 예시:
+
+```json
+{"schema_version":1,"command":"board","generated_at":"2026-10-04T12:00:00+09:00","summary":{"total_courses":1,"total_notices":1,"unread_notices":1,"total_questions":0,"unanswered_questions":0,"my_questions":0},"courses":[{"course_id":"example","course_name":"예시 과목","course_abbr":"예시","notices":[{"post_id":"p1","board_id":"b1","board_type":"notice","title":"공지 예시","author":"담당자","created_at":"2026-10-04","url":"https://example.invalid/post/1"}],"qna":[]}],"errors":[]}
+```
+
+주의 예시 (`errors`가 있으므로 전체 수집 성공으로 말하지 않음):
+
+```json
+{"schema_version":1,"command":"board","generated_at":"2026-10-04T12:00:00+09:00","summary":{"total_courses":1,"total_notices":0,"unread_notices":0,"total_questions":0,"unanswered_questions":0,"my_questions":0},"courses":[],"errors":[{"course_id":"example","message":"게시판 수집 실패"}]}
+```
+
+## `notices` — 공지 전용
+
+호출: `coursepilot notices --json`. 옵션과 `BoardReport` 필드는 `board`와 같고 `command`만 `notices`입니다. `courses[].notices`를 브리핑하며 오류가 있으면 종료 코드 `1`입니다.
+
+정상 예시:
+
+```json
+{"schema_version":1,"command":"notices","generated_at":"2026-10-04T12:00:00+09:00","summary":{"total_courses":1,"total_notices":0,"unread_notices":0,"total_questions":0,"unanswered_questions":0,"my_questions":0},"courses":[{"course_id":"example","course_name":"예시 과목","course_abbr":"예시","notices":[],"qna":[]}],"errors":[]}
+```
+
+주의 예시 (빈 글 목록이어도 과목 수집 오류가 있음):
+
+```json
+{"schema_version":1,"command":"notices","generated_at":"2026-10-04T12:00:00+09:00","summary":{"total_courses":1,"total_notices":0,"unread_notices":0,"total_questions":0,"unanswered_questions":0,"my_questions":0},"courses":[],"errors":[{"course_id":"example","message":"수집 실패"}]}
+```
+
+## `qna` — 질문과 답변
+
+호출: `coursepilot qna --json`; `--unanswered`, `--my`, `--view ID`를 사용할 수 있습니다. 결과는 `BoardReport`이고 `command`는 `qna`입니다. `is_answered`, `is_my_question`, `replies`를 구분하며 `errors`가 있으면 종료 코드 `1`입니다.
+
+정상 예시:
+
+```json
+{"schema_version":1,"command":"qna","generated_at":"2026-10-04T12:00:00+09:00","summary":{"total_courses":1,"total_notices":0,"unread_notices":0,"total_questions":1,"unanswered_questions":1,"my_questions":1},"courses":[{"course_id":"example","course_name":"예시 과목","course_abbr":"예시","notices":[],"qna":[{"post_id":"q1","board_id":"b2","board_type":"qna","title":"질문 예시","author":"학생","created_at":"2026-10-04","url":"https://example.invalid/q/1","is_my_question":true,"is_answered":false}]}],"errors":[]}
+```
+
+주의 예시 (질문이 0개라고 단정할 수 없는 부분 실패):
+
+```json
+{"schema_version":1,"command":"qna","generated_at":"2026-10-04T12:00:00+09:00","summary":{"total_courses":1,"total_notices":0,"unread_notices":0,"total_questions":0,"unanswered_questions":0,"my_questions":0},"courses":[],"errors":[{"course_id":"example","message":"질문 수집 실패"}]}
+```
+
+## `materials` — 학습자료
+
+호출: `coursepilot materials --course "과목명" --week current --dry-run --json`; 실제 내려받기는 명시적 요청 후 `--dry-run` 없이 실행합니다. `--no-download`는 열람만 합니다. `MaterialsRunResult`에는 버전/명령 봉투가 없으며 `total_courses`, `total_materials`, `downloaded_count`, `skipped_count`, `viewed_count`, `failed_count`, `dry_run`, `no_download`, `courses`가 있습니다. 과목의 `items`는 `item`, `status`, `filename`, `saved_path`, `filesize`, `view_success`, `error_message`를 담습니다. `item`에는 `download_url`, `suggested_filename`, `is_urgent`, `is_overdue` 등의 원본 자료 정보가 있습니다. `status`는 `downloaded`, `skipped`, `viewed_only`, `failed`, `planned`입니다. 실패 건수에 따라 종료 코드를 확인하되, 실제 파일 성공은 `downloaded`와 비어 있지 않은 `saved_path` 및 파일 존재로만 판단하세요.
+
+정상 예시:
+
+```json
+{"total_courses":1,"total_materials":1,"downloaded_count":1,"courses":[{"course_id":"example","course_name":"예시 과목","target_week":"1","items":[{"item":{"course_id":"example","course_name":"예시 과목","week_number":1,"module_id":"m1","title":"강의자료","url":"https://example.invalid/m/1"},"status":"downloaded","filename":"material.pdf","saved_path":"/tmp/material.pdf","filesize":100,"view_success":true}]}]}
+```
+
+주의 예시 (`planned` 경로는 파일 증명이 아님):
+
+```json
+{"total_courses":1,"total_materials":1,"dry_run":true,"courses":[{"course_id":"example","course_name":"예시 과목","target_week":"1","items":[{"item":{"course_id":"example","course_name":"예시 과목","week_number":1,"module_id":"m1","title":"강의자료","url":"https://example.invalid/m/1"},"status":"planned","saved_path":"/tmp/planned.pdf"}]}]}
+```
+
+`viewed_only`는 LMS 열람 성공일 수 있지만 저장 파일은 없습니다. `skipped`와 `failed`도 `saved_path`만으로 성공 처리하지 않습니다.
+
+`ProgressReport`의 활동 항목 `activity_type`은 `vod`, `assignment`, `quiz`, `material` 중 하나입니다.
+
+## `download-vod` — VOD 파일
+
+호출: `coursepilot download-vod --course "과목명" --week current --dry-run --json`; 명시적 다운로드 시 `--dry-run`을 빼세요. `--video-index`, `--quality`, `--output-dir`도 지원합니다. `VodDownloadRunResult`는 `total_courses`, `total_vods`, `downloaded_count`, `skipped_count`, `failed_count`, `dry_run`, `courses`를 가지며 버전/명령 봉투가 없습니다. 과목별 `items`의 `course_name`, `week_number`, `clip_number`, `title`, `status`, `saved_path`, `filesize`, `duration`, `error_message`를 확인하세요. 상태는 `downloaded`, `skipped`, `failed`입니다. 실제 파일은 `downloaded`와 경로 및 파일 존재를 모두 확인한 뒤 보고합니다.
+
+정상 예시:
+
+```json
+{"total_courses":1,"total_vods":1,"downloaded_count":1,"courses":[{"course_id":"example","course_name":"예시 과목","target_week":"1","items":[{"course_name":"예시 과목","week_number":1,"clip_number":1,"title":"영상 예시","status":"downloaded","saved_path":"/tmp/lecture.mp4","filesize":100,"duration":60.0}]}]}
+```
+
+주의 예시 (`dry_run`의 예상 경로는 생성된 파일이 아님):
+
+```json
+{"total_courses":1,"total_vods":1,"dry_run":true,"courses":[{"course_id":"example","course_name":"예시 과목","target_week":"1","items":[{"course_name":"예시 과목","week_number":1,"clip_number":1,"title":"영상 예시","status":"skipped","saved_path":"/tmp/planned.mp4"}]}]}
+```
+
+## `watch` — 시청 실행과 상태
+
+호출: `coursepilot watch --course "과목명" --week current --dry-run --json`으로 대상을 미리 보고, 명시적 시청 요청에서만 `--dry-run`을 제거합니다. `WatchResult`에는 `course_id`, `course_name`, `target_week`, `total_vods`, `completed_vods`, `skipped_vods`, `playback_results`, `notion_updated_count`, `dry_run`, `error_message`가 있습니다. `PlaybackProgress`에는 `vod_url`, `title`, `duration`, `current_time`, `progress_percent`, `is_completed`, `is_paused`, `error_message`가 있습니다. 미리보기는 시청 완료가 아닙니다. 완료하지 못한 대상이나 `error_message`가 있으면 종료 코드 `1`일 수 있습니다.
+
+정상 예시:
+
+```json
+{"course_id":"example","course_name":"예시 과목","target_week":"1","total_vods":1,"completed_vods":1,"playback_results":[{"vod_url":"https://example.invalid/v/1","title":"영상 예시","duration":60.0,"current_time":60.0,"progress_percent":100.0,"is_completed":true}]}
+```
+
+주의 예시 (대상 미리보기만 실행):
+
+```json
+{"course_id":"example","course_name":"예시 과목","target_week":"1","total_vods":1,"completed_vods":0,"dry_run":true}
+```
+
+`watch status --json`은 `WatchState`의 `status`, `course_name`, `course_id`, `target_week`, `video_index`, `total_videos`, `current_video_title`, `duration`, `current_time`, `progress_percent`, `remaining_seconds`, `pid`, `updated_at`, `error_message`를 반환합니다. 실행 중인 세션이 없으면 `{"status":"idle"}`입니다. `watch stop --json`은 중단 성공 시 `{"stopped":true,"pid":123}`, 실행 중인 작업이 없으면 `{"stopped":false,"reason":"not_running"}`입니다. `watch scheduler-tasks --json`은 읽기 전용입니다. `watch sync-notion --dry-run --json`은 `dry_run`, `planned_count`, `planned_tasks`, `already_completed_tasks`, `unmatched_tasks`, `ambiguous_tasks`, `synced_count`, `synced_tasks`를 반환합니다. 학업 시청 완료 반영을 미리 보는 명령이며, 일반 개인 Scheduler 작업 필드와 조작은 별도 `notion-scheduler` 스킬의 `JSON_CONTRACT.md`를 따르세요.
+
 ## 버전 규칙 (Versioning)
 
 - 현재 스키마 버전은 `schema_version: 1`입니다.
