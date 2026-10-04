@@ -1,6 +1,8 @@
 """Unit tests for WatchStateManager and watch state/history persistence."""
 
 import json
+import subprocess
+import sys
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -8,6 +10,19 @@ import pytest
 
 from coursepilot.player.models import WatchHistoryRecord, WatchState
 from coursepilot.player.state import WatchStateManager
+
+
+def test_pid_liveness_tracks_a_real_child_process(tmp_path: Path):
+    manager = WatchStateManager(cache_dir=tmp_path)
+    child = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(2)"])
+    try:
+        assert manager._is_pid_alive(child.pid) is True
+        child.wait(timeout=10)
+        assert manager._is_pid_alive(child.pid) is False
+    finally:
+        if child.poll() is None:
+            child.kill()
+            child.wait(timeout=10)
 
 
 def test_watch_state_lifecycle(tmp_path: Path):
