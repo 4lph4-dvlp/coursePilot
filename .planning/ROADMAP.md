@@ -30,8 +30,8 @@
 - [x] **Phase 13: Learning Materials (ubfile) Auto-Completion & File Downloader** - 미열람 학습자료(`ubfile`) 자동 열람을 통한 진도율 100% 이수 및 과목/주차 계층 구조 로컬 다운로더 구현 (completed 2026-09-25)
 - [x] **Phase 14: Pure-Python VOD Stream Downloader Integration** - 최소 설치 환경 유지를 위한 순수 파이썬 HLS/m3u8 스트림 캡처 및 백그라운드 영상 로컬 다운로더 구현 (completed 2026-09-25)
 - [x] **Phase 15: Course Announcements & Q&A Board Briefing** - 과목별 `ubboard`(공지사항 및 질문과 답변) 파싱, 최근 3개 기본 및 사용자 맞춤 스코프 브리핑 CLI 구현 (completed 2026-09-26)
-- [ ] **Phase 16: Comprehensive Activity Progress Dashboard** - 전체 학습활동(동영상+과제+퀴즈+자료) 종합 진척도 계산, 전체/지나온 주차/이번 주차 진척도 대시보드(`progress`) 구현
-- [ ] **Phase 16.1: Independent Notion Scheduler Module and Agent Skill** - Scheduler 연동을 별도 저장소의 독립 패키지·스킬로 분리하고 CoursePilot 및 학업 외 작업에서 재사용
+- [x] **Phase 16: Comprehensive Activity Progress Dashboard** - 전체 학습활동(동영상+과제+퀴즈+자료) 종합 진척도 계산, 전체/지나온 주차/이번 주차 진척도 대시보드(`progress`) 구현 (completed 2026-10-04)
+- [x] **Phase 16.1: Independent Notion Scheduler Module and Agent Skill** - Scheduler 연동을 별도 저장소의 독립 패키지·스킬로 분리하고 CoursePilot 및 학업 외 작업에서 재사용 (completed 2026-10-04)
 - [ ] **Phase 17: Universal Skill Packaging, Multi-Agent Deployment & End-to-End Verification** - 전체 신규 기능을 `SKILL.md` 및 `JSON_CONTRACT.md`에 반영, 5개 에이전트 일괄 재배포 및 E2E 실사이트 검증
 
 ## Phase Details
@@ -444,7 +444,7 @@ Plans:
   3. 직접 API를 기본 경로로 유지하고 공식 원격 MCP의 기능·토큰 비용을 실제 작업 단위로 비교해 선택 근거를 기록한다.
   4. 사용자가 변경한 개인 Scheduler의 `tag`를 지원하고 삭제된 `선택`을 요구하지 않으며, CoursePilot 자동 동기화가 `tag`를 보존한다.
 
-**Plans:** 4 plans
+**Plans:** 4/4 plans complete
 
 Plans:
 
@@ -492,5 +492,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 14. Pure-Python VOD Stream Downloader Integration | 2/2 | Complete    | 2026-09-25 |
 | 15. Course Announcements & Q&A Board Briefing | 2/2 | Complete    | 2026-09-26 |
 | 16. Comprehensive Activity Progress Dashboard | 2/2 | Complete    | 2026-09-26 |
-| 16.1. Independent Notion Scheduler Module and Agent Skill | 0/0 | Not planned |  |
+| 16.1. Independent Notion Scheduler Module and Agent Skill | 4/4 | Complete    | 2026-10-04 |
 | 17. Universal Skill Packaging, Multi-Agent Deployment & End-to-End Verification | 0/1 | Planned |  |

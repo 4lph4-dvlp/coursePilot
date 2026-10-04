@@ -1,20 +1,20 @@
 ---
 gsd_state_version: "1.0"
 milestone: v2.0
-current_phase: "16.1"
-current_phase_name: Independent Notion Scheduler Module and Agent Skill
-status: executing
-stopped_at: Phase 16.1 human verification pending
-last_updated: "2026-10-03T23:33:49.925Z"
+current_phase: 17
+current_phase_name: Universal Skill Packaging, Multi-Agent Deployment & End-to-End Verification
+status: planning
+stopped_at: Phase 16.1 complete, ready to plan Phase 17
+last_updated: "2026-10-04T07:16:28.605Z"
 last_activity: 2026-10-04
-last_activity_desc: Phase 16.1 execution started
-state_head: 72b103b7626efb39b7cf7b674be16bc185c96cf7
+last_activity_desc: Phase 16.1 complete, transitioned to Phase 17
+state_head: f8f1640c43714f8abfd5375f3f7c60d4461b56f9
 progress:
   total_phases: 18
-  completed_phases: 16
-  total_plans: 35
-  completed_plans: 35
-  percent: 89
+  completed_phases: 17
+  total_plans: 36
+  completed_plans: 36
+  percent: 94
 milestone_name: Completed)
 ---
 
@@ -24,25 +24,25 @@ Total Phases: 18
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-09-25)
+See: .planning/PROJECT.md (updated 2026-10-04)
 
 **Core value:** 학생이 수강 중인 모든 강의의 미완료 인강 및 과제 마감 기한을 빠짐없이 확인하고, 중복 없이 정형화된 이름 규칙으로 개인 노션 스케줄러에 동기화하며, 1회 수강 전 배속 불가 문제를 해결하기 위해 백그라운드 VOD 자동 시청 및 출석 인정을 대행하는 것.
-**Current focus:** Phase 16.1 — Independent Notion Scheduler Module and Agent Skill
+**Current focus:** Phase 17 — Universal Skill Packaging, Multi-Agent Deployment & End-to-End Verification
 
 ## Current Position
 
-Phase: 16.1 (Independent Notion Scheduler Module and Agent Skill) — EXECUTING
-Plan: 3 of 3
-Status: Human verification pending for the official remote MCP benchmark record
-Last activity: 2026-10-04 — Phase 16.1 plans and automated verification completed
+Phase: 17 — Universal Skill Packaging, Multi-Agent Deployment & End-to-End Verification
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-10-04 — Phase 16.1 complete, transitioned to Phase 17
 
-Progress: [█████████████░░░░░░░] 11/17 phases ([█████████░] 89%)
+Progress: [███████████████████░] 17/18 phases (94%); 36/36 planned plans complete
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 15
+- Total plans completed: 19
 - Average duration: - min
 - Total execution time: 0.0 hours
 
@@ -64,6 +64,7 @@ Progress: [█████████████░░░░░░░] 11/17 p
 | 14 | 2 | - | - |
 | 15 | 2 | - | - |
 | 16 | 2 | - | - |
+| 16.1 | 4 | - | - |
 
 **Recent Trend:**
 
@@ -87,6 +88,8 @@ Progress: [█████████████░░░░░░░] 11/17 p
 
 ### Decisions
 
+- [Phase 16.1]: The current personal Scheduler intentionally has no `선택` property and has a `tag` multi-select. Standalone 0.2.0 supports explicit tag edits; CoursePilot academic sync preserves tag and user-owned Plan/status.
+- [Phase 16.1]: Direct API remains the default for unattended sync. Historical API/MCP timings and returned bytes are recorded separately from unavailable model-token usage.
 - [Quick 260927-3u6]: CoursePilot became the primary product/package/CLI/skill identity; an optional school profile does not override explicit LMS_URL. Its compatibility strategy was superseded by quick 260927-4dc; only the canonical identity remains. No new LMS support is implied.
 - [Quick 260927-4dc]: User explicitly rejects compatibility: only CoursePilot package, command, public exception and source skill remain. Former identities were removed from all tracked text and file names, including historical planning terminology; commit IDs, test counts and Git history are preserved. Actual school URLs/profile IDs and application state remain unchanged. Other devices must pull, sync and reinstall canonical skill links; no external agent directories or active workspace root were renamed. Phase 17 remains pending.
 - [Quick 260927-2wg]: Unique LMS source URL now precedes exact-title matching, superseding Phase 04's title-only identity; ambiguous identities still fail closed. Scope is explicit actual section weeks/date union. Preparation targets never replace official DueDate or user-owned Plan/status.
@@ -140,6 +143,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-10-03T23:33:48.239Z
-Stopped at: Phase 16.1 human verification pending
-Resume file: .planning/phases/16.1-independent-notion-scheduler-module-and-agent-skill/16.1-UAT.md
+Last session: 2026-10-04T07:17:20Z
+Stopped at: Phase 16.1 complete, ready to plan Phase 17
+Resume file: None

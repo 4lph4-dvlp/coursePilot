@@ -65,11 +65,11 @@
 
 ### Independent Notion Scheduler (SCHD)
 
-- [ ] **SCHD-01**: Scheduler 접근·스키마 변환을 별도 저장소의 독립 Python 패키지로 분리하고 CoursePilot에서 명시적 패키지 계약으로 사용한다.
-- [ ] **SCHD-02**: CoursePilot 없이 Agent Skill 및 JSON CLI로 학업 외 작업을 조회·생성·수정·완료 처리한다. 삭제·보관은 제외한다.
-- [ ] **SCHD-03**: 명시적 사용자 작업에서는 `Plan`과 `상태` 수정이 가능하되 CoursePilot 자동 동기화에서는 두 필드를 보호하고 기존 미리보기·중복 방지·시청 완료 동작을 유지한다.
-- [ ] **SCHD-04**: 직접 Notion API를 기본 실행 경로로 사용하고 공식 원격 MCP는 대화형 선택 경로로 문서화한다.
-- [ ] **SCHD-05**: 대표 작업별 API와 원격 MCP의 기능·모델 토큰·도구 호출·시간을 측정하여 관찰값과 측정 불가 항목을 구분해 기록한다.
+- [x] **SCHD-01**: Scheduler 접근·스키마 변환을 별도 저장소의 독립 Python 패키지로 분리하고 CoursePilot에서 명시적 패키지 계약으로 사용한다.
+- [x] **SCHD-02**: CoursePilot 없이 Agent Skill 및 JSON CLI로 학업 외 작업을 조회·생성·수정·완료 처리한다. 삭제·보관은 제외한다.
+- [x] **SCHD-03**: 명시적 사용자 작업에서는 `Plan`과 `상태` 수정이 가능하되 CoursePilot 자동 동기화에서는 두 필드를 보호하고 기존 미리보기·중복 방지·시청 완료 동작을 유지한다.
+- [x] **SCHD-04**: 직접 Notion API를 기본 실행 경로로 사용하고 공식 원격 MCP는 대화형 선택 경로로 문서화한다.
+- [x] **SCHD-05**: 대표 작업별 API와 원격 MCP의 기능·모델 토큰·도구 호출·시간을 측정하여 관찰값과 측정 불가 항목을 구분해 기록한다.
 - [x] **SCHD-06**: 사용자가 변경한 개인 Scheduler 스키마(`선택` 삭제, `tag` 다중 선택 추가)를 독립 스킬과 CoursePilot에서 지원한다. `tag`는 명시적 일반 작업에서만 수정하고 자동 동기화에서는 보존한다.
 
 ### Advanced Automation & Notifications
@@ -117,11 +117,11 @@
 | BRD-02 | Phase 15 | Complete |
 | PROG-01 | Phase 16 | Complete |
 | PROG-02 | Phase 16 | Complete |
-| SCHD-01 | Phase 16.1 | Pending |
-| SCHD-02 | Phase 16.1 | Pending |
-| SCHD-03 | Phase 16.1 | Pending |
-| SCHD-04 | Phase 16.1 | Pending |
-| SCHD-05 | Phase 16.1 | Pending |
+| SCHD-01 | Phase 16.1 | Complete |
+| SCHD-02 | Phase 16.1 | Complete |
+| SCHD-03 | Phase 16.1 | Complete |
+| SCHD-04 | Phase 16.1 | Complete |
+| SCHD-05 | Phase 16.1 | Complete |
 | SCHD-06 | Phase 16.1 | Complete |
 | NOTF-01 | Future | Backlog |
 | CAL-01 | Future | Backlog |

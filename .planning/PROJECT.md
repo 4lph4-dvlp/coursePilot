@@ -4,6 +4,7 @@
 
 학교·학습 플랫폼에 종속되지 않는 대학 학업 일정·활동 관리 도우미입니다. 현재는 Coursemos 계열 LMS에서 영상·자료·과제·퀴즈의 상태와 마감일을 수집하며, 한국항공대는 첫 실사이트 검증 환경입니다. Canvas·Blackboard 등 다른 플랫폼 지원은 향후 별도 연결 구현·검증이 필요하며 현재 지원한다고 주장하지 않습니다.
 추출된 데이터는 에이전트와의 채팅창 브리핑 리포트로 제공되며, 학생의 기존 Notion `Scheduler` 데이터베이스에 통일된 네이밍 규칙으로 중복 없이 자동 동기화됩니다.
+Scheduler 접근과 일반 작업 관리는 독립 `notion-scheduler` 패키지 및 Agent Skill이 담당합니다.
 
 ## Core Value
 
@@ -20,15 +21,15 @@
 - ✓ 24시간 이내 마감 임박 항목 감지 및 우선순위/경고 리포트 기능 — Phase 3
 - ✓ 통일화된 작업 이름 규칙(예: `[{과목약어}] {N}주차 강의 시청`, `[{과목약어}] {과제명} 제출`) 및 현재 노션 속성(`구분`=학업, `DueDate`, `우선순위`, `상태`=시작 전) 자동 매핑 — Phase 3, 16.1
 - ✓ Notion `Scheduler` 연동, 정규화 제목 기반 기등록 항목 중복 방지, 보호 필드 보존 및 실데이터 읽기/쓰기 0건 드라이런 — Phase 4
+- ✓ 독립 Scheduler 패키지와 Agent Skill의 일반 작업 조회·미리보기·수정·완료 및 현재 개인 DB 스키마 지원 — Phase 16.1
+- ✓ 범용 CoursePilot Agent Skill 패키징과 에이전트별 설치 명령 — Phase 5
 
 ### Active
 
-- [ ] 에이전트 채팅 대화창을 통한 미완료 항목 및 마감일 요약 브리핑 리포트 출력
-- [ ] 범용 Agent Skill 패키징(에이전트 중립 `SKILL.md`, 에이전트별 설치 명령·안내, 의존성 가이드) — Antigravity 전용이 아닌 모든 SKILL.md 지원 에이전트 대상
+- [ ] 5개 에이전트에 최신 스킬 재배포 및 실사이트 E2E 통합 검증 — Phase 17
 
 ### Out of Scope
 
-- 자동 강의 재생/출석 대리 처리 — 대학 학칙 및 부정행위 방지를 위해 상태 조회 및 마감일 알림만 지원
 - 2차 인증(OTP/캡차) 자동 우회 — 일반 ID/PW 로그인 기반 지원 (추후 필요시 수동 세션 쿠키 주입 방식 고려)
 - 다중 사용자 SaaS 호스팅 — 학생 로컬 환경에서 에이전트가 직접 실행하는 단일 사용자 스킬 형태로 설계
 
@@ -53,6 +54,7 @@
 |----------|-----------|---------|
 | Playwright 헤드리스 브라우저 사용 | SPA 및 자바스크립트 렌더링 기반 대학 LMS의 동적 요소를 안정적으로 크롤링하기 위함 | ✓ Validated (Phase 1, 2) |
 | 현재 Notion Scheduler DB 스키마 직접 준수 | 사용자가 변경한 스케줄러 환경에 자연스럽게 통합되어 추가 마이그레이션이 불필요함 | ✓ Validated (Phase 4, 16.1) |
+| 삭제된 `선택` 속성 대신 `tag` 다중 선택 지원 | 사용자 의도에 맞춰 일반 작업은 명시적 태그 수정만 허용하고 학업 자동 동기화는 태그를 보존 | ✓ Validated (Phase 16.1) |
 | 과목명 약칭 매핑 테이블 적용 | 노션의 기존 네이밍 스타일(`[공수2]`, `[자구]`)을 그대로 유지하기 위함 | ✓ Validated (Phase 1, 3) |
 | 순수 도메인 계층 격리 (Pure Domain Layer) | I/O(Playwright, Notion API) 없는 결정론적 테스트 및 빠른 단위 테스트 보장 | ✓ Implemented (Phase 3) |
 | 24시간 긴급도 우선순위 사다리 (P1~P4) | 마감 24시간 이내 미완료 항목은 P1, 지연 항목은 P4로 자동 분류 | ✓ Implemented (Phase 3) |
@@ -82,4 +84,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-22 after Phase 4*
+*Last updated: 2026-10-04 after Phase 16.1*

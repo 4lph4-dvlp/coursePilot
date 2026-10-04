@@ -86,7 +86,7 @@
     {
       "number": "16.1",
       "name": "Independent Notion Scheduler Module and Agent Skill",
-      "status": "pending"
+      "status": "complete"
     },
     {
       "number": "17",
@@ -96,8 +96,8 @@
   ],
   "next": {
     "command": "/gsd:progress --next",
-    "label": "Advance to the next step",
-    "reason": "Phase 16.1 of 18 · 89% · executing"
+    "label": "Advance to the next step (plan phase 17)",
+    "reason": "Phase 17 of 18 — needs a plan"
   },
-  "updated_at": "2026-10-03T18:44:39.649Z"
+  "updated_at": "2026-10-04T07:16:28.695Z"
 }
