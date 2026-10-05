@@ -60,6 +60,14 @@ def test_unverified_cannot_be_claimed_passed(valid_ledger: dict) -> None:
     assert "deployment:claude" in validate_ledger(case)
 
 
+def test_wrong_known_route_is_recorded_as_failure(valid_ledger: dict) -> None:
+    case = deepcopy(valid_ledger)
+    row = next(r for r in case["agents"] if r["agent"] == "claude" and r["prompt"] == "공지")
+    row.update(selected_command="progress", outcome="fail", reason="selected progress for notice prompt")
+    case["criteria"][1]["verdict"] = "unverified"
+    assert "agent:claude:공지" in validate_ledger(case)
+
+
 def test_unknown_enrollment_stays_incomplete(valid_ledger: dict) -> None:
     case = deepcopy(valid_ledger)
     case["lxp"]["enrolled_count"] = None

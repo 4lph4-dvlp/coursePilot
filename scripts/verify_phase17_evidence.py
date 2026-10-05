@@ -126,8 +126,8 @@ def validate_ledger(data: dict, section: str | None = None) -> list[str]:
             if pair in seen or pair[0] not in AGENTS or pair[1] not in PROMPTS:
                 raise EvidenceError("duplicate or invalid agent prompt")
             seen.add(pair)
-            if row.get("selected_command") not in (PROMPTS[pair[1]], None):
-                raise EvidenceError("wrong selected command for prompt")
+            if row.get("selected_command") not in (*PROMPTS.values(), None):
+                raise EvidenceError("unknown selected command for prompt")
             if row.get("outcome") not in ("pass", "fail", "unverified") or not isinstance(row.get("triggered"), bool):
                 raise EvidenceError("invalid agent outcome")
             if row["outcome"] == "pass" and (not row["triggered"] or row["selected_command"] != PROMPTS[pair[1]]):
