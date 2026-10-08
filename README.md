@@ -115,13 +115,21 @@ Scheduler에 등록된 미완료 영상 작업 전체를 시청할 때는 `watch
 
 | 에이전트 | 설치 명령 | 설치 경로 (예시) | 상태 |
 |----------|-----------|-------------------|------|
-| Claude Code | `python -m coursepilot install-skill --agent claude` | `~/.claude/skills/coursepilot` | 링크·문서 확인; 진도율 CLI 선택 후 세션 미완료, 공지·Q&A 경로 미통과 |
-| Codex | `python -m coursepilot install-skill --agent codex` | `~/.codex/skills/coursepilot` | 링크·문서 확인; 세 요청의 CLI 경로 미통과 |
-| Antigravity | `python -m coursepilot install-skill --agent antigravity` | `~/.gemini/antigravity/skills/coursepilot` | 링크·문서 확인; IDE의 에이전트 세션 미검증 |
-| Pi | `python -m coursepilot install-skill --agent pi` | `~/.pi/agent/skills/coursepilot` | 링크·문서 확인; 진도율·공지 경로 통과, Q&A 미통과 |
-| Hermes | `python -m coursepilot install-skill --agent hermes` | `$HERMES_HOME/skills/coursepilot` (또는 Windows `%LOCALAPPDATA%\hermes\skills\coursepilot`, 그 외 `~/.hermes/skills/coursepilot`) | 링크·문서 확인; CLI 실행 불가로 세션 미검증 |
+| Claude Code | `python -m coursepilot install-skill --agent claude` | `~/.claude/skills/coursepilot` | 링크·문서 확인; 허용된 읽기 명령을 쓰는 새 세션에서 단독 진도율·공지·Q&A 경로와 JSON 결과 통과 |
+| Codex | `python -m coursepilot install-skill --agent codex` | `~/.codex/skills/coursepilot` | 링크·문서 확인; Windows Node 진입점과 진단용 `danger-full-access` 설정에서 단독 진도율·공지·Q&A 경로와 JSON 결과 통과 |
+| Antigravity | `python -m coursepilot install-skill --agent antigravity` | `~/.gemini/antigravity/skills/coursepilot` | IDE 링크·문서 확인; 별도 headless CLI에서 단독 진도율·공지·Q&A 경로와 유효한 JSON 결과 통과. IDE UI는 직접 확인하지 못함 |
+| Pi | `python -m coursepilot install-skill --agent pi` | `~/.pi/agent/skills/coursepilot` | 링크·문서 확인; Windows Node 직접 실행의 단독 진도율·공지·Q&A 경로와 CLI JSON 결과 통과 |
+| Hermes | `python -m coursepilot install-skill --agent hermes` | `$HERMES_HOME/skills/coursepilot` (또는 Windows `%LOCALAPPDATA%\hermes\skills\coursepilot`, 그 외 `~/.hermes/skills/coursepilot`) | 링크·문서 확인; `skills.auto_load` 구성 후 단독 진도율·공지·Q&A 경로와 CLI JSON 결과 통과 |
+
+Windows에서 `hermes`가 오래된 `~/.hermes/bin/hermes.exe`를 먼저 찾으면 현재 설치의 `%LOCALAPPDATA%\hermes\bin\hermes.cmd`를 절대 경로로 실행하세요. 현재 PowerShell 세션에서만 PATH 순서를 바꾸려면 `$env:PATH = "$env:LOCALAPPDATA\hermes\bin;$env:PATH"`를 사용할 수 있습니다. 기존 PATH 항목이나 사용자 설정은 삭제하지 않습니다.
+
+Windows의 단독 `Q&A` 진단은 `.cmd`의 `%*` 전달 과정에서 `&`가 분리될 수 있습니다. `scripts/probe_phase17_agent_routes.py`는 Pi와 Codex의 설치된 Node 진입점, Hermes의 설치된 Python 부트스트랩을 직접 실행해 프롬프트를 하나의 인수로 전달합니다. Hermes는 `chat --format stream-json`으로 실제 도구 호출 여부를 검사합니다. Hermes의 단독 짧은 프롬프트 선택에는 사용자 설정의 `skills.auto_load: [coursepilot]`가 필요했고, 변경 전 설정은 같은 디렉터리에 백업했습니다.
+
+Windows Codex의 `workspace-write` 자식은 브라우저와 체크아웃 폴더를 허용해도 명령 실행 전에 `helper_unknown_error: setup refresh had errors`로 실패했습니다. 호스트와 `danger-full-access` 자식에서는 Chromium 실행이 확인됐습니다. 이후 진단용 `danger-full-access` 설정에서 세 가지 읽기 전용 LMS 프롬프트가 모두 정확한 CLI 명령과 유효한 JSON 결과까지 통과했습니다. 이 환경의 `workspace-write` 문제는 남아 있으므로 동일한 검증 결과를 그 설정에 일반화할 수 없습니다.
 
 `uv run coursepilot install-skill --all`은 위 다섯 대상에 **현재 체크아웃의** `skills/coursepilot/`를 링크합니다. 이미 존재하는 에이전트 홈만 사용하고, 없는 홈은 만들지 않고 `skip`으로 기록합니다. 기존 CoursePilot 복사본은 링크로 교체하지만 다른 스킬이 자리한 대상은 건드리지 않고 `failure`로 기록합니다. 하나가 실패해도 나머지 네 대상을 계속 시도합니다. 각 행의 상태·이유·대상 경로와 합계가 출력되며 다섯 곳 모두 `success`일 때만 종료 코드 0, 일부 `skip`/`failure`면 1, `--agent`와 `--all`을 함께 쓰는 잘못된 호출은 2입니다.
+
+Antigravity headless CLI(`agy`)는 IDE와 별도로 `~/.gemini/antigravity-cli/skills/coursepilot`에서 사용자 스킬을 찾습니다. 이 PC에는 해당 경로를 현재 체크아웃의 스킬 폴더로 잇는 접합점을 추가해 CLI를 검증했습니다. 현재 `install-skill --all`은 IDE 경로만 관리하므로 CLI 링크는 설치 결과 다섯 행에 포함되지 않습니다.
 
 저장소를 옮긴 뒤 링크가 끊어지면 대상의 `SKILL.md`와 `JSON_CONTRACT.md`를 열어 진단하세요. 현재 체크아웃에서 `uv run coursepilot install-skill --all`을 다시 실행하면 끊어진 링크를 현재 소스로 고치고 두 문서의 읽기 가능 여부를 검사합니다. 다른 체크아웃을 자동 탐색하지 않습니다. 설치 뒤에는 각 에이전트를 재시작하거나 새 세션에서 스킬을 다시 발견하게 하세요. `notion-scheduler` 스킬 상태는 별도 선택 항목으로 표시되며 없어도 CoursePilot의 학업 명령 설치는 실패하지 않습니다. 일반 Scheduler 작업용 독립 스킬은 공개 배포가 준비되면 별도로 설치하세요.
 
