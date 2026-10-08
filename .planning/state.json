@@ -91,13 +91,13 @@
     {
       "number": "17",
       "name": "Universal Skill Packaging, Multi-Agent Deployment & End-to-End Verification",
-      "status": "in_progress"
+      "status": "complete"
     }
   ],
   "next": {
-    "command": "/gsd:progress --next",
-    "label": "Advance to the next step",
-    "reason": "Phase 17 of 18 · 94% · executing"
+    "command": "/gsd:new-milestone",
+    "label": "Start a new milestone",
+    "reason": "All phases complete — start a new milestone"
   },
-  "updated_at": "2026-10-08T13:06:28.551Z"
+  "updated_at": "2026-10-08T13:11:29.486Z"
 }

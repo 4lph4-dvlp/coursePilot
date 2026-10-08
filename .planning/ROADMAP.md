@@ -32,7 +32,7 @@
 - [x] **Phase 15: Course Announcements & Q&A Board Briefing** - 과목별 `ubboard`(공지사항 및 질문과 답변) 파싱, 최근 3개 기본 및 사용자 맞춤 스코프 브리핑 CLI 구현 (completed 2026-09-26)
 - [x] **Phase 16: Comprehensive Activity Progress Dashboard** - 전체 학습활동(동영상+과제+퀴즈+자료) 종합 진척도 계산, 전체/지나온 주차/이번 주차 진척도 대시보드(`progress`) 구현 (completed 2026-10-04)
 - [x] **Phase 16.1: Independent Notion Scheduler Module and Agent Skill** - Scheduler 연동을 별도 저장소의 독립 패키지·스킬로 분리하고 CoursePilot 및 학업 외 작업에서 재사용 (completed 2026-10-04)
-- [ ] **Phase 17: Universal Skill Packaging, Multi-Agent Deployment & End-to-End Verification** - 전체 신규 기능을 `SKILL.md` 및 `JSON_CONTRACT.md`에 반영, 5개 에이전트 일괄 재배포 및 E2E 실사이트 검증
+- [x] **Phase 17: Universal Skill Packaging, Multi-Agent Deployment & End-to-End Verification** - 전체 신규 기능을 `SKILL.md` 및 `JSON_CONTRACT.md`에 반영, 5개 에이전트 일괄 재배포 및 E2E 실사이트 검증 (completed 2026-10-08)
 
 ## Phase Details
 
@@ -519,4 +519,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 15. Course Announcements & Q&A Board Briefing | 2/2 | Complete    | 2026-09-26 |
 | 16. Comprehensive Activity Progress Dashboard | 2/2 | Complete    | 2026-09-26 |
 | 16.1. Independent Notion Scheduler Module and Agent Skill | 4/4 | Complete    | 2026-10-04 |
-| 17. Universal Skill Packaging, Multi-Agent Deployment & End-to-End Verification | 5/5 | In Progress|  |
+| 17. Universal Skill Packaging, Multi-Agent Deployment & End-to-End Verification | 5/5 | Complete    | 2026-10-08 |
