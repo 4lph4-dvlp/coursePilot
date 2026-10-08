@@ -23,17 +23,26 @@ coverage:
   - id: route-probe
     description: "Fresh-session probe distinguishes exact command and result while excluding private output"
     requirement: SKIL-04
-    verification: [{kind: unit, ref: "uv run pytest -q tests/test_phase17_agent_routes.py tests/test_phase17_evidence.py", status: pass}]
+    verification:
+      - kind: unit
+        ref: "uv run pytest -q tests/test_phase17_agent_routes.py tests/test_phase17_evidence.py"
+        status: pass
     human_judgment: false
   - id: compact-progress
     description: "Compact progress JSON preserves course rates, counts, and overdue exit semantics"
     requirement: SKIL-04
-    verification: [{kind: unit, ref: "tests/test_cli_progress.py#test_cli_progress_compact_json_keeps_counts_and_omits_activity_lists", status: pass}]
+    verification:
+      - kind: unit
+        ref: "tests/test_cli_progress.py#test_cli_progress_compact_json_keeps_counts_and_omits_activity_lists"
+        status: pass
     human_judgment: false
   - id: agent-routes
     description: "All 15 exact bare prompts return the expected CoursePilot command and valid JSON in fresh sessions"
     requirement: VERIF-03
-    verification: [{kind: e2e, ref: "17-E2E-EVIDENCE.md; uv run python scripts/verify_phase17_evidence.py --section agents", status: pass}]
+    verification:
+      - kind: e2e
+        ref: "17-E2E-EVIDENCE.md; uv run python scripts/verify_phase17_evidence.py --section agents"
+        status: pass
     human_judgment: true
     rationale: "External agent execution was observed through configured runtime surfaces; the validator checks the recorded evidence but cannot replay every external session."
 duration: 3d
