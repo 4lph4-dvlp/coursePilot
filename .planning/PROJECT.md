@@ -23,10 +23,11 @@ Scheduler 접근과 일반 작업 관리는 독립 `notion-scheduler` 패키지 
 - ✓ Notion `Scheduler` 연동, 정규화 제목 기반 기등록 항목 중복 방지, 보호 필드 보존 및 실데이터 읽기/쓰기 0건 드라이런 — Phase 4
 - ✓ 독립 Scheduler 패키지와 Agent Skill의 일반 작업 조회·미리보기·수정·완료 및 현재 개인 DB 스키마 지원 — Phase 16.1
 - ✓ 범용 CoursePilot Agent Skill 패키징과 에이전트별 설치 명령 — Phase 5
+- ✓ 다섯 에이전트 소스 링크 재배포, 단독 자연어 라우팅, 실제 LXP·Scheduler E2E 검증 — Phase 17
 
 ### Active
 
-- [ ] 5개 에이전트에 최신 스킬 재배포 및 실사이트 E2E 통합 검증 — Phase 17
+- 없음 (v2.0 범위 완료)
 
 ### Out of Scope
 
@@ -40,7 +41,7 @@ Scheduler 접근과 일반 작업 관리는 독립 `notion-scheduler` 패키지 
 - **Notion 데이터베이스**: `Scheduler` (database container: `21d53280-64be-80e9-827a-e6fd0f85499a`, data source: `21d53280-64be-80ec-af4e-000b679f03bb`)
   - 현재 필드: `이름`(Title), `구분`(Multi-select: 학업 등), `tag`(Multi-select: NotionCL/기전실/상담), `DueDate`(Date), `Plan`(Date), `우선순위`(Select: 🔴 긴급 (P1)/🟡 중요 (P2)/🔵 보통 (P3)/⚪ 낮음 (P4)), `상태`(Status: 시작 전/진행 중/완료/폐기), `메모`(Text). 사용자가 `선택`을 삭제했으며 CoursePilot 자동 동기화는 `tag`를 보존한다.
   - 기존 네이밍 관례: `[공수2] 3주차 강의 시청`, `[자구] 3주차 강의 시청`, `[디시설] 2주차 개념 강의 정리` 등 `[{과목약어}] ...` 브래킷 표기법 준수
-- **동작 방식**: 범용 Agent Skill(`skills/coursepilot/SKILL.md`)을 `install-skill` 명령으로 Claude Code, Codex, Antigravity, Pi, Hermes(그 외 SKILL.md를 지원하는 모든 에이전트 포함)에 설치하고, 에이전트가 자연어 요청을 받으면 `python -m coursepilot check|sync --json`을 직접 실행해 버전이 명시된 JSON(schema_version 1)을 읽어 채팅창에 브리핑하며, 사용자가 승인한 뒤에만 Notion에 동기화. 제품·패키지·명령·스킬은 CoursePilot 단일 이름만 제공하며 호환 별칭은 없습니다.
+- **동작 방식**: 범용 Agent Skill(`skills/coursepilot/SKILL.md`)을 `install-skill` 명령으로 Claude Code, Codex, Antigravity, Pi, Hermes(그 외 SKILL.md를 지원하는 모든 에이전트 포함)에 설치하고, 에이전트가 자연어 요청에 맞춰 `check`, `progress`, `notices`, `qna`, 다운로드, watch 또는 학업 `sync` 명령을 호출합니다. 버전이 명시된 JSON(schema_version 1)을 읽어 채팅창에 브리핑하며, `sync`는 기본 미리보기이고 명시적 `--apply`가 있을 때만 Notion에 반영합니다. 제품·패키지·명령·스킬은 CoursePilot 단일 이름만 제공하며 호환 별칭은 없습니다.
 
 ## Constraints
 
@@ -65,6 +66,9 @@ Scheduler 접근과 일반 작업 관리는 독립 `notion-scheduler` 패키지 
 | `DueDate`·`우선순위`·`메모`만 부분 갱신 | 사용자가 관리하는 `상태`와 `Plan`을 동기화가 덮어쓰지 않도록 보존 | ✓ Validated (Phase 4) |
 | 우선순위 라벨 API 경계 변환 | 도메인은 P1~P4를 유지하면서 기존 Scheduler의 장식된 한글 옵션을 그대로 사용 | ✓ Validated (Phase 4) |
 | 실데이터 읽기 후 쓰기 차단 드라이런 | 미리보기와 실동기화가 동일한 판단 경로를 쓰되 생성·수정 호출은 기계적으로 0건 보장 | ✓ Validated (Phase 4) |
+| 다섯 에이전트에 현재 소스 링크 배포 | 복사본의 문서 차이를 막고 외부 스킬은 보존하기 위함 | ✓ Validated (Phase 17; 다섯 링크·두 문서 해시 일치) |
+| 단독 요청의 명령·결과를 별도 증거로 검증 | 잘못 선택된 명령이나 JSON 없는 응답을 성공으로 세지 않기 위함 | ✓ Validated (Phase 17; 15개 경로) |
+| 진도율 기본 응답은 간결한 JSON 사용 | 에이전트 도구 출력 한도 안에서 과목별 진도 집계를 전달하기 위함 | ✓ Validated (Phase 17; 전체 JSON 별도 유지) |
 
 ## Evolution
 
@@ -84,4 +88,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-04 after Phase 16.1*
+*Last updated: 2026-10-08 after Phase 17*

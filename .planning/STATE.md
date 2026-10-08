@@ -3,11 +3,11 @@ gsd_state_version: "1.0"
 milestone: v2.0
 current_phase: 17
 status: completed
-stopped_at: Phase 17 complete — all phases complete
-last_updated: "2026-10-08T13:11:29.347Z"
+stopped_at: Phase 17 complete; v2.0 milestone ready to close
+last_updated: "2026-10-08T13:14:52.722Z"
 last_activity: 2026-10-08
 last_activity_desc: Phase 17 complete
-state_head: fc1477b0243445b10dd760253183cb7b681889bc
+state_head: c4fe1394bc6d8dec454700ed5a9c649ac15e5dd7
 progress:
   total_phases: 18
   completed_phases: 18
@@ -20,13 +20,16 @@ milestone_name: Completed)
 Total Phases: 18
 
 # Project State
+
 ## Project Reference
-See: .planning/PROJECT.md (updated 2026-10-04)
+
+See: .planning/PROJECT.md (updated 2026-10-08)
 
 **Core value:** 학생이 수강 중인 모든 강의의 미완료 인강 및 과제 마감 기한을 빠짐없이 확인하고, 중복 없이 정형화된 이름 규칙으로 개인 노션 스케줄러에 동기화하며, 1회 수강 전 배속 불가 문제를 해결하기 위해 백그라운드 VOD 자동 시청 및 출석 인정을 대행하는 것.
-**Current focus:** Phase 17 — Universal Skill Packaging, Multi-Agent Deployment & End-to-End Verification
+**Current focus:** v2.0 milestone closeout after Phase 17 verification
 
 ## Current Position
+
 Phase: 17
 Plan: Not started
 Status: All phases complete
@@ -35,6 +38,7 @@ Last activity: 2026-10-08 — Phase 17 complete
 Progress: [████████████████████] 18/18 phases ([██████████] 100%); 41/41 planned plans complete
 
 ## Performance Metrics
+
 **Velocity:**
 
 - Total plans completed: 24
@@ -123,12 +127,7 @@ None yet.
 
 ### Blockers/Concerns
 
-- Historical D-26 credential blocker is no longer current: quick 260927-2wg verified fresh live check and Notion preview with zero errors. Actual sync application and download/player verification remain outside this quick task; Phase 17 is still pending.
-- [Quick 260928-f4x]: Material 2847 is LMS complete but the CSMSDoc viewer exposes no original file link. CoursePilot reports `viewed_only` rather than a download success. Scheduler title changes are previewed only when a unique LMS source matches; no live Notion write was made. Phase 17 remains pending.
-- [Quick 260928-np1]: Agent watch must propose exact Scheduler completion targets after playback and wait for a separate approval. The read-only preview found two candidates and made zero Notion writes. Source checkout storage is project-rooted; wheel fallback is the user's `~/.coursepilot`. macOS/Linux runtime was not verified. Phase 17 remains pending.
-- [Quick 260928-hm1]: Explicit same-request playback plus Scheduler completion authorizes `watch --update-notion` for actually completed, matching videos. Personal state is unified under `~/.coursepilot` for source and wheel runs, superseding the storage split and strict approval rule in 260928-np1. The personal mapping file was removed from the current Git tree, and the later quick task 260928-gh1 removed it from reachable Git history. Five supported agent skills were relinked. Phase 17 remains pending.
-- [Quick 260928-gh1]: User authorized a history rewrite; `config/course_mappings.json` was removed from all reachable commits on remote `main`. GSD commit references were remapped, the pre-existing player edit was preserved, and local unreachable objects were pruned. The isolated temporary folder remains because automatic approval review blocked its recursive removal. Phase 17 remains pending.
-- Codex workspace-write child setup fails on this Windows host; the recorded read-only route passes used danger-full-access. Antigravity evidence covers its headless CLI, not IDE UI.
+- [Phase 17] Codex `workspace-write` child setup fails on this Windows host; recorded read-only route passes used `danger-full-access`. Antigravity evidence covers its headless CLI, not IDE UI. These are scope limits rather than missing Phase 17 outcomes; historical quick-task details remain in their own records.
 
 ### Quick Tasks Completed
 
@@ -144,6 +143,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-10-08T13:07:05.240Z
-Stopped at: Phase 17 complete — all phases complete
+Last session: 2026-10-08T13:14:49.922Z
+Stopped at: Phase 17 complete; v2.0 milestone ready to close
 Resume file: None
