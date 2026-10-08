@@ -36,7 +36,7 @@
 - [x] **SKIL-01**: 터미널 및 에이전트 대화창에 미완료 강의/과제 및 마감일을 직관적으로 보여주는 Rich 콘솔 브리핑 리포트를 출력한다.
 - [x] **SKIL-02**: 상태 조회(`check`) 및 노션 동기화(`sync`)를 수행할 수 있는 CLI 명령어를 제공한다.
 - [x] **SKIL-03**: 에이전트 중립 Agent Skill 형식(`SKILL.md`)으로 패키징하고 에이전트별 설치 명령을 제공하여 Claude Code, Codex, Antigravity, Pi, Hermes 등 모든 지원 에이전트가 자연어 요청으로 스킬을 호출할 수 있도록 한다.
-- [ ] **SKIL-04**: Phase 16.1까지의 신규 CoursePilot CLI 명령과 JSON 결과를 Agent Skill 및 계약 문서에 반영하고, 소스 링크로 5개 지원 에이전트에 배포한 뒤 각 대상의 설치·자연어 라우팅 결과를 개별 검증한다. 독립 `notion-scheduler` 스킬의 일반 작업 계약은 분리한다.
+- [x] **SKIL-04**: Phase 16.1까지의 신규 CoursePilot CLI 명령과 JSON 결과를 Agent Skill 및 계약 문서에 반영하고, 소스 링크로 5개 지원 에이전트에 배포한 뒤 각 대상의 설치·자연어 라우팅 결과를 개별 검증한다. 독립 `notion-scheduler` 스킬의 일반 작업 계약은 분리한다.
 
 ### VOD Player Advanced Control (WATCH)
 
@@ -75,7 +75,7 @@
 
 ### End-to-End Verification (VERIF)
 
-- [ ] **VERIF-03**: 실제 Coursemos LXP의 현재 수강 과목 전체에서 조회 명령을 검증하고 대표 자료·VOD 다운로드, 짧은 watch 시작/상태/중단, 독립 Scheduler 읽기 및 CoursePilot 동기화 미리보기를 확인한다. 실행 결과와 미검증 항목을 구분해 기록하며 Notion 생성·수정은 수행하지 않는다.
+- [x] **VERIF-03**: 실제 Coursemos LXP의 현재 수강 과목 전체에서 조회 명령을 검증하고 대표 자료·VOD 다운로드, 짧은 watch 시작/상태/중단, 독립 Scheduler 읽기 및 CoursePilot 동기화 미리보기를 확인한다. 실행 결과와 미검증 항목을 구분해 기록하며 Notion 생성·수정은 수행하지 않는다.
 
 ### Advanced Automation & Notifications
 
@@ -111,7 +111,7 @@
 | SKIL-01 | Phase 5 | Complete |
 | SKIL-02 | Phase 5 | Complete |
 | SKIL-03 | Phase 5 | Complete |
-| SKIL-04 | Phase 17 | Pending |
+| SKIL-04 | Phase 17 | Complete |
 | WATCH-04 | Phase 12 | Complete |
 | WATCH-05 | Phase 12 | Complete |
 | WATCH-06 | Phase 12 | Complete |
@@ -129,7 +129,7 @@
 | SCHD-04 | Phase 16.1 | Complete |
 | SCHD-05 | Phase 16.1 | Complete |
 | SCHD-06 | Phase 16.1 | Complete |
-| VERIF-03 | Phase 17 | Pending |
+| VERIF-03 | Phase 17 | Complete |
 | NOTF-01 | Future | Backlog |
 | CAL-01 | Future | Backlog |
 | MOBI-01 | Future | Backlog |

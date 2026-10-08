@@ -4,24 +4,26 @@ milestone: v2.0
 current_phase: 17
 current_phase_name: Universal Skill Packaging, Multi-Agent Deployment & End-to-End Verification
 status: executing
-stopped_at: Completed 17-05-PLAN.md; 17-04 final gate remains
-last_updated: "2026-10-08T12:11:12.124Z"
+stopped_at: Completed 17-04-PLAN.md; phase verification pending
+last_updated: "2026-10-08T13:07:25.675Z"
 last_activity: 2026-10-08
-last_activity_desc: Phase 17 gap plan 17-05 verified; final 17-04 gate pending
-state_head: f05750ae8bed6d49a8ab490c0d813bca7759a351
+last_activity_desc: All five Phase 17 plans summarized; phase verification pending
+state_head: 524446512e24e7b6797ea13b695f6dafe00a2833
 progress:
   total_phases: 18
   completed_phases: 17
   total_plans: 41
-  completed_plans: 40
+  completed_plans: 41
   percent: 94
 milestone_name: Completed)
 ---
 
 Total Phases: 18
+
 # Project State
 
 ## Project Reference
+
 See: .planning/PROJECT.md (updated 2026-10-04)
 
 **Core value:** 학생이 수강 중인 모든 강의의 미완료 인강 및 과제 마감 기한을 빠짐없이 확인하고, 중복 없이 정형화된 이름 규칙으로 개인 노션 스케줄러에 동기화하며, 1회 수강 전 배속 불가 문제를 해결하기 위해 백그라운드 VOD 자동 시청 및 출석 인정을 대행하는 것.
@@ -31,10 +33,10 @@ See: .planning/PROJECT.md (updated 2026-10-04)
 
 Phase: 17 (Universal Skill Packaging, Multi-Agent Deployment & End-to-End Verification) — EXECUTING
 Plan: 5 of 5
-Status: Ready to execute
-Last activity: 2026-10-08 — Phase 17 gap plan 17-05 verified; final 17-04 gate pending
+Status: Awaiting phase verification
+Last activity: 2026-10-08 — All five Phase 17 plans summarized; phase verification pending
 
-Progress: [███████████████████░] 17/18 phases ([█████████░] 94%); 40/41 planned plans complete
+Progress: [███████████████████░] 17/18 phases ([█████████░] 94%); 41/41 planned plans complete
 
 ## Performance Metrics
 
@@ -82,6 +84,7 @@ Progress: [███████████████████░] 17/18 p
 | Phase 05 P04 | 50min | 3 tasks | 5 files |
 | Phase 05 P05 | 16min | 3 tasks | 8 files |
 | Phase 17 P05 | 3d | 3 tasks | 13 files |
+| Phase 17 P04 | 45min | 3 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -111,6 +114,7 @@ Progress: [███████████████████░] 17/18 p
 - [Phase 05]: Live-run precondition gaps (real ConfigError from empty .env credentials) are recorded truthfully and not retried, per the plan's own explicit instructions -- distinguishes an unmet external precondition from a code defect requiring auto-fix.
 - [Phase 05]: Proceeded past Task 1's live-evidence gap to complete Tasks 2/3 (JSON contract doc, README, five-agent install) since neither depends on the live LMS run -- avoided halting independently completable phase-closure work.
 - [Phase 17]: Count agent routes only with skill, exact command, valid JSON, CLI result, and final response; use compact progress for short prompts. — Fresh-session evidence and bounded output closed the routing gap while retaining full progress JSON.
+- [Phase 17]: Final live verification uses the current eight-course enrollment and reuses previously observed download/watch proof. — Read-only commands and Scheduler previews were rerun; repeating side-effecting smoke actions would add no verification value.
 
 ### Roadmap Evolution
 
@@ -144,6 +148,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-10-08T12:10:24.488Z
-Stopped at: Completed 17-05-PLAN.md; 17-04 final gate remains
+Last session: 2026-10-08T13:07:05.240Z
+Stopped at: Completed 17-04-PLAN.md; phase verification pending
 Resume file: None
