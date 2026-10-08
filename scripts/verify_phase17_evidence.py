@@ -12,7 +12,9 @@ EVIDENCE = Path(__file__).resolve().parents[1] / ".planning" / "phases" / "17-un
 AGENTS = ("claude", "codex", "antigravity", "pi", "hermes")
 PROMPTS = {"진도율": "progress", "공지": "notices", "Q&A": "qna"}
 COMMANDS = ("check", "progress", "notices", "qna")
-PRIVATE_KEYS = {"payload", "raw_json", "raw_response", "transcript", "full_transcript", "credentials", "password", "token", "session_cookie", "course_title", "course_titles", "course_name", "course_names"}
+PRIVATE_KEYS = {"payload", "course_payload", "raw_json", "raw_response", "raw_stdout", "raw_stderr",
+                "stdout", "stderr", "tool_output", "transcript", "full_transcript", "credentials",
+                "password", "token", "session_cookie", "course_title", "course_titles", "course_name", "course_names"}
 
 
 class EvidenceError(ValueError):
@@ -130,8 +132,15 @@ def validate_ledger(data: dict, section: str | None = None) -> list[str]:
                 raise EvidenceError("unknown selected command for prompt")
             if row.get("outcome") not in ("pass", "fail", "unverified") or not isinstance(row.get("triggered"), bool):
                 raise EvidenceError("invalid agent outcome")
-            if row["outcome"] == "pass" and (not row["triggered"] or row["selected_command"] != PROMPTS[pair[1]]):
-                raise EvidenceError("route pass lacks observed skill trigger and command")
+            if row["outcome"] == "pass" and (
+                not row["triggered"] or row["selected_command"] != PROMPTS[pair[1]]
+                or row.get("cli_json_valid") is not True
+                or row.get("cli_exit") not in (0, 1)
+                or row.get("final_response") is not True
+            ):
+                raise EvidenceError("route pass lacks observed skill, correct command, valid CLI JSON, or final response")
+            if row.get("cli_json_valid") is True and row.get("selected_command") is None:
+                raise EvidenceError("CLI JSON proof without selected command")
             if not row.get("reason"):
                 raise EvidenceError("agent route needs reason")
             if row["outcome"] != "pass":

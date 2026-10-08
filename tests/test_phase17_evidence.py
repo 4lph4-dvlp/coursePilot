@@ -23,7 +23,9 @@ def valid_ledger() -> dict:
         "watch": {"dry_run_observed": True, "dry_run_at": "2026-10-04T11:59:00Z", "started_at": "2026-10-04T12:00:00Z", "status_at": "2026-10-04T12:01:00Z", "stopped_at": "2026-10-04T12:02:00Z"},
         "scheduler": {"read_observed": True, "sync_preview_observed": True, "watch_preview_observed": True, "create_calls": 0, "update_calls": 0},
         "agents": [
-            {"agent": agent, "prompt": prompt, "triggered": True, "selected_command": command, "outcome": "pass", "reason": "observed"}
+            {"agent": agent, "prompt": prompt, "triggered": True, "selected_command": command,
+             "cli_json_valid": True, "cli_exit": 0, "final_response": True,
+             "outcome": "pass", "reason": "observed"}
             for agent in AGENTS for prompt, command in PROMPTS.items()
         ],
         "criteria": [{"id": n, "verdict": "passed", "reason": "observed"} for n in range(1, 5)],
@@ -41,6 +43,7 @@ def test_valid_ledger_passes_all_sections(valid_ledger: dict) -> None:
     lambda d: d["scheduler"].update(create_calls=1),
     lambda d: d["agents"][0].update(selected_command="check"),
     lambda d: d.update(raw_json={"private": "value"}),
+    lambda d: d["agents"][0].update(raw_stderr="private"),
     lambda d: d["agents"][0].update(full_transcript="private"),
     lambda d: d["watch"].update(status_at="2026-10-04T11:58:00Z"),
 ])
@@ -66,6 +69,20 @@ def test_wrong_known_route_is_recorded_as_failure(valid_ledger: dict) -> None:
     row.update(selected_command="progress", outcome="fail", reason="selected progress for notice prompt")
     case["criteria"][1]["verdict"] = "unverified"
     assert "agent:claude:공지" in validate_ledger(case)
+
+
+def test_wrong_route_cannot_pass_even_with_valid_cli_json(valid_ledger: dict) -> None:
+    row = next(r for r in valid_ledger["agents"] if r["prompt"] == "공지")
+    row["selected_command"] = "progress"
+    with pytest.raises(EvidenceError):
+        validate_ledger(valid_ledger)
+
+
+@pytest.mark.parametrize("field,value", [("cli_json_valid", False), ("cli_exit", None), ("final_response", False)])
+def test_cli_or_final_failure_cannot_pass(valid_ledger: dict, field: str, value: object) -> None:
+    valid_ledger["agents"][0][field] = value
+    with pytest.raises(EvidenceError):
+        validate_ledger(valid_ledger)
 
 
 def test_unknown_enrollment_stays_incomplete(valid_ledger: dict) -> None:
