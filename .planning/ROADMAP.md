@@ -491,7 +491,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 17-04 — Live LXP, Scheduler, and agent routing verification
+- [x] 17-04 — Live LXP, Scheduler, and agent routing verification
 
 ---
 
