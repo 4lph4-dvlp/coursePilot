@@ -6,6 +6,8 @@
 
 호출: `uv --directory "{{COURSEPILOT_REPO}}" run python -m coursepilot progress --refresh --json`. `--course`, `--week`, `--detail`로 범위를 좁힐 수 있습니다. `--refresh`는 캐시 대신 새로 수집합니다.
 
+짧은 전체 진도 브리핑에는 `--compact`를 `--json`과 함께 사용할 수 있습니다. 같은 v1 계약의 `ProgressSummaryReport`가 `summary`와 과목별 진도율·완료/전체 건수, 상태, 오류를 유지합니다. 과목별 `activity_breakdown`과 활동 목록 세 필드(`current_week_items`, `missed_past_items`, `all_items`)는 포함하지 않습니다. 최상위 `report_view`는 기본 출력에서 `"full"`, 압축 출력에서 `"summary"`입니다. 항목별 설명이 필요하면 `--compact` 없이 다시 조회하세요. 종료 코드 규칙은 같습니다.
+
 `ProgressReport`의 `schema_version`은 `1`, `command`는 `progress`입니다. 최상위 `status`는 `success`, `partial_success`, `error` 중 하나입니다. `generated_at`은 생성 시각, `is_cached`는 캐시 여부, `errors`는 수집 오류, `notices`는 사용자 안내입니다. `summary`는 `DashboardSummary`, `courses`는 과목별 `CourseProgress` 목록입니다.
 
 | 필드 | 의미 |

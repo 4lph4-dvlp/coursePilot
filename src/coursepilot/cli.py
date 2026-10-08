@@ -18,6 +18,7 @@ from coursepilot.progress.reporter import (
     render_detailed_activities,
     render_progress_dashboard,
 )
+from coursepilot.progress.models import CourseProgressSummary, ProgressSummaryReport
 from coursepilot.progress.runner import run_progress_pipeline
 from coursepilot.reporter import (
     build_check_report,
@@ -1035,6 +1036,7 @@ def qna_command(ctx: click.Context, **kwargs) -> None:
 @click.option("--cached", "use_cache", is_flag=True, help="10분 이내에 저장된 로컬 캐시 데이터가 있으면 즉시 반환합니다.")
 @click.option("--refresh", "refresh", is_flag=True, help="기존 캐시를 무시하고 LMS에서 실시간으로 새로 수집합니다.")
 @click.option("--json", "as_json", is_flag=True, help="표준 JSON 계약(schema_version: 1) 규격으로 결과를 출력합니다.")
+@click.option("--compact", is_flag=True, help="JSON에서 활동 항목 목록을 빼고 과목별 집계만 출력합니다 (--json 필요).")
 @click.option("--relogin", "relogin", is_flag=True, help="캐시된 세션을 무시하고 새로 로그인합니다.")
 @click.option("--headed", "headed", is_flag=True, help="브라우저 창을 화면에 표시합니다.")
 @click.pass_context
@@ -1046,10 +1048,13 @@ def progress_command(
     use_cache: bool,
     refresh: bool,
     as_json: bool,
+    compact: bool,
     relogin: bool,
     headed: bool,
 ) -> None:
     """수강 과목의 4대 활동(동영상, 과제, 퀴즈, 학습자료) 진척도를 종합 대시보드로 브리핑합니다."""
+    if compact and not as_json:
+        raise click.UsageError("--compact requires --json")
     err = Console(stderr=True)
     out = Console()
 
@@ -1071,7 +1076,14 @@ def progress_command(
         ctx.exit(2)
 
     if as_json:
-        click.echo(report.model_dump_json(indent=2))
+        if compact:
+            data = report.model_dump(mode="json", exclude={"courses"})
+            summary_fields = set(CourseProgressSummary.model_fields)
+            data["courses"] = [course.model_dump(mode="json", include=summary_fields) for course in report.courses]
+            data["report_view"] = "summary"
+            click.echo(ProgressSummaryReport.model_validate(data).model_dump_json())
+        else:
+            click.echo(report.model_dump_json(indent=2))
     else:
         if course_query and len(report.courses) == 1:
             render_course_matrix(report.courses[0], out, week_filter=week_query)

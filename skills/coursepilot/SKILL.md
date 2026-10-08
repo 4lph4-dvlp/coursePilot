@@ -1,6 +1,6 @@
 ---
 name: coursepilot
-description: "Use this skill for Korean coursework requests such as '진도율', '공지', 'Q&A', '과제 확인해줘', '미완료 강의 알려줘', and '노션에 올려줘'. Run the local CoursePilot CLI to check lectures, materials, assignments, quizzes, deadlines, announcements, questions, and progress; preview or apply academic Notion Scheduler sync; or perform explicitly requested material downloads and VOD viewing. Supports Coursemos-family LMS configured by LMS_URL or an optional school profile."
+description: "Use this skill immediately for standalone Korean prompts: '진도율' runs CoursePilot progress, '공지' runs CoursePilot notices, and 'Q&A' runs CoursePilot qna. Also use it for coursework requests such as '과제 확인해줘', '미완료 강의 알려줘', and '노션에 올려줘'. Run the local CoursePilot CLI to check lectures, materials, assignments, quizzes, deadlines, announcements, questions, and progress; preview or apply academic Notion Scheduler sync; or perform explicitly requested material downloads and VOD viewing. Supports Coursemos-family LMS configured by LMS_URL or an optional school profile."
 ---
 
 # CoursePilot
@@ -12,6 +12,16 @@ Repository root: `{{COURSEPILOT_REPO}}`
 위 Repository root 줄이 여전히 `{{COURSEPILOT_REPO}}`라는 글자 그대로라면(`--link` 설치인 경우), 사용자 홈의 `~/.coursepilot/repo-root.txt`에 적힌 한 줄짜리 경로를 대신 읽어서 사용하세요.
 
 ## 2. 실행 규칙
+
+짧은 단독 요청도 아래 명령으로 바로 연결하세요. 게시판의 “공지”를 일반 학업 현황으로 해석해 `progress`를 실행하지 마세요.
+
+| 사용자 요청 | 첫 명령 |
+|---|---|
+| `진도율` | `progress --refresh --json --compact` |
+| `공지` | `notices --json` |
+| `Q&A` | `qna --json` |
+
+이 세 요청은 CoursePilot의 학업 조회입니다. 일반 개인 일정 관리 요청만 독립 `notion-scheduler` 스킬로 연결하세요.
 
 항상 다음 형태로 명령을 실행하세요:
 
@@ -26,20 +36,19 @@ uv --directory "{{COURSEPILOT_REPO}}" run python -m coursepilot <check|progress|
 - 종료 코드: `0` 성공 / `1` 부분 실패(결과는 여전히 유효하며 오류도 함께 표시) / `2` 치명적 오류(`errors[].message`를 보여주고 중단).
 - JSON의 정확한 필드 구조, 타입, enum 값, 버전 규칙이 궁금하면 같은 폴더의 `JSON_CONTRACT.md`를 참고하세요.
 
-## 3. 처음 실행 / 환경 진단
+## 3. 실행 실패 시 환경 진단
 
-1. `uv --version`을 실행해 uv가 설치되어 있는지 확인하세요. 없다면 uv 설치 방법을 사용자에게 안내하세요.
-2. uv가 있다면 다음을 직접(사용자에게 시키지 말고) 실행해 의존성을 준비하세요:
-   - `uv --directory "{{COURSEPILOT_REPO}}" sync`
-   - `uv --directory "{{COURSEPILOT_REPO}}" run playwright install chromium`
-3. `~/.coursepilot/.env` 파일이 **존재하는지만** 확인하세요 — 절대 그 내용을 열거나, 출력하거나, 복사하지 마세요.
-4. 학교는 자동 선택되지 않습니다. 도구는 `~/.coursepilot/.env`의 `LMS_URL`을 우선 사용하고, 주소가 없으면 선택적 `LMS_PROFILE`을 적용합니다. 현재 `LMS_PROFILE=kau`는 한국항공대 https://lxp.kau.ac.kr 을 선택합니다. 주소와 프로필이 모두 없으면 사용자가 학교 주소를 직접 설정하도록 안내하세요. 현재 Coursemos 계열만 구현되어 있으며 Canvas, Blackboard 등은 지원한다고 주장하지 마세요.
-5. 종료 코드 `2`에 `ConfigError`가 포함되어 있거나 `.env`가 없다면, 어떤 키를 채워야 하는지만 알려주고(저장소의 `.env.example`을 `~/.coursepilot/.env`로 복사해서 시작하라고 안내) 값은 사용자가 직접 채우게 하세요.
-6. 학번/아이디, LMS 비밀번호, Notion 토큰, 세션 쿠키는 절대 요청, 반복, 저장하지 마세요. 사용자가 대화 중 실수로 비밀 값을 붙여넣더라도 그 값을 다시 출력하지 말고, `.env`로 옮기고 즉시 해당 값을 재발급(로테이션)하라고 안내하세요.
+1. 위 조회 명령을 먼저 실행하세요. `uv` 자체를 찾을 수 없다면 설치 방법을 사용자에게 안내하세요.
+2. 의존성 누락으로 실패한 경우에만 `uv --directory "{{COURSEPILOT_REPO}}" sync --inexact`로 준비한 뒤 조회를 다시 실행하세요. `--inexact`는 개발 환경에 이미 설치된 선택적 도구를 제거하지 않습니다.
+3. Playwright가 Chromium 실행 파일이 없다고 보고할 때에만 `uv --directory "{{COURSEPILOT_REPO}}" run playwright install chromium`을 실행하고 조회를 다시 시도하세요.
+4. `~/.coursepilot/.env` 파일은 **존재하는지만** 확인하세요 — 절대 그 내용을 열거나, 출력하거나, 복사하지 마세요.
+5. 학교는 자동 선택되지 않습니다. 도구는 `~/.coursepilot/.env`의 `LMS_URL`을 우선 사용하고, 주소가 없으면 선택적 `LMS_PROFILE`을 적용합니다. 현재 `LMS_PROFILE=kau`는 한국항공대 https://lxp.kau.ac.kr 을 선택합니다. 주소와 프로필이 모두 없으면 사용자가 학교 주소를 직접 설정하도록 안내하세요. 현재 Coursemos 계열만 구현되어 있으며 Canvas, Blackboard 등은 지원한다고 주장하지 마세요.
+6. 종료 코드 `2`에 `ConfigError`가 포함되어 있거나 `.env`가 없다면, 어떤 키를 채워야 하는지만 알려주고(저장소의 `.env.example`을 `~/.coursepilot/.env`로 복사해서 시작하라고 안내) 값은 사용자가 직접 채우게 하세요.
+7. 학번/아이디, LMS 비밀번호, Notion 토큰, 세션 쿠키는 절대 요청, 반복, 저장하지 마세요. 사용자가 대화 중 실수로 비밀 값을 붙여넣더라도 그 값을 다시 출력하지 말고, `.env`로 옮기고 즉시 해당 값을 재발급(로테이션)하라고 안내하세요.
 
 ## 4. 학업 현황과 마감 브리핑
 
-- “이번 주 학업 현황 알려줘”, “진도율”처럼 넓은 현황 요청은 `progress --refresh --json`을 먼저 실행하세요. `summary`의 진도율과 건수, 각 `courses`의 `current_week_items`, `missed_past_items`, `all_items`를 구분해 설명하세요.
+- “이번 주 학업 현황 알려줘”, “진도율”처럼 넓은 현황 요청은 `progress --refresh --json --compact`를 먼저 실행하세요. `summary`와 과목별 집계로 진도율과 건수를 설명하세요. `report_view: summary`에는 활동 항목 목록이 없으므로 항목별 세부 내역이 필요할 때만 `progress --refresh --json`을 따로 실행하고 `current_week_items`, `missed_past_items`, `all_items`를 구분해 설명하세요.
 - 마감일, 과제, 제출할 작업을 명시한 요청은 `check --json`을 실행하세요. 현황 요청의 결과를 마감 목록으로 대체하지 마세요.
 - `progress.status`가 `partial_success` 또는 `error`이거나 `errors`가 있거나 어느 `CourseProgress.status`가 `error`이면, 유효한 결과를 브리핑하기 전에 수집 실패 범위와 `error_message`를 알리세요. `notices`의 `message`도 먼저 전하세요.
 - 항목 수가 0이어도 모든 과목의 수집 성공이 증명되지 않았다면 “모두 완료”라고 말하지 마세요. `summary.total_courses`, `courses` 수, 과목별 `status`를 확인하세요. 수집된 0개와 수집하지 못한 0개를 구별하세요.

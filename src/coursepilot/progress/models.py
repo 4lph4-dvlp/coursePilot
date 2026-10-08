@@ -88,6 +88,28 @@ class CourseProgress(BaseModel):
     error_message: str | None = None
 
 
+class CourseProgressSummary(BaseModel):
+    """Per-course counts and rates for bounded agent output."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    course_id: str
+    course_name: str
+    course_abbr: str
+    current_week: int
+    current_open_rate: float
+    current_open_completed: int
+    current_open_total: int
+    past_weeks_rate: float
+    past_weeks_completed: int
+    past_weeks_total: int
+    semester_overall_rate: float
+    semester_completed: int
+    semester_total: int
+    status: Literal["ok", "error"] = "ok"
+    error_message: str | None = None
+
+
 class DashboardSummary(BaseModel):
     """Aggregated KPI summary across all enrolled courses."""
 
@@ -115,10 +137,28 @@ class ProgressReport(BaseModel):
 
     schema_version: Literal[1] = SCHEMA_VERSION
     command: Literal["progress"] = "progress"
+    report_view: Literal["full", "summary"] = "full"
     status: Literal["success", "partial_success", "error"]
     generated_at: datetime
     is_cached: bool = False
     summary: DashboardSummary
     courses: list[CourseProgress]
+    errors: list[ErrorItem] = Field(default_factory=list)
+    notices: list[ReportNotice] = Field(default_factory=list)
+
+
+class ProgressSummaryReport(BaseModel):
+    """Explicit v1 summary view without per-activity or per-type detail."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    schema_version: Literal[1] = SCHEMA_VERSION
+    command: Literal["progress"] = "progress"
+    report_view: Literal["summary"] = "summary"
+    status: Literal["success", "partial_success", "error"]
+    generated_at: datetime
+    is_cached: bool = False
+    summary: DashboardSummary
+    courses: list[CourseProgressSummary]
     errors: list[ErrorItem] = Field(default_factory=list)
     notices: list[ReportNotice] = Field(default_factory=list)

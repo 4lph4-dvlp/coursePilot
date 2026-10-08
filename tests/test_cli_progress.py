@@ -9,10 +9,12 @@ import pytest
 from coursepilot.cli import cli
 from coursepilot.progress.models import (
     SCHEMA_VERSION,
+    ActivityItem,
     ActivityBreakdown,
     CourseProgress,
     DashboardSummary,
     ProgressReport,
+    ProgressSummaryReport,
 )
 from coursepilot.report_models import ErrorItem
 from coursepilot.scraper.date_parser import KST
@@ -91,6 +93,34 @@ def test_cli_progress_json_contract(mock_pipeline):
     assert "summary" in data
     assert "courses" in data
     assert data["courses"][0]["course_name"] == "자료구조(01분반)"
+
+
+@patch("coursepilot.cli.run_progress_pipeline")
+def test_cli_progress_compact_json_keeps_counts_and_omits_activity_lists(mock_pipeline):
+    report = _sample_report(missed_past=2)
+    report.courses[0].all_items = [ActivityItem(course_id="101", activity_type="vod", week_number=3,
+                                                title="PRIVATE_ACTIVITY", is_completed=False)]
+    mock_pipeline.return_value = report
+
+    result = CliRunner().invoke(cli, ["progress", "--json", "--compact"])
+    assert result.exit_code == 1  # overdue alert still applies
+    data = json.loads(result.stdout)
+    assert data["schema_version"] == 1
+    assert data["command"] == "progress"
+    assert data["report_view"] == "summary"
+    assert data["summary"]["missed_past_count"] == 2
+    assert data["courses"][0]["semester_total"] == 10
+    assert "all_items" not in data["courses"][0]
+    assert "PRIVATE_ACTIVITY" not in result.stdout
+    validated = ProgressSummaryReport.model_validate(data)
+    assert validated.report_view == "summary"
+    assert validated.courses[0].semester_total == 10
+
+
+def test_cli_progress_compact_requires_json():
+    result = CliRunner().invoke(cli, ["progress", "--compact"])
+    assert result.exit_code == 2
+    assert "--compact requires --json" in result.output
 
 
 @patch("coursepilot.cli.run_progress_pipeline")
