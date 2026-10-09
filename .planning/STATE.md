@@ -1,23 +1,24 @@
 ---
 gsd_state_version: "1.0"
 milestone: v2.0
-current_phase: 17
-status: completed
-stopped_at: Phase 17 complete; v2.0 milestone ready to close
-last_updated: "2026-10-08T13:14:52.722Z"
-last_activity: 2026-10-08
-last_activity_desc: Phase 17 complete
-state_head: c4fe1394bc6d8dec454700ed5a9c649ac15e5dd7
+current_phase: 18
+current_phase_name: Selected Materials Contract and Attachment Manifest
+status: ready
+stopped_at: Phase 18 planned; ready to execute
+last_updated: "2026-10-09T08:12:32.742Z"
+last_activity: 2026-10-09
+last_activity_desc: Phase 18 plans verified
+state_head: c51742085b42e4f216fc11eecf1112be4b272ee1
 progress:
-  total_phases: 18
+  total_phases: 19
   completed_phases: 18
-  total_plans: 41
+  total_plans: 46
   completed_plans: 41
-  percent: 100
-milestone_name: Completed)
+  percent: 89
+milestone_name: v2.0
 ---
 
-Total Phases: 18
+Total Phases: 19
 
 # Project State
 
@@ -26,16 +27,16 @@ Total Phases: 18
 See: .planning/PROJECT.md (updated 2026-10-08)
 
 **Core value:** 학생이 수강 중인 모든 강의의 미완료 인강 및 과제 마감 기한을 빠짐없이 확인하고, 중복 없이 정형화된 이름 규칙으로 개인 노션 스케줄러에 동기화하며, 1회 수강 전 배속 불가 문제를 해결하기 위해 백그라운드 VOD 자동 시청 및 출석 인정을 대행하는 것.
-**Current focus:** v2.0 milestone closeout after Phase 17 verification
+**Current focus:** Phase 18 selected materials contract and attachment manifest
 
 ## Current Position
 
-Phase: 17
+Phase: 18 (Selected Materials Contract and Attachment Manifest) — READY TO EXECUTE
 Plan: Not started
-Status: All phases complete
-Last activity: 2026-10-08 — Phase 17 complete
+Status: Ready to execute Phase 18
+Last activity: 2026-10-09 — Phase 18 plans verified
 
-Progress: [████████████████████] 18/18 phases ([██████████] 100%); 41/41 planned plans complete
+Progress: [███████████████████░] 18/19 phases ([█████████░] 89%); 41/46 planned plans complete
 
 ## Performance Metrics
 

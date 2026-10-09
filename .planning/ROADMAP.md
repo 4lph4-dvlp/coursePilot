@@ -501,15 +501,41 @@ Plans:
 **Depends on:** Phase 17
 **Implementation slices:** Preserve the legacy materials command while adding a versioned coarse manifest, approved attachment inspection with complete/unknown cardinality, exact module/file selection and full-manifest digest guard, per-file results, bounded parser and published skill/JSON contract. Keep credentials, VOD, Notion, and LMS-family expansion outside scope. See the alpha-AOS Phase 20 upstream contract for the consumer acceptance boundary.
 **Success Criteria:**
+
 1. A two-module same-week fixture executes the unchanged selected module while a new or changed sibling waits for approval.
 2. A two-file module fixture retries only one failed file without redownloading its verified sibling; added or renamed attachments reject a stale digest before effects.
 3. Unknown attachment completeness remains unknown, and a viewed-only or planned item cannot be counted as a saved file.
 4. CLI help, JSON version, skill contract, and focused offline fixtures agree; a fresh installed runtime can be resolved and probed without reading credentials.
-**Plans:** 0 plans
+
+**Plans:** 0/5 plans executed
 
 Plans:
 
-- [ ] TBD (run $gsd-plan-phase 18 to break down)
+- [ ] 18-01-PLAN.md
+- [ ] 18-02-PLAN.md
+- [ ] 18-03-PLAN.md
+- [ ] 18-04-PLAN.md
+- [ ] 18-05-PLAN.md
+
+**Wave 1**
+
+- [ ] 18-01 — Review and approve the exact public materials contract
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 18-02 — Read-only coarse materials discovery through versioned JSON
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 18-03 — Approved attachment inspection and complete-or-unknown manifest
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 18-04 — Exact file selection, stale-manifest guard, and source-bound evidence
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 18-05 — Published contract and installed-runtime canary
 
 ---
 
@@ -538,4 +564,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 16. Comprehensive Activity Progress Dashboard | 2/2 | Complete    | 2026-09-26 |
 | 16.1. Independent Notion Scheduler Module and Agent Skill | 4/4 | Complete    | 2026-10-04 |
 | 17. Universal Skill Packaging, Multi-Agent Deployment & End-to-End Verification | 5/5 | Complete    | 2026-10-08 |
-| 18. Selected Materials Contract and Attachment Manifest | 0/0 | Pending | — |
+| 18. Selected Materials Contract and Attachment Manifest | 0/5 | Planned    |  |

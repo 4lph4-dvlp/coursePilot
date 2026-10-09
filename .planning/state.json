@@ -92,12 +92,17 @@
       "number": "17",
       "name": "Universal Skill Packaging, Multi-Agent Deployment & End-to-End Verification",
       "status": "complete"
+    },
+    {
+      "number": "18",
+      "name": "Selected Materials Contract and Attachment Manifest",
+      "status": "pending"
     }
   ],
   "next": {
-    "command": "/gsd:new-milestone",
-    "label": "Start a new milestone",
-    "reason": "All phases complete — start a new milestone"
+    "command": "/gsd:progress",
+    "label": "Show progress",
+    "reason": "Unsure of state — showing progress"
   },
-  "updated_at": "2026-10-08T13:11:29.486Z"
+  "updated_at": "2026-10-09T08:12:32.876Z"
 }
