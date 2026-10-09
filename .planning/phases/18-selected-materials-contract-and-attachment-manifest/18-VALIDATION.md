@@ -30,11 +30,13 @@ created: "2026-10-09"
 
 | Task ID | Plan | Wave | Requirement | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------------|-----------|-------------------|-------------|--------|
-| Assigned by planner | TBD | TBD | MCON-01 | Coarse listing avoids detail-page view effects; inspected layouts prove complete or say unknown. | parser/CLI fixture | `uv run --offline python -m pytest tests/test_material_parser.py tests/test_cli_materials.py -q` | Existing suites; new fixtures W0 | ⬜ pending |
-| Assigned by planner | TBD | TBD | MCON-02 | Exact module/file selection rejects changed full manifest before download and never runs a sibling. | runner fixture | `uv run --offline python -m pytest tests/test_materials_runner.py tests/test_material_downloader.py -q` | Existing suites; new fixtures W0 | ⬜ pending |
-| Assigned by planner | TBD | TBD | MCON-03 | Versioned per-file result, partial/fatal/error mapping, and legacy compatibility are independently checked. | CLI/contract fixture | `uv run --offline python -m pytest tests/test_cli_materials.py tests/test_material_models.py -q` | Existing suites; new fixtures W0 | ⬜ pending |
+| 18-01-01/02 | 01 | 1 | MCON-01..03 | Exact public proposal is reviewed before one-way publication. | proposal/checkpoint | `python -c "from pathlib import Path; assert Path('.planning/phases/18-selected-materials-contract-and-attachment-manifest/18-CONTRACT-PROPOSAL.md').is_file()"` | ❌ W0 | ⬜ pending |
+| 18-02-01/02 | 02 | 2 | MCON-01 | Coarse listing avoids detail-page view effects and preserves legacy output. | runner/CLI fixture | `uv run --offline python -m pytest tests/test_cli_materials.py tests/test_materials_runner.py -q` | Existing suites; new cases W0 | ⬜ pending |
+| 18-03-01/02 | 03 | 3 | MCON-01, MCON-02 | Approved inspect returns a proven complete full attachment list and digest, or unknown with reason. | parser/CLI fixture | `uv run --offline python -m pytest tests/test_material_parser.py tests/test_materials_runner.py tests/test_cli_materials.py -q` | Existing suites; new cases W0 | ⬜ pending |
+| 18-04-01/02 | 04 | 4 | MCON-02, MCON-03 | Exact module/file selection rejects changed full manifest before download and never runs a sibling. | runner/downloader fixture | `uv run --offline python -m pytest tests/test_materials_runner.py tests/test_material_downloader.py -q` | Existing suites; new cases W0 | ⬜ pending |
+| 18-05-01/02 | 05 | 5 | MCON-01..03 | Published docs and installed runtime canary agree with approved JSON and preserve legacy compatibility. | contract/package fixture | `uv run --offline python -m pytest tests/test_contract_doc.py tests/test_materials_install_canary.py -q` | Canary suite ❌ W0 | ⬜ pending |
 
-*Task IDs, waves and any new test filenames will be updated after PLAN.md is finalized. Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky.*
+*Task IDs and waves reflect the draft plans; update the inspect row if revision changes its focused test command. Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky.*
 
 ## Wave 0 Requirements
 
