@@ -49,6 +49,12 @@
 - [x] **RES-01**: 미열람 상태의 `ubfile` 학습자료 페이지를 방문(열람)하여 LXP 진도율을 100% 완료 상태로 갱신한다.
 - [x] **RES-02**: 첨부 파일(PDF, PPT, ZIP 등)을 `.env` 또는 요청된 기본 경로 하위 `<과목명>/W{주차}/` 폴더에 자동으로 다운로드 및 정리하고 CLI 및 JSON 인터페이스를 제공한다.
 
+### Selected Materials Contract (MCON)
+
+- [ ] **MCON-01**: 버전이 명시된 공개 materials JSON 계약으로 과목·주차·자료 목록과 첨부파일 목록의 완전성(complete/unknown)을 구분하고, 상세 조회가 LMS 열람 효과를 낼 수 있음을 호출자에게 알린다.
+- [ ] **MCON-02**: 승인된 과목·자료·파일 ID와 전체 manifest digest로 정확한 파일 하나를 선택해 실행하며, 새 자료·변경된 첨부·검증된 형제 파일을 묵시적으로 다운로드하지 않는다.
+- [ ] **MCON-03**: 파일별 성공·부분 실패·치명적 오류를 구조화해 반환하고, 실제 저장 파일과 출처를 다시 확인할 증거를 남긴다. 공개 CLI·스킬 계약과 오프라인 fixture가 같은 버전을 증명한다.
+
 ### Pure-Python VOD Stream Downloader Integration (VDL)
 
 - [x] **VDL-01**: 시스템에 `ffmpeg` 설치가 없어도 동작하는 순수 파이썬 HLS/m3u8 세그먼트 파서 및 다운로더/병합기를 구현하고 AES-128 복호화 및 원자적 저장을 지원한다.
@@ -117,6 +123,9 @@
 | WATCH-06 | Phase 12 | Complete |
 | RES-01 | Phase 13 | Complete |
 | RES-02 | Phase 13 | Complete |
+| MCON-01 | Phase 18 | Planned |
+| MCON-02 | Phase 18 | Planned |
+| MCON-03 | Phase 18 | Planned |
 | VDL-01 | Phase 14 | Complete |
 | VDL-02 | Phase 14 | Complete |
 | BRD-01 | Phase 15 | Complete |
@@ -136,10 +145,10 @@
 
 **Coverage:**
 
-- Requirements tracked: 38 total
-- Mapped to phases: 35
+- Requirements tracked: 41 total
+- Mapped to phases: 38
 - Backlog / Future: 3
 
 ---
 *Requirements defined: 2026-09-21*
-*Last updated: 2026-10-04 for Phase 17 requirement reconciliation*
+*Last updated: 2026-10-09 for Phase 18 materials contract prerequisite*

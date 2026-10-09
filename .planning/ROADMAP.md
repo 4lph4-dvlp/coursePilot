@@ -33,6 +33,7 @@
 - [x] **Phase 16: Comprehensive Activity Progress Dashboard** - 전체 학습활동(동영상+과제+퀴즈+자료) 종합 진척도 계산, 전체/지나온 주차/이번 주차 진척도 대시보드(`progress`) 구현 (completed 2026-10-04)
 - [x] **Phase 16.1: Independent Notion Scheduler Module and Agent Skill** - Scheduler 연동을 별도 저장소의 독립 패키지·스킬로 분리하고 CoursePilot 및 학업 외 작업에서 재사용 (completed 2026-10-04)
 - [x] **Phase 17: Universal Skill Packaging, Multi-Agent Deployment & End-to-End Verification** - 전체 신규 기능을 `SKILL.md` 및 `JSON_CONTRACT.md`에 반영, 5개 에이전트 일괄 재배포 및 E2E 실사이트 검증 (completed 2026-10-08)
+- [ ] **Phase 18: Selected Materials Contract and Attachment Manifest** - alpha-AOS 일반 작업 커넥터를 위한 공개 자료·파일별 선택, 첨부 완전성, 버전 계약
 
 ## Phase Details
 
@@ -493,12 +494,29 @@ Plans:
 
 - [x] 17-04 — Live LXP, Scheduler, and agent routing verification
 
+### Phase 18: Selected Materials Contract and Attachment Manifest
+
+**Goal:** A caller can inspect the exact CoursePilot material/file set, approve any LMS-view inspection effect, then download only selected unchanged files through a versioned public CLI/JSON contract.
+**Requirements**: MCON-01, MCON-02, MCON-03.
+**Depends on:** Phase 17
+**Implementation slices:** Preserve the legacy materials command while adding a versioned coarse manifest, approved attachment inspection with complete/unknown cardinality, exact module/file selection and full-manifest digest guard, per-file results, bounded parser and published skill/JSON contract. Keep credentials, VOD, Notion, and LMS-family expansion outside scope. See the alpha-AOS Phase 20 upstream contract for the consumer acceptance boundary.
+**Success Criteria:**
+1. A two-module same-week fixture executes the unchanged selected module while a new or changed sibling waits for approval.
+2. A two-file module fixture retries only one failed file without redownloading its verified sibling; added or renamed attachments reject a stale digest before effects.
+3. Unknown attachment completeness remains unknown, and a viewed-only or planned item cannot be counted as a saved file.
+4. CLI help, JSON version, skill contract, and focused offline fixtures agree; a fresh installed runtime can be resolved and probed without reading credentials.
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run $gsd-plan-phase 18 to break down)
+
 ---
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 16.1 → 17
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 16.1 → 17 → 18
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -520,3 +538,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 16. Comprehensive Activity Progress Dashboard | 2/2 | Complete    | 2026-09-26 |
 | 16.1. Independent Notion Scheduler Module and Agent Skill | 4/4 | Complete    | 2026-10-04 |
 | 17. Universal Skill Packaging, Multi-Agent Deployment & End-to-End Verification | 5/5 | Complete    | 2026-10-08 |
+| 18. Selected Materials Contract and Attachment Manifest | 0/0 | Pending | — |

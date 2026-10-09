@@ -118,7 +118,8 @@ Progress: [████████████████████] 18/18 p
 
 ### Roadmap Evolution
 
-- Phase 18 added: Independent Notion Scheduler Module and Agent Skill
+- Phase 18 added: Selected Materials Contract and Attachment Manifest, an upstream public-contract prerequisite for alpha-AOS Phase 20 (user choice 2026-10-09).
+- Phase 16.1 added: Independent Notion Scheduler Module and Agent Skill
 - Phase 16.1 inserted after Phase 16: Independent Notion Scheduler Module and Agent Skill (URGENT)
 
 ### Pending Todos
