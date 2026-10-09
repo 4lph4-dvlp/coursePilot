@@ -176,20 +176,36 @@ def run_vod_download_pipeline(
                     continue
 
                 vod_url = vod.link if vod.link.startswith("http") else f"{cfg.lms_url.rstrip('/')}/{vod.link.lstrip('/')}"
-                sniffer = StreamSniffer(timeout=10.0)
+                sniffer = StreamSniffer(timeout=60.0)
                 sniffer.attach(page)
 
                 stream_url: Optional[str] = None
                 try:
-                    page.goto(vod_url, wait_until="domcontentloaded")
-                    stream_url = sniffer.wait_for_stream(page, timeout=10.0)
+                    page.goto(vod_url, wait_until="networkidle")
+                    page.wait_for_selector("video", timeout=30000)
+                    # Click the video element to start playback and trigger stream loading
+                    try:
+                        page.evaluate("""() => {
+                            const v = document.querySelector('video');
+                            if (v) {
+                                v.click();
+                            }
+                        }""")
+                    except Exception:
+                        pass
+                    # Also try to click the big play button if present
+                    try:
+                        page.click(".vjs-big-play-button", timeout=5000)
+                    except Exception:
+                        pass
+                    stream_url = sniffer.wait_for_stream(page, timeout=30.0)
                 except Exception as e:
                     logger.debug("Page navigation or sniffer error: %s", e)
                 finally:
                     sniffer.detach(page)
 
                 if not stream_url:
-                    err = f"Failed to detect stream URL within 10s for '{vod.title}'"
+                    err = f"Failed to detect stream URL within 60s for '{vod.title}'"
                     logger.warning(err)
                     run_result.failed_count += 1
                     course_res.items.append(

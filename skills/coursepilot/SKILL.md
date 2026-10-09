@@ -68,6 +68,23 @@ uv --directory "{{COURSEPILOT_REPO}}" run python -m coursepilot <check|progress|
 - 자료 항목의 `status`는 `downloaded`, `skipped`, `viewed_only`, `failed`, `planned`를 구분하세요. VOD의 `status`는 `downloaded`, `skipped`, `failed`입니다. `planned` 경로와 `viewed_only`는 내려받은 파일이 아닙니다.
 - 실제 실행 뒤에는 각 항목의 `status`, `saved_path`, `error_message`를 확인하고, `downloaded`이면서 `saved_path`가 비어 있지 않고 해당 파일이 실제 존재할 때에만 저장 성공으로 보고하세요. `failed`는 오류 이유를, `skipped`는 건너뛴 이유를 항목별로 설명하세요. 예정 경로를 실제 파일처럼 말하지 마세요.
 - 일반 개인 Scheduler 작업의 필드·조회·수정은 별도 `notion-scheduler` 스킬의 책임입니다. CoursePilot은 학업 `sync`와 시청 완료 연동만 안내합니다.
+- **일괄 다운로드 및 파일 정리 workflow** (일반적인 절차):
+  1. 진행 상황 확인: `uv --directory "{{COURSEPILOT_REPO}}" run python -m coursepilot progress --refresh --json` 로 각 주차별 미시청 VOD 목록 파악.
+  2. 미시청 VOD가 있는 주차만 대상 으로 설정 (예: 주차 6).
+  3. 영상 다운로드 (재생 + 백그라운드 저장): `uv --directory "{{COURSEPILOT_REPO}}" run python -m coursepilot watch --course "과목명" --week "주차" --download --output-dir "임시경로" --json` 을 실행하여 영상을 받아옵니다. (필요 시 --headed 사용)
+  4. 자료 다운로드 (필요 시): `uv --directory "{{COURSEPILOT_REVO}}" run python -m coursepilot materials --course "과목명" --week "주차" --output-dir "임시경로" --json`
+  5. 다운로드 완료 후 파일 이동 및 이름 변경:
+     ```
+     mkdir -p w01 w02 w03 w04 w05 w06 w07 w08 w09 w10 w11 w12 w13 w14
+     # 예시: 과목의 W06 폴더 안의 파일을 w06 폴더로 이동 및 이름 변경
+     mv 임시경로/과목명/W06/W06-01_*.mp4 w06/w06_01.mp4
+     mv 임시경로/과목명/W06/W06-02_*.mp4 w06/w06_02.mp4
+     mv 임시경로/과목명/W06/W06-03_*.mp4 w06/w06_03.mp4
+     # 자료가 있다면 동일하게 이동 (예: W01/*.pdf -> w01/w01_<주제>.pdf)
+     rm -rf 임시경로/과목명
+     ```
+  6. Git 관리 (선택): `.gitignore` 에서 `*.mp4` 라인을 제거하여 영상도 추적하고, `git add -A && git commit -m "Add materials and VODs" && git push origin main`.
+  주의: 파일명에 한글 및 공백이 있을 경우 따옴표 또는 이스케이프 처리. 기존 파일을 삭제한 후 이동 시 중복 이름이 없도록 확인.
 
 1. 미완료 일정은 `check --json`, 진도율이나 특정 활동의 발견 여부를 확인할 때는 `check --include-completed --json`을 실행하세요. 강의자료 열람·다운로드 상태를 묻는 경우 `materials --course "과목명" --week N --dry-run --json`도 실행하세요.
    - 영상·과제·퀴즈뿐 아니라 강의자료 확인/다운로드 작업도 포함됩니다.

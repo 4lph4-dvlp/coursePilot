@@ -184,6 +184,7 @@ def watch_course_vods(
     on_vod_complete: Callable[[PlaybackProgress], None] | None = None,
 ) -> WatchResult:
     """Orchestrates discovering, filtering, and watching incomplete VODs with state tracking (D-12-01..D-12-07)."""
+    result = None  # defensive init to avoid UnboundLocalError in finally
     mappings = load_course_mappings(settings.course_mappings_path)
     vod_player = player or VodPlayer(default_options=playback_options)
     sm = state_manager or WatchStateManager(settings=settings)
