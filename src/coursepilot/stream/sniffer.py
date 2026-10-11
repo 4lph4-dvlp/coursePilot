@@ -37,10 +37,12 @@ class StreamSniffer:
 
             # Check for M3U8 manifest or direct MP4 media stream
             is_m3u8 = ".m3u8" in url or content_type.startswith("application/vnd.apple.mpegurl")
+            is_ts = ".ts" in url.lower() or content_type.lower().startswith("video/mp2t")
             is_mp4 = (
-                ".mp4" in url
+                not is_ts
                 and "blob:" not in url
                 and not url.lower().endswith((".js", ".css", ".png", ".jpg", ".jpeg", ".ico"))
+                and (url.lower().endswith(".mp4") or ".mp4?" in url.lower())
             )
 
             if (is_m3u8 or is_mp4) and not self._event.is_set():
@@ -71,14 +73,40 @@ class StreamSniffer:
     def wait_for_stream(self, page: Page, timeout: Optional[float] = None) -> Optional[str]:
         """Wait for stream URL to be detected, falling back to probing the DOM video element."""
         wait_time = timeout if timeout is not None else self.timeout
+
+        # Early check from DOM (e.g. data-setup-lazy)
+        dom_src = self.probe_dom(page)
+        if dom_src:
+            return dom_src
+
         if self._event.wait(timeout=wait_time) and self.detected_url:
             return self.detected_url
 
         # Fallback DOM probe (Decision D-14-13)
+        return self.probe_dom(page) or self.detected_url
+
+    def probe_dom(self, page: Page) -> Optional[str]:
+        """Probe video element attributes including Video.js and Coursemos data-setup-lazy."""
         try:
-            dom_src = page.evaluate(
-                "() => { const v = document.querySelector('video'); return v ? (v.currentSrc || v.src) : null; }"
-            )
+            dom_src = page.evaluate("""() => {
+                const v = document.querySelector('video');
+                if (!v) return null;
+                if (v.currentSrc && !v.currentSrc.startsWith('blob:')) return v.currentSrc;
+                if (v.src && !v.src.startsWith('blob:')) return v.src;
+                try {
+                    const setup = JSON.parse(v.getAttribute('data-setup-lazy') || '{}');
+                    const src = (setup.sources || {}).src;
+                    if (src) return src;
+                } catch(e) {}
+                try {
+                    const setup = JSON.parse(v.getAttribute('data-setup') || '{}');
+                    const src = (setup.sources || {}).src;
+                    if (src) return src;
+                } catch(e) {}
+                const source = v.querySelector('source');
+                if (source && source.src && !source.src.startsWith('blob:')) return source.src;
+                return null;
+            }""")
             if dom_src and not str(dom_src).startswith("blob:"):
                 logger.info("Stream URL detected via DOM probe fallback: %s", dom_src)
                 self.detected_url = str(dom_src)
@@ -90,9 +118,8 @@ class StreamSniffer:
                         logger.warning("Error in on_stream_detected callback: %s", e)
                 return self.detected_url
         except Exception as e:
-            logger.debug("DOM probe failed during wait_for_stream: %s", e)
-
-        return self.detected_url
+            logger.debug("DOM probe failed: %s", e)
+        return None
 
     def __enter__(self) -> StreamSniffer:
         return self
