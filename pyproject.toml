@@ -33,7 +33,6 @@ coursepilot = "coursepilot.cli:main"
 
 [tool.uv.sources]
 notionScheduler = { path = "../notion-scheduler", editable = true }
-notion-scheduler = { path = "../notion-scheduler", editable = true }
 
 [build-system]
 requires = ["hatchling"]

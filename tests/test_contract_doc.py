@@ -138,8 +138,8 @@ def test_board_download_and_scheduler_skill_routes() -> None:
     for status in ("downloaded", "skipped", "viewed_only", "failed", "planned"):
         assert f"`{status}`" in body
     assert "saved_path" in body and "실제 존재" in body
-    assert "notion-scheduler" in body
-    assert "../notion-scheduler" not in body
+    assert "notionScheduler" in body
+    assert "../notionScheduler" not in body
 
 
 def test_json_contract_readme_lists_every_agent() -> None:

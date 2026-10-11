@@ -149,7 +149,7 @@ def install_skill_batch(
     for agent, target_info in AGENT_SKILL_PATHS.items():
         target = resolve_install_target(agent, home=home, env=env, platform=platform)
         agent_home = resolve_agent_home(agent, home=home, env=env, platform=platform)
-        scheduler_target = target.parent / "notion-scheduler"
+        scheduler_target = target.parent / "notionScheduler"
         scheduler.append(OptionalSkillStatus(
             agent=agent,
             target=scheduler_target,

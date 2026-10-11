@@ -21,7 +21,7 @@ Repository root: `{{COURSEPILOT_REPO}}`
 | `공지` | `notices --json` |
 | `Q&A` | `qna --json` |
 
-이 세 요청은 CoursePilot의 학업 조회입니다. 일반 개인 일정 관리 요청만 독립 `notion-scheduler` 스킬로 연결하세요.
+이 세 요청은 CoursePilot의 학업 조회입니다. 일반 개인 일정 관리 요청만 독립 `notionScheduler` 스킬로 연결하세요.
 
 항상 다음 형태로 명령을 실행하세요:
 
@@ -67,7 +67,7 @@ uv --directory "{{COURSEPILOT_REPO}}" run python -m coursepilot <check|progress|
 - 자료는 `materials --course "과목명" --week N --dry-run --json`, 영상은 `download-vod --course "과목명" --week N --dry-run --json`으로 대상과 경로를 먼저 확인하세요. 실제 다운로드는 사용자가 명시했을 때만 `--dry-run`을 빼고 실행하세요. 자료 열람만 원하면 `materials --no-download --json`을 사용하세요.
 - 자료 항목의 `status`는 `downloaded`, `skipped`, `viewed_only`, `failed`, `planned`를 구분하세요. VOD의 `status`는 `downloaded`, `skipped`, `failed`입니다. `planned` 경로와 `viewed_only`는 내려받은 파일이 아닙니다.
 - 실제 실행 뒤에는 각 항목의 `status`, `saved_path`, `error_message`를 확인하고, `downloaded`이면서 `saved_path`가 비어 있지 않고 해당 파일이 실제 존재할 때에만 저장 성공으로 보고하세요. `failed`는 오류 이유를, `skipped`는 건너뛴 이유를 항목별로 설명하세요. 예정 경로를 실제 파일처럼 말하지 마세요.
-- 일반 개인 Scheduler 작업의 필드·조회·수정은 별도 `notion-scheduler` 스킬의 책임입니다. CoursePilot은 학업 `sync`와 시청 완료 연동만 안내합니다.
+- 일반 개인 Scheduler 작업의 필드·조회·수정은 별도 `notionScheduler` 스킬의 책임입니다. CoursePilot은 학업 `sync`와 시청 완료 연동만 안내합니다.
 - **일괄 다운로드 및 파일 정리 workflow** (일반적인 절차):
   1. 진행 상황 확인: `uv --directory "{{COURSEPILOT_REPO}}" run python -m coursepilot progress --refresh --json` 로 각 주차별 미시청 VOD 목록 파악.
   2. 미시청 VOD가 있는 주차만 대상 으로 설정 (예: 주차 6).
@@ -100,7 +100,7 @@ uv --directory "{{COURSEPILOT_REPO}}" run python -m coursepilot <check|progress|
 
 ## 5. 노션 동기화 — 예: "노션에 올려줘"
 
-학업 항목의 LMS 수집과 Scheduler 동기화는 CoursePilot CLI로 처리하세요. Notion 전송·스키마 처리는 별도 `notion-scheduler` 패키지의 직접 API 경로를 사용합니다. 학업 외 일반 작업의 조회·생성·수정·완료는 설치된 `notion-scheduler` 스킬을 사용하세요. CoursePilot 동기화가 설정되지 않았다면 `sync.notice`/CLI 오류를 그대로 보고하세요. **토큰 값은 읽거나 출력하지 마세요.** 공식 원격 Notion MCP는 인증된 대화형 작업의 선택지이며 CoursePilot 자동 동기화의 기본 경로가 아닙니다.
+학업 항목의 LMS 수집과 Scheduler 동기화는 CoursePilot CLI로 처리하세요. Notion 전송·스키마 처리는 별도 `notionScheduler` 패키지의 직접 API 경로를 사용합니다. 학업 외 일반 작업의 조회·생성·수정·완료는 설치된 `notionScheduler` 스킬을 사용하세요. CoursePilot 동기화가 설정되지 않았다면 `sync.notice`/CLI 오류를 그대로 보고하세요. **토큰 값은 읽거나 출력하지 마세요.** 공식 원격 Notion MCP는 인증된 대화형 작업의 선택지이며 CoursePilot 자동 동기화의 기본 경로가 아닙니다.
 
 **User preference (always applied):** Direct Notion API PATCH for status field updates since CoursePilot sync protects it. Notion token works for PATCH page property updates. Note: Notion date writes truncate seconds (23:59:59 → stored 23:59:00), so a 59-second DueDate diff re-appears in every sync preview — harmless, do not loop --apply.
 
@@ -111,7 +111,7 @@ uv --directory "{{COURSEPILOT_REPO}}" run python -m coursepilot <check|progress|
 5. 사용자가 명확히 승인한 뒤에만 `sync --apply --json`을 실행하고, 실제로 생성/수정된 항목을 보고하세요.
 6. `sync.enabled`가 false라면 `sync.notice`를 그대로 보여주고 거기서 멈추세요.
 
-자동 동기화는 기존 `Plan`과 `상태`를 보존합니다. 사용자가 그 필드의 일반 작업 수정을 명시하면 `notion-scheduler` 스킬의 미리보기를 사용하세요. 시청 완료에 따른 학업 작업 상태 변경은 이 스킬의 `watch --update-notion` 또는 `watch sync-notion` 절차를 따릅니다.
+자동 동기화는 기존 `Plan`과 `상태`를 보존합니다. 사용자가 그 필드의 일반 작업 수정을 명시하면 `notionScheduler` 스킬의 미리보기를 사용하세요. 시청 완료에 따른 학업 작업 상태 변경은 이 스킬의 `watch --update-notion` 또는 `watch sync-notion` 절차를 따릅니다.
 
 **User preference (always applied):** Single sequential background watch process (kills concurrent watches). LXP recognition verified via `progress --refresh` before Notion completion. Do not start new watch if concurrent watch is running; kill existing one first.
 

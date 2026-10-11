@@ -202,7 +202,7 @@ def test_env_example_loads_through_settings(clean_env):
 
 
 def test_notion_config_inherited_from_notion_scheduler_env(tmp_path: Path, monkeypatch, clean_env):
-    """Verify CoursePilot inherits Notion configuration from notion-scheduler default env files."""
+    """Verify CoursePilot inherits Notion configuration from notionScheduler default env files."""
     dummy_root = tmp_path / ".coursepilot"
     dummy_root.mkdir()
     monkeypatch.setattr("coursepilot.config.DATA_ROOT", dummy_root)

@@ -50,7 +50,6 @@ def resolve_env_files() -> tuple[Path, ...]:
             home / ".notionScheduler" / ".env",
             home / ".notionScheduler.env",
             home / ".config" / "notionScheduler" / ".env",
-            home / ".config" / "notion-scheduler" / ".env",
         ]
     files = [p for p in notion_files if p != (DATA_ROOT / ".env")]
     files.append(DATA_ROOT / ".env")

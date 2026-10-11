@@ -477,14 +477,14 @@ def test_batch_cli_reports_all_rows_and_partial_exit(fake_home: Path) -> None:
     for agent in AGENT_SKILL_PATHS:
         assert f"({agent})" in result.output
     assert "success=4" in result.output and "skip=1" in result.output
-    assert "notion-scheduler" in result.output
+    assert "notionScheduler" in result.output
     assert CliRunner().invoke(cli, ["install-skill", "--all", "--agent", "codex"]).exit_code == 2
 
 
 def test_batch_five_successes_and_optional_scheduler(fake_home: Path) -> None:
     for agent in AGENT_SKILL_PATHS:
         resolve_agent_home(agent, home=fake_home, env={}, platform="linux").mkdir(parents=True)
-    optional = resolve_install_target("codex", home=fake_home, env={}, platform="linux").parent / "notion-scheduler"
+    optional = resolve_install_target("codex", home=fake_home, env={}, platform="linux").parent / "notionScheduler"
     optional.mkdir(parents=True)
     (optional / "SKILL.md").write_text("optional", encoding="utf-8")
     batch = install_skill_batch(home=fake_home, env={}, platform="linux")

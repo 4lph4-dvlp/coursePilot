@@ -148,7 +148,7 @@
 {"course_id":"example","course_name":"예시 과목","target_week":"1","total_vods":1,"completed_vods":0,"dry_run":true}
 ```
 
-`watch status --json`은 `WatchState`의 `status`, `course_name`, `course_id`, `target_week`, `video_index`, `total_videos`, `current_video_title`, `duration`, `current_time`, `progress_percent`, `remaining_seconds`, `pid`, `updated_at`, `error_message`를 반환합니다. 실행 중인 세션이 없으면 `{"status":"idle"}`입니다. `watch stop --json`은 중단 성공 시 `{"stopped":true,"pid":123}`, 실행 중인 작업이 없으면 `{"stopped":false,"reason":"not_running"}`입니다. `watch scheduler-tasks --json`은 읽기 전용입니다. `watch sync-notion --dry-run --json`은 `dry_run`, `planned_count`, `planned_tasks`, `already_completed_tasks`, `unmatched_tasks`, `ambiguous_tasks`, `synced_count`, `synced_tasks`를 반환합니다. 학업 시청 완료 반영을 미리 보는 명령이며, 일반 개인 Scheduler 작업 필드와 조작은 별도 `notion-scheduler` 스킬의 `JSON_CONTRACT.md`를 따르세요.
+`watch status --json`은 `WatchState`의 `status`, `course_name`, `course_id`, `target_week`, `video_index`, `total_videos`, `current_video_title`, `duration`, `current_time`, `progress_percent`, `remaining_seconds`, `pid`, `updated_at`, `error_message`를 반환합니다. 실행 중인 세션이 없으면 `{"status":"idle"}`입니다. `watch stop --json`은 중단 성공 시 `{"stopped":true,"pid":123}`, 실행 중인 작업이 없으면 `{"stopped":false,"reason":"not_running"}`입니다. `watch scheduler-tasks --json`은 읽기 전용입니다. `watch sync-notion --dry-run --json`은 `dry_run`, `planned_count`, `planned_tasks`, `already_completed_tasks`, `unmatched_tasks`, `ambiguous_tasks`, `synced_count`, `synced_tasks`를 반환합니다. 학업 시청 완료 반영을 미리 보는 명령이며, 일반 개인 Scheduler 작업 필드와 조작은 별도 `notionScheduler` 스킬의 `JSON_CONTRACT.md`를 따르세요.
 
 ## 버전 규칙 (Versioning)
 

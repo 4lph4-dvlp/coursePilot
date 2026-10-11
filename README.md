@@ -12,7 +12,7 @@
 
 ## 업데이트 및 스킬 연결
 
-- 이 저장소와 별도 `notion-scheduler` 저장소를 같은 상위 디렉터리에 둔 뒤 `uv sync`를 실행하세요. `uv run coursepilot --help` 또는 `uv run python -m coursepilot --help`로 실행을 확인합니다.
+- 이 저장소와 별도 `notionScheduler` 저장소를 같은 상위 디렉터리에 둔 뒤 `uv sync`를 실행하세요. `uv run coursepilot --help` 또는 `uv run python -m coursepilot --help`로 실행을 확인합니다.
 - 에이전트 스킬은 이 체크아웃에서 `uv run coursepilot install-skill --all`로 다시 연결하세요. 각 에이전트의 설치 결과를 확인하고 새 세션으로 시작하세요. 개별 복사 설치는 `--agent <id>`로 계속 사용할 수 있습니다.
 - `~/.coursepilot/.env`의 키·직접 설정한 LMS 주소·세션/진척도 캐시·다운로드 경로·Notion 작업 ID는 그대로 유지됩니다. 예전 학교 기본값에 의존했다면 `LMS_URL` 또는 `LMS_PROFILE=kau`를 지정해야 합니다.
 - 로컬 저장소 폴더명과 Git 원격 주소는 자동으로 바꾸지 않습니다. 폴더를 나중에 옮긴 경우 연결형 스킬은 새 위치에서 재설치하세요.
@@ -24,7 +24,7 @@
 
 ## 설치 및 설정 (Setup)
 
-1. 별도 `notion-scheduler` 저장소를 이 저장소의 형제 디렉터리(`../notion-scheduler`)에 배치한 뒤 의존성을 설치합니다. 현재 개발용 uv 설정은 이 로컬 경로를 참조합니다.
+1. 별도 `notionScheduler` 저장소를 이 저장소의 형제 디렉터리(`../notionScheduler`)에 배치한 뒤 의존성을 설치합니다. 현재 개발용 uv 설정은 이 로컬 경로를 참조합니다.
 
    ```
    uv sync
@@ -101,7 +101,7 @@ JSON 출력의 정확한 필드 구조는 [`skills/coursepilot/JSON_CONTRACT.md`
 
 `sync`는 기본적으로 **미리보기(dry-run)**입니다 — 생성/수정될 항목 목록만 보여주고 아무것도 쓰지 않습니다. 실제로 Notion에 반영하려면 명시적으로 `--apply`를 붙여야 합니다. 에이전트를 통해 대화로 요청하는 경우("노션에 올려줘")에도 스킬은 먼저 미리보기를 보여주고, 사용자의 명확한 승인을 받은 뒤에만 `--apply`를 실행합니다.
 
-학업 항목의 동기화 경로는 CoursePilot CLI입니다. `sync`와 `watch`는 별도 `notion-scheduler` 패키지의 직접 Notion API 전송·스키마 계약을 사용합니다. 학업 외 일반 Scheduler 작업은 별도 저장소에 포함된 `notion-scheduler` 스킬과 CLI로 관리할 수 있습니다. 시청과 완료 처리를 함께 명시적으로 요청하면 에이전트도 `watch --update-notion`을 사용하며, 실제 시청 완료된 영상의 일치하는 작업만 완료 처리합니다. 단순 시청 요청이라면 시청 후 `watch sync-notion --dry-run --json`으로 변경 대상을 제안하고 사용자 승인 후 정확한 제목만 `--task-title`로 지정해 반영합니다. 공식 원격 Notion MCP는 인증된 대화형 작업의 선택지이며 CoursePilot 자동 동기화에는 사용하지 않습니다.
+학업 항목의 동기화 경로는 CoursePilot CLI입니다. `sync`와 `watch`는 별도 `notionScheduler` 패키지의 직접 Notion API 전송·스키마 계약을 사용합니다. 학업 외 일반 Scheduler 작업은 별도 저장소에 포함된 `notionScheduler` 스킬과 CLI로 관리할 수 있습니다. 시청과 완료 처리를 함께 명시적으로 요청하면 에이전트도 `watch --update-notion`을 사용하며, 실제 시청 완료된 영상의 일치하는 작업만 완료 처리합니다. 단순 시청 요청이라면 시청 후 `watch sync-notion --dry-run --json`으로 변경 대상을 제안하고 사용자 승인 후 정확한 제목만 `--task-title`로 지정해 반영합니다. 공식 원격 Notion MCP는 인증된 대화형 작업의 선택지이며 CoursePilot 자동 동기화에는 사용하지 않습니다.
 
 Scheduler에 등록된 미완료 영상 작업 전체를 시청할 때는 `watch scheduler-tasks --json`으로 읽기 전용 목록을 얻고, 각 작업을 `watch --course "<과목 ID>" --week N --task-title "<정확한 작업명>" --update-notion --json`으로 실행합니다. 목록의 다른 작업을 잘못 재생하지 않도록 작업명 일치 여부를 확인합니다.
 
@@ -131,7 +131,7 @@ Windows Codex의 `workspace-write` 자식은 브라우저와 체크아웃 폴더
 
 Antigravity headless CLI(`agy`)는 IDE와 별도로 `~/.gemini/antigravity-cli/skills/coursepilot`에서 사용자 스킬을 찾습니다. 이 PC에는 해당 경로를 현재 체크아웃의 스킬 폴더로 잇는 접합점을 추가해 CLI를 검증했습니다. 현재 `install-skill --all`은 IDE 경로만 관리하므로 CLI 링크는 설치 결과 다섯 행에 포함되지 않습니다.
 
-저장소를 옮긴 뒤 링크가 끊어지면 대상의 `SKILL.md`와 `JSON_CONTRACT.md`를 열어 진단하세요. 현재 체크아웃에서 `uv run coursepilot install-skill --all`을 다시 실행하면 끊어진 링크를 현재 소스로 고치고 두 문서의 읽기 가능 여부를 검사합니다. 다른 체크아웃을 자동 탐색하지 않습니다. 설치 뒤에는 각 에이전트를 재시작하거나 새 세션에서 스킬을 다시 발견하게 하세요. `notion-scheduler` 스킬 상태는 별도 선택 항목으로 표시되며 없어도 CoursePilot의 학업 명령 설치는 실패하지 않습니다. 일반 Scheduler 작업용 독립 스킬은 공개 배포가 준비되면 별도로 설치하세요.
+저장소를 옮긴 뒤 링크가 끊어지면 대상의 `SKILL.md`와 `JSON_CONTRACT.md`를 열어 진단하세요. 현재 체크아웃에서 `uv run coursepilot install-skill --all`을 다시 실행하면 끊어진 링크를 현재 소스로 고치고 두 문서의 읽기 가능 여부를 검사합니다. 다른 체크아웃을 자동 탐색하지 않습니다. 설치 뒤에는 각 에이전트를 재시작하거나 새 세션에서 스킬을 다시 발견하게 하세요. `notionScheduler` 스킬 상태는 별도 선택 항목으로 표시되며 없어도 CoursePilot의 학업 명령 설치는 실패하지 않습니다. 일반 Scheduler 작업용 독립 스킬은 공개 배포가 준비되면 별도로 설치하세요.
 
 설치가 끝나면 **해당 에이전트를 재시작(또는 새 세션 시작)**한 뒤 "과제 확인해줘"처럼 자연어로 요청해 보세요. 상세 확인 결과는 `.planning/phases/05-cli-reporting-antigravity-skill-packaging/05-AGENT-SKILL-EVIDENCE.md`에 기록됩니다.
 

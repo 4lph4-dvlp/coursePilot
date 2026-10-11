@@ -223,7 +223,7 @@ def install_skill_command(ctx: click.Context, agent: str | None, link: bool, all
         out.print(f"합계: success={success}, skip={skip}, failure={failure}", markup=False, highlight=False)
         for optional in batch.scheduler_skill:
             out.print(
-                f"notion-scheduler ({optional.agent}): {'readable' if optional.readable else 'optional missing'} | {optional.target}",
+                f"notionScheduler ({optional.agent}): {'readable' if optional.readable else 'optional missing'} | {optional.target}",
                 markup=False, highlight=False,
             )
         ctx.exit(0 if success == len(AGENT_SKILL_PATHS) else 1)
