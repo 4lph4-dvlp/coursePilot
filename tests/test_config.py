@@ -199,3 +199,23 @@ def test_env_example_loads_through_settings(clean_env):
     assert (
         settings.lms_url == DEFAULT_LMS_URL
     ), "Loading .env.example must yield DEFAULT_LMS_URL"
+
+
+def test_notion_config_inherited_from_notion_scheduler_env(tmp_path: Path, monkeypatch, clean_env):
+    """Verify CoursePilot inherits Notion configuration from notion-scheduler default env files."""
+    dummy_root = tmp_path / ".coursepilot"
+    dummy_root.mkdir()
+    monkeypatch.setattr("coursepilot.config.DATA_ROOT", dummy_root)
+
+    notion_env = tmp_path / "notion.env"
+    notion_env.write_text(
+        "NOTION_TOKEN=inherited_notion_token\n"
+        "NOTION_DATABASE_ID=inherited_db_id\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("NOTION_SCHEDULER_ENV", str(notion_env))
+
+    settings = Settings()
+    assert settings.notion_token == "inherited_notion_token"
+    assert settings.notion_database_id == "inherited_db_id"
+    assert settings.is_notion_configured is True

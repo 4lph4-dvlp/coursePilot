@@ -38,14 +38,37 @@ def resolve_data_path(requested: Path) -> Path:
     return resolved
 
 
+def resolve_env_files() -> tuple[Path, ...]:
+    """Resolve environment files, loading Notion Scheduler configs before CoursePilot local config."""
+    try:
+        from notion_scheduler import default_env_paths
+
+        notion_files = list(default_env_paths())
+    except ImportError:
+        home = Path.home()
+        notion_files = [
+            home / ".config" / "notion-scheduler" / ".env",
+            home / ".notion-scheduler" / ".env",
+            home / ".notion-scheduler.env",
+        ]
+    files = [p for p in notion_files if p != (DATA_ROOT / ".env")]
+    files.append(DATA_ROOT / ".env")
+    return tuple(files)
+
+
 class Settings(BaseSettings):
     """Application configuration loaded from environment variables and .env file."""
 
     model_config = SettingsConfigDict(
-        env_file=DATA_ROOT / ".env",
+        env_file=resolve_env_files(),
         env_file_encoding="utf-8",
         extra="ignore",
     )
+
+    def __init__(self, *args, **kwargs):
+        if "_env_file" not in kwargs:
+            kwargs["_env_file"] = resolve_env_files()
+        super().__init__(*args, **kwargs)
 
     # LMS Settings
     lms_url: str = Field(

@@ -100,7 +100,9 @@ uv --directory "{{COURSEPILOT_REPO}}" run python -m coursepilot <check|progress|
 
 ## 5. 노션 동기화 — 예: "노션에 올려줘"
 
-학업 항목의 LMS 수집과 Scheduler 동기화는 CoursePilot CLI로 처리하세요. Notion 전송·스키마 처리는 별도 `notion-scheduler` 패키지의 직접 API 경로를 사용합니다. 학업 외 일반 작업의 조회·생성·수정·완료는 설치된 `notion-scheduler` 스킬을 사용하세요. CoursePilot 동기화가 설정되지 않았다면 `sync.notice`/CLI 오류를 그대로 보고하세요. 토큰 값은 읽거나 출력하지 마세요. 공식 원격 Notion MCP는 인증된 대화형 작업의 선택지이며 CoursePilot 자동 동기화의 기본 경로가 아닙니다.
+학업 항목의 LMS 수집과 Scheduler 동기화는 CoursePilot CLI로 처리하세요. Notion 전송·스키마 처리는 별도 `notion-scheduler` 패키지의 직접 API 경로를 사용합니다. 학업 외 일반 작업의 조회·생성·수정·완료는 설치된 `notion-scheduler` 스킬을 사용하세요. CoursePilot 동기화가 설정되지 않았다면 `sync.notice`/CLI 오류를 그대로 보고하세요. **토큰 값은 읽거나 출력하지 마세요.** 공식 원격 Notion MCP는 인증된 대화형 작업의 선택지이며 CoursePilot 자동 동기화의 기본 경로가 아닙니다.
+
+**User preference (always applied):** Direct Notion API PATCH for status field updates since CoursePilot sync protects it. Notion token works for PATCH page property updates. Note: Notion date writes truncate seconds (23:59:59 → stored 23:59:00), so a 59-second DueDate diff re-appears in every sync preview — harmless, do not loop --apply.
 
 1. 먼저 `sync --json`을 실행하세요 (미리보기이며, 아무것도 기록되지 않습니다).
 2. 만약 `notices`에 항목이 있다면, 미리보기 표보다 먼저 모든 notice의 `message`를 보여주세요.
@@ -110,6 +112,10 @@ uv --directory "{{COURSEPILOT_REPO}}" run python -m coursepilot <check|progress|
 6. `sync.enabled`가 false라면 `sync.notice`를 그대로 보여주고 거기서 멈추세요.
 
 자동 동기화는 기존 `Plan`과 `상태`를 보존합니다. 사용자가 그 필드의 일반 작업 수정을 명시하면 `notion-scheduler` 스킬의 미리보기를 사용하세요. 시청 완료에 따른 학업 작업 상태 변경은 이 스킬의 `watch --update-notion` 또는 `watch sync-notion` 절차를 따릅니다.
+
+**User preference (always applied):** Single sequential background watch process (kills concurrent watches). LXP recognition verified via `progress --refresh` before Notion completion. Do not start new watch if concurrent watch is running; kill existing one first.
+
+**Note:** This preference is verified and active across all sessions — the sequential execution order ensures no concurrent watch processes accumulate, and LXP state is always checked via `progress --refresh` before any Notion state transition.
 
 ### 수업 준비 범위와 목표일
 
